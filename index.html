@@ -82,7 +82,13 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 .gameOverBtnsRow button{flex:1;padding:9px 4px;font-size:12px;font-weight:bold}
 
 /* CONTROLS BAR */
-#controlsBar{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;font-size:11px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
+#controlsBar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;font-size:10px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
+.controlSwitches{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.miniToggle{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 9px 'Courier New',Courier,monospace;cursor:pointer}
+.miniToggle::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff4e62;box-shadow:0 0 4px #ff4e62}
+.miniToggle[aria-pressed="true"]{border-color:#30ee83;color:#b8ff56;background:rgba(48,238,131,.12)}
+.miniToggle[aria-pressed="true"]::before{background:#30ee83;box-shadow:0 0 5px #30ee83}
+.miniToggle:hover{background:rgba(74,247,255,.22)}
 
 /* NATIVE LEADERBOARD TABLE */
 #leaderboardSection{width:100%;margin-top:18px;border:2px solid rgba(74,247,255,.4);border-radius:6px;overflow:hidden;background:#050d17}
@@ -104,55 +110,31 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 .scoreNum{color:#4af7ff;font-weight:bold;font-size:13px}
 #scoresStatus{text-align:center;padding:18px;font-size:12px;color:rgba(220,255,240,.6)}
 
-/* Phone layout: maximize the game canvas and make every overlay a
-   full-screen modal so nothing needs internal scrolling on a 6.5–7"
-   portrait phone. */
 @media(max-width:680px){
-  html,body{width:100%;overflow-x:hidden}
-  #page{width:100%;max-width:none;padding:4px 0 10px}
-  header{padding:3px 8px 5px}
-  header h1{font-size:14px;letter-spacing:.2px}
-  header .sub{font-size:8px}
-  .headerTag{display:none}
-
-  #gameWrap{width:100vw;max-width:none;margin:4px auto 0;aspect-ratio:16/9;box-shadow:none}
-  canvas{outline-width:1px;outline-offset:-1px}
-
-  #controlsBar{width:100vw;margin:0 auto;padding:4px 8px;font-size:8px;line-height:1.3;gap:1px;text-align:center}
-  #leaderboardSection{width:100vw;margin:10px auto 0;border-width:1px}
-  .lbHeader{padding:8px 10px}
-  .lbTitle{font-size:12px}.lbSub{font-size:9px}.lbBtn{font-size:9px;padding:5px 8px}
-  .lbTableWrap{padding:7px 8px 10px}table.scoreTable{font-size:10px}
-  table.scoreTable th,table.scoreTable td{padding:6px 4px;font-size:9px}
-
-  .overlayPanel.active{
-    position:fixed; inset:0; width:100vw; height:100dvh;
-    z-index:999; overflow-y:auto; padding:14px 10px;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  #hangarTitle{font-size:16px;letter-spacing:.5px;margin:1px 0}
-  #hangarSubtitle{font-size:8px;letter-spacing:.3px;margin:1px 0 6px}
-  #hangarGrid{grid-template-columns:1.05fr .95fr;gap:6px;padding:8px;max-width:100%}
-  .sectionTitle{font-size:9px;margin-bottom:4px}.shipCarousel{gap:4px;margin-bottom:5px}
-  .navArrow{font-size:14px;padding:3px 8px}.shipNameBox{padding:4px 3px}
-  #currentShipName{font-size:10px}#currentShipTag{font-size:7px;margin-top:1px}
-  .statRow{font-size:8px;margin-bottom:3px}.statLabel{width:46px}.statBarBg{height:5px}
-  #shipDesc,#bombDesc{font-size:8px;line-height:1.2;min-height:0;margin-top:4px}
-  .bombGroup{gap:3px;margin-bottom:4px}.bombBtn{padding:4px 2px;font-size:8px;gap:1px}.bombBtn .icon{font-size:12px}
-  .bombTip{font-size:8px;padding:4px;margin-top:6px}
-  #launchBtn{margin-top:8px;padding:9px 16px;font-size:12px}
-
-  #pauseBox{width:min(360px,94%);padding:14px;gap:8px}#pauseTitle{font-size:19px}
-  #gameOverBox{width:min(360px,94%);padding:16px;gap:9px}
-  .menuActionBtn{padding:9px 3px;font-size:10.5px}
+  #hangarGrid{grid-template-columns:1fr;gap:10px}
+  #hangarTitle{font-size:18px}
+  #gameWrap{aspect-ratio:16/10}
+  #controlsBar{flex-direction:column;gap:3px;text-align:center}
 }
 
-@media(max-width:380px){
-  #hangarTitle{font-size:14px}#hangarSubtitle{font-size:7px}
-  #hangarGrid{padding:5px;gap:4px}
-  #shipDesc,#bombDesc{font-size:7px}
+/* FINAL MOBILE FULL-SCREEN GAME LAYOUT */
+@media(max-width:680px){
+  #page{max-width:none;padding:4px 0 12px}
+  header{padding:4px 8px 6px} header h1{font-size:14px}.headerTag{display:none}
+  #gameWrap{width:100vw;margin:4px 0 0;aspect-ratio:16/9;box-shadow:none}
+  #controlsBar,#leaderboardSection{width:100vw;margin-left:0;margin-right:0}
+  #controlsBar{padding:4px 5px;font-size:8px;gap:3px;flex-wrap:wrap;justify-content:center;text-align:center}
+  .controlSwitches{order:-1}.miniToggle{font-size:8px;padding:3px 5px}
+  .overlayPanel.active{position:fixed;inset:0;width:100vw;height:100dvh;z-index:999;overflow-y:auto;padding:14px 10px}
+  #hangarGrid{grid-template-columns:1.05fr .95fr;gap:6px;padding:7px}
+  #hangarTitle{font-size:15px}#hangarSubtitle{font-size:8px;margin-bottom:5px}
+  .sectionTitle{font-size:9px}.statRow{font-size:8px;margin-bottom:3px}.statLabel{width:46px}.statBarBg{height:5px}
+  #shipDesc,#bombDesc{font-size:8px;line-height:1.2;min-height:0}.bombTip{display:none}
+  .navArrow{padding:3px 8px;font-size:14px}#currentShipName{font-size:10px}#currentShipTag{font-size:7px}
+  .bombBtn{padding:4px 2px;font-size:8px}.bombBtn .icon{font-size:12px}
+  #launchBtn{margin-top:7px;padding:8px 14px;font-size:11px}
 }
+
 </style>
 </head>
 <body>
@@ -247,8 +229,12 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 
   <!-- IN-GAME CONTROLS BAR -->
   <div id="controlsBar">
-    <div>🕹️ MOUSE / FINGER MOVES · AUTO-FIRE ON</div>
-    <div>💥 DOUBLE CLICK / DOUBLE TAP OR [K] = BOMB · [P] / [ESC] = MENU & PAUSE</div>
+    <div id="controlHelp">🖱️ MOUSE / FINGER MOVES</div>
+    <div class="controlSwitches">
+      <button class="miniToggle" id="inputModeToggle" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
+      <button class="miniToggle" id="soundToggle" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
+    </div>
+    <div>💥 [K] BOMB · [P] / [ESC] PAUSE</div>
   </div>
 
   <!-- NATIVE LEADERBOARD TABLE -->
@@ -256,7 +242,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
     <div class="lbHeader">
       <div>
         <div class="lbTitle">🏆 High Scores Leaderboard</div>
-        <div class="lbSub">Scores save on this device, then sync to Google Sheets when reachable.</div>
+        <div class="lbSub">Scores save on this device, then sync to database when reachable.</div>
       </div>
       <div class="lbActions">
         <button class="lbBtn" id="refreshScoresBtn" type="button">🔄 Refresh Scores</button>
@@ -348,10 +334,10 @@ const SHIPS = [
     secColor: '#ff4e62',
     speed: 320,
     hp: 100,
-    fireDelay: 0.20,
-    rapidDelay: 0.11,
-    stats: { speed: 80, fireRate: 75, power: 86, armor: 75 },
-    desc: 'Launches agile tracking rockets from wing pods that curve to hunt down the nearest pathogens.'
+    fireDelay: 0.11,
+    rapidDelay: 0.055,
+    stats: { speed: 80, fireRate: 96, power: 58, armor: 75 },
+    desc: 'Rapid-launch homing rockets: much faster firing, but each missile carries lower explosive power.'
   }
 ];
 
@@ -456,23 +442,6 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-/* Explicit pixel sizing for #gameWrap. Some in-app/WebView browsers only
-   partially support the CSS `aspect-ratio` property, which silently makes
-   the canvas render smaller than the phone's actual width. This forces the
-   true maximum size on every load/resize/orientation change. */
-const gameWrapEl = document.getElementById('gameWrap');
-function sizeGameWrap(){
-  const isPhone = window.innerWidth <= 680;
-  if(!isPhone){ gameWrapEl.style.width = ''; gameWrapEl.style.height = ''; return; }
-  const w = Math.floor(window.innerWidth);
-  const h = Math.floor(w * 9 / 16);
-  gameWrapEl.style.width = w + 'px';
-  gameWrapEl.style.height = h + 'px';
-}
-sizeGameWrap();
-window.addEventListener('resize', sizeGameWrap);
-window.addEventListener('orientationchange', () => setTimeout(sizeGameWrap, 60));
-
 /* DOM ELEMENTS */
 const hangarOverlay = document.getElementById('hangarOverlay');
 const pauseMenuOverlay = document.getElementById('pauseMenuOverlay');
@@ -499,6 +468,9 @@ const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 const scoreTableBody = document.getElementById('scoreTableBody');
 const scoresStatus = document.getElementById('scoresStatus');
 const refreshScoresBtn = document.getElementById('refreshScoresBtn');
+const inputModeToggle = document.getElementById('inputModeToggle');
+const soundToggle = document.getElementById('soundToggle');
+const controlHelp = document.getElementById('controlHelp');
 
 /* RUNTIME GAME STATE */
 let state = STATE.START;
@@ -514,6 +486,36 @@ let stars = Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,s:1
 const pointerTarget = {x:W/2, y:H-72, active:false};
 let pointerDown = false;
 let lastTapTime = 0;
+let inputMode = localStorage.getItem('phytoplaneInputMode') || 'mouse';
+let soundEnabled = localStorage.getItem('phytoplaneSoundEnabled') !== 'false';
+
+function updateControlToggles(){
+  const usingMouse = inputMode === 'mouse';
+  if(inputModeToggle){
+    inputModeToggle.textContent = usingMouse ? 'MOUSE' : 'KEYS';
+    inputModeToggle.setAttribute('aria-pressed', String(usingMouse));
+  }
+  if(controlHelp) controlHelp.textContent = usingMouse ? '🖱️ MOUSE / FINGER MOVES' : '⌨️ ARROWS / WASD MOVE';
+  if(soundToggle){
+    soundToggle.textContent = soundEnabled ? 'SOUND' : 'MUTED';
+    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  }
+}
+
+if(inputModeToggle) inputModeToggle.addEventListener('click', () => {
+  inputMode = inputMode === 'mouse' ? 'keyboard' : 'mouse';
+  localStorage.setItem('phytoplaneInputMode', inputMode);
+  keys = Object.create(null);
+  updateControlToggles();
+  if(soundEnabled) beep(420, .05, 'sine');
+});
+if(soundToggle) soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('phytoplaneSoundEnabled', String(soundEnabled));
+  updateControlToggles();
+  if(soundEnabled) beep(660, .07, 'sine');
+});
+updateControlToggles();
 
 /* UI SELECTOR BINDINGS */
 function updateHangarUI() {
@@ -876,6 +878,7 @@ window.addEventListener('keyup', e => { keys[e.code] = false; });
 /* AUDIO SYNTHESIS */
 let audioCtx;
 function beep(f=440, d=.06, type='square', v=.035){
+  if(!soundEnabled) return;
   try{
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
@@ -891,15 +894,17 @@ function beep(f=440, d=.06, type='square', v=.035){
 function updatePlayer(dt){
   const p = player, s = p.ship;
   let dx = 0, dy = 0, keyActive = false;
-  if(keys.ArrowLeft || keys.KeyA){ dx--; keyActive = true; }
-  if(keys.ArrowRight || keys.KeyD){ dx++; keyActive = true; }
-  if(keys.ArrowUp || keys.KeyW){ dy--; keyActive = true; }
-  if(keys.ArrowDown || keys.KeyS){ dy++; keyActive = true; }
+  if(inputMode === 'keyboard'){
+    if(keys.ArrowLeft || keys.KeyA){ dx--; keyActive = true; }
+    if(keys.ArrowRight || keys.KeyD){ dx++; keyActive = true; }
+    if(keys.ArrowUp || keys.KeyW){ dy--; keyActive = true; }
+    if(keys.ArrowDown || keys.KeyS){ dy++; keyActive = true; }
+  }
 
   if(keyActive){
     p.x += dx * s.speed * dt;
     p.y += dy * s.speed * 0.7 * dt;
-  } else {
+  } else if(inputMode === 'mouse') {
     const followSpeed = Math.min(1, dt * 16);
     p.x += (pointerTarget.x - p.x) * followSpeed;
     p.y += (pointerTarget.y - p.y) * followSpeed;
@@ -907,7 +912,8 @@ function updatePlayer(dt){
 
   p.x = Math.max(25, Math.min(W - 25, p.x));
   p.y = Math.max(H - 170, Math.min(H - 37, p.y));
-  p.tilt += (((keyActive ? dx * 0.35 : (pointerTarget.x - p.x) * 0.012)) - p.tilt) * Math.min(1, dt * 12);
+  const targetTilt = keyActive ? dx * 0.35 : (inputMode === 'mouse' ? (pointerTarget.x - p.x) * 0.012 : 0);
+  p.tilt += (targetTilt - p.tilt) * Math.min(1, dt * 12);
 
   p.fireDelay -= dt;
   p.rapid = Math.max(0, p.rapid - dt);
@@ -959,13 +965,14 @@ function fireShipWeapon(){
     beep(340, .05, 'triangle', .03);
   }
   else if(s.id === 'rocket'){
+    // Rapid launcher: lower damage per missile, higher firing cadence.
     p.rocketSide = 1 - p.rocketSide;
     const sx = p.rocketSide ? p.x - 14 : p.x + 14;
-    bullets.push({x:sx, y:p.y-16, vx:(p.rocketSide?-80:80), vy:-380, r:5, dmg:2.2, homing:true, color:s.color, type:'rocket', age:0});
+    bullets.push({x:sx, y:p.y-17, vx:(p.rocketSide ? -55 : 55), vy:-530, r:5, dmg:1.05, homing:true, color:s.color, type:'rocket', age:0});
     if(isRapid){
-      bullets.push({x:p.x, y:p.y-22, vx:0, vy:-520, r:4, dmg:1.5, homing:true, color:s.secColor, type:'rocket', age:0});
+      bullets.push({x:p.x, y:p.y-22, vx:0, vy:-570, r:4, dmg:.65, homing:true, color:s.secColor, type:'rocket', age:0});
     }
-    beep(480, .05, 'square', .025);
+    beep(520, .035, 'square', .022);
   }
 }
 
@@ -1008,7 +1015,7 @@ function triggerBomb(){
         e.hp -= 85;
         hits++;
         burst(e.x, e.y, COLORS.yellow, 16);
-        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
+        if(e.hp <= 0) killEnemy(e);
       }
     });
     if(boss) boss.hp -= 160;
@@ -1039,7 +1046,7 @@ function triggerBomb(){
         e.hp -= 42;
         hits++;
         burst(e.x, e.y, COLORS.lime, 10);
-        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
+        if(e.hp <= 0) killEnemy(e);
       }
     });
     if(boss) boss.hp -= 80;
@@ -2117,8 +2124,16 @@ function render(){
       circle(b.x, b.y, b.r, b.color || COLORS.lime);
       if(b.type === 'lance') rect(b.x - 2, b.y, 4, 18, '#ffffff');
       else if(b.type === 'rocket'){
-        rect(b.x - 2, b.y + 2, 4, 8, '#ff4e62');
-        circle(b.x, b.y + 10, 2, COLORS.yellow);
+        // A real missile silhouette: pointed nose, fins, exhaust, and rotates
+        // in the direction the homing rocket is actually travelling.
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+        poly([[0,-10],[-4,3],[-6,7],[6,7],[4,3]], b.color || COLORS.yellow, '#ffffff');
+        poly([[-6,5],[-9,9],[-3,8]], '#ff4e62');
+        poly([[6,5],[9,9],[3,8]], '#ff4e62');
+        poly([[-2,7],[0,14],[2,7]], COLORS.orange);
+        ctx.restore();
       } else {
         rect(b.x - 1, b.y, b.r * 2, 8, 'rgba(184,255,86,.45)');
       }
