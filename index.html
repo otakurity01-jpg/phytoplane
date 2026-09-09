@@ -188,7 +188,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
             </button>
             <button class="bombBtn" id="bombBioBtn" type="button" data-bomb="bio">
               <span class="icon">🛡️</span>
-              <span>PULSE</span>
+              <span>OVERDRIVE</span>
             </button>
           </div>
           <div id="bombDesc">5 sweeping orbital laser beams slice across the battlefield for 2.5s, obliterating bullets and pathogens.</div>
@@ -359,10 +359,10 @@ const BOMBS = {
   },
   bio: {
     id: 'bio',
-    name: 'Biosecurity Pulse',
-    icon: '🛡️',
-    color: '#30ee83',
-    desc: 'Instant high-frequency EMP blast that dissolves pathogen cell walls and cancels hostile projectiles.'
+    name: 'Biosecurity Overdrive',
+    icon: '⚡',
+    color: '#ff76d5',
+    desc: '10-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.'
   }
 };
 
@@ -776,7 +776,7 @@ function resetGame(){
     hp: shipCfg.hp, maxHp: shipCfg.hp,
     lives: 3, maxLives: 5,
     fireDelay: 0,
-    rapid: 0, shield: 0, multiplier: 0,
+    rapid: 0, shield: 0, multiplier: 0, overdrive: 0,
     bombs: 3,
     invincible: 0, tilt: 0,
     rocketSide: 0
@@ -919,6 +919,7 @@ function updatePlayer(dt){
   p.rapid = Math.max(0, p.rapid - dt);
   p.shield = Math.max(0, p.shield - dt);
   p.multiplier = Math.max(0, p.multiplier - dt);
+  p.overdrive = Math.max(0, p.overdrive - dt);
   p.invincible = Math.max(0, p.invincible - dt);
 
   if(p.fireDelay <= 0) fireShipWeapon();
@@ -926,8 +927,8 @@ function updatePlayer(dt){
 
 /* WEAPON FIRING */
 function fireShipWeapon(){
-  const p = player, s = p.ship, isRapid = p.rapid > 0;
-  p.fireDelay = isRapid ? s.rapidDelay : s.fireDelay;
+  const p = player, s = p.ship, isRapid = p.rapid > 0, isOverdrive = p.overdrive > 0;
+  p.fireDelay = isOverdrive ? Math.min(s.rapidDelay, .045) : (isRapid ? s.rapidDelay : s.fireDelay);
 
   if(s.id === 'blaster'){
     bullets.push({x:p.x-8, y:p.y-18, vx:0, vy:-640, r:4, dmg:1.2, color:s.color, type:'pulse'});
@@ -972,7 +973,14 @@ function fireShipWeapon(){
     if(isRapid){
       bullets.push({x:p.x, y:p.y-22, vx:0, vy:-570, r:4, dmg:.65, homing:true, color:s.secColor, type:'rocket', age:0});
     }
+    if(isOverdrive){
+      bullets.push({x:p.x + (p.rocketSide ? 19 : -19), y:p.y-14, vx:(p.rocketSide ? 115 : -115), vy:-610, r:4, dmg:.55, homing:true, color:'#ff76d5', type:'rocket', age:0});
+    }
     beep(520, .035, 'square', .022);
+  }
+
+  if(isOverdrive && s.id !== 'rocket'){
+    bullets.push({x:p.x, y:p.y-30, vx:0, vy:-760, r:3, dmg:.7, pierce:1, color:COLORS.pink, type:'overdrive'});
   }
 }
 
@@ -1032,27 +1040,18 @@ function triggerBomb(){
     beep(80, .5, 'sawtooth', .08);
   }
   else {
-    shake = 0.3;
-    activeBombEffects.push({
-      type: 'pulse',
-      life: 0.8,
-      radius: 10,
-      x: player.x, y: player.y
-    });
-    enemyBullets = [];
-    let hits = 0;
-    enemies.forEach(e => {
-      if(!e.dead){
-        e.hp -= 42;
-        hits++;
-        burst(e.x, e.y, COLORS.lime, 10);
-        if(e.hp <= 0) killEnemy(e);
-      }
-    });
-    if(boss) boss.hp -= 80;
-    addScore(hits * 25);
-    floatingText.push({x:W/2, y:H*0.5, text:'BIOSECURITY EMP PULSE!', color:COLORS.lime, life:1.5, vy:-20, big:true});
-    beep(130, .25, 'triangle', .06);
+    // OVERDRIVE replaces the EMP: no screen-clear damage. It activates every
+    // player special for 10 seconds — rapid-fire, shield, 2X scoring, and a
+    // weapon boost handled by fireShipWeapon's isOverdrive flag.
+    shake = 0.18;
+    player.overdrive = Math.max(player.overdrive, 10);
+    player.rapid = Math.max(player.rapid, 10);
+    player.shield = Math.max(player.shield, 10);
+    player.multiplier = Math.max(player.multiplier, 10);
+    activeBombEffects.push({type:'overdrive', life:10, x:player.x, y:player.y});
+    floatingText.push({x:W/2, y:H*0.5, text:'⚡ OVERDRIVE ACTIVE — 10 SECONDS!', color:COLORS.pink, life:2.0, vy:-20, big:true});
+    burst(player.x, player.y, COLORS.pink, 30);
+    for(let i=0; i<4; i++) setTimeout(() => beep(420 + i*110, .1, 'sine', .05), i*90);
   }
 }
 
@@ -1083,6 +1082,21 @@ function updateBombEffects(dt){
     if(eff.type === 'nuke' || eff.type === 'pulse'){
       eff.radius += (eff.type === 'nuke' ? 620 : 750) * dt;
       enemyBullets = enemyBullets.filter(eb => distance(eb.x, eb.y, eff.x, eff.y) > eff.radius);
+    }
+
+    if(eff.type === 'overdrive' && player && player.overdrive > 0){
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.rotate(elapsed * 5);
+      ctx.strokeStyle = 'rgba(255,118,213,.72)';
+      ctx.lineWidth = 2;
+      for(let i=0; i<4; i++){
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, 43, -0.5, 0.5);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     if(eff.life <= 0) activeBombEffects.splice(i, 1);
@@ -1740,6 +1754,13 @@ function drawPlayer(p){
     ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke();
   }
+  if(p.overdrive > 0){
+    const pulse = 34 + Math.sin(elapsed * 12) * 4;
+    ctx.strokeStyle = 'rgba(255,118,213,.92)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, pulse, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,232,94,.8)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(0, 0, pulse + 6, 0, Math.PI * 2); ctx.stroke();
+  }
   if(p.invincible > 0 && Math.floor(elapsed * 14) % 2 === 0){
     ctx.restore(); return;
   }
@@ -2100,6 +2121,7 @@ function drawHUD(){
   if(player.rapid > 0) s.push('RAPID ' + Math.ceil(player.rapid));
   if(player.shield > 0) s.push('SHIELD ' + Math.ceil(player.shield));
   if(player.multiplier > 0) s.push('2X SCORE ' + Math.ceil(player.multiplier));
+  if(player.overdrive > 0) s.push('⚡ OVERDRIVE ' + Math.ceil(player.overdrive));
   text(s.join(' | '), W / 2, H - 15, 11, COLORS.lime, 'center');
 }
 
