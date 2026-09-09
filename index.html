@@ -83,7 +83,8 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 
 /* CONTROLS BAR */
 #controlsBar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;font-size:10px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
-.controlSwitches{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.controlInstructions{display:flex;align-items:center;gap:10px;min-width:0;text-align:left}
+.controlSwitches{display:flex;align-items:center;gap:5px;white-space:nowrap;margin-left:auto}
 .miniToggle{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 9px 'Courier New',Courier,monospace;cursor:pointer}
 .miniToggle::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff4e62;box-shadow:0 0 4px #ff4e62}
 .miniToggle[aria-pressed="true"]{border-color:#30ee83;color:#b8ff56;background:rgba(48,238,131,.12)}
@@ -124,7 +125,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   #gameWrap{width:100vw;margin:4px 0 0;aspect-ratio:16/9;box-shadow:none}
   #controlsBar,#leaderboardSection{width:100vw;margin-left:0;margin-right:0}
   #controlsBar{padding:4px 5px;font-size:8px;gap:3px;flex-wrap:wrap;justify-content:center;text-align:center}
-  .controlSwitches{order:-1}.miniToggle{font-size:8px;padding:3px 5px}
+  .controlInstructions{order:0;gap:5px;flex:1;flex-wrap:wrap}.controlSwitches{order:1;margin-left:auto}.miniToggle{font-size:8px;padding:3px 5px}
   .overlayPanel.active{position:fixed;inset:0;width:100vw;height:100dvh;z-index:999;overflow-y:auto;padding:14px 10px}
   #hangarGrid{grid-template-columns:1.05fr .95fr;gap:6px;padding:7px}
   #hangarTitle{font-size:15px}#hangarSubtitle{font-size:8px;margin-bottom:5px}
@@ -192,7 +193,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
             </button>
           </div>
           <div id="bombDesc">5 sweeping orbital laser beams slice across the battlefield for 2.5s, obliterating bullets and pathogens.</div>
-          <div class="bombTip">⚡ BOMB DEPLOYMENT: DOUBLE-CLICK / DOUBLE-TAP CANVAS OR PRESS 'K'<br>🎁 BOMBS REFILL EXCLUSIVELY BY DESTROYING BOSSES!</div>
+          <div class="bombTip">⚡ BOMB: DOUBLE-TAP CANVAS OR PRESS [K]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
         </div>
       </div>
 
@@ -221,7 +222,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
         <button id="submitScoreBtn" type="button">SUBMIT SCORE TO LEADERBOARD</button>
         <div class="gameOverBtnsRow">
           <button class="menuActionBtn btnSecondary" id="restartGameOverBtn" type="button">🔄 RESTART MISSION</button>
-          <button class="menuActionBtn btnHangar" id="hangarGameOverBtn" type="button">🚀 SELECT PLANE</button>
+          <button class="menuActionBtn btnHangar" id="hangarGameOverBtn" type="button">🚀 HANGAR</button>
         </div>
       </div>
     </div>
@@ -229,12 +230,14 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 
   <!-- IN-GAME CONTROLS BAR -->
   <div id="controlsBar">
-    <div id="controlHelp">🖱️ MOUSE / FINGER MOVES</div>
+    <div class="controlInstructions">
+      <span id="controlHelp">🖱️ MOUSE / FINGER MOVES</span>
+      <span>💥 [K] BOMB · [P] / [ESC] PAUSE</span>
+    </div>
     <div class="controlSwitches">
       <button class="miniToggle" id="inputModeToggle" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
       <button class="miniToggle" id="soundToggle" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
     </div>
-    <div>💥 [K] BOMB · [P] / [ESC] PAUSE</div>
   </div>
 
   <!-- NATIVE LEADERBOARD TABLE -->
@@ -362,7 +365,7 @@ const BOMBS = {
     name: 'Biosecurity Overdrive',
     icon: '⚡',
     color: '#ff76d5',
-    desc: '10-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.'
+    desc: '5-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.'
   }
 };
 
@@ -882,8 +885,10 @@ function beep(f=440, d=.06, type='square', v=.035){
   try{
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    // 1.35× louder than the prior build, capped to avoid harsh clipping.
+    const volume = Math.min(0.12, v * 1.35);
     o.type = type; o.frequency.value = f;
-    g.gain.setValueAtTime(v, audioCtx.currentTime);
+    g.gain.setValueAtTime(volume, audioCtx.currentTime);
     g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + d);
     o.connect(g); g.connect(audioCtx.destination);
     o.start(); o.stop(audioCtx.currentTime + d);
@@ -1041,15 +1046,15 @@ function triggerBomb(){
   }
   else {
     // OVERDRIVE replaces the EMP: no screen-clear damage. It activates every
-    // player special for 10 seconds — rapid-fire, shield, 2X scoring, and a
+    // player special for 5 seconds — rapid-fire, shield, 2X scoring, and a
     // weapon boost handled by fireShipWeapon's isOverdrive flag.
     shake = 0.18;
-    player.overdrive = Math.max(player.overdrive, 10);
-    player.rapid = Math.max(player.rapid, 10);
-    player.shield = Math.max(player.shield, 10);
-    player.multiplier = Math.max(player.multiplier, 10);
-    activeBombEffects.push({type:'overdrive', life:10, x:player.x, y:player.y});
-    floatingText.push({x:W/2, y:H*0.5, text:'⚡ OVERDRIVE ACTIVE — 10 SECONDS!', color:COLORS.pink, life:2.0, vy:-20, big:true});
+    player.overdrive = Math.max(player.overdrive, 5);
+    player.rapid = Math.max(player.rapid, 5);
+    player.shield = Math.max(player.shield, 5);
+    player.multiplier = Math.max(player.multiplier, 5);
+    activeBombEffects.push({type:'overdrive', life:5, x:player.x, y:player.y});
+    floatingText.push({x:W/2, y:H*0.5, text:'⚡ OVERDRIVE ACTIVE — 5 SECONDS!', color:COLORS.pink, life:2.0, vy:-20, big:true});
     burst(player.x, player.y, COLORS.pink, 30);
     for(let i=0; i<4; i++) setTimeout(() => beep(420 + i*110, .1, 'sine', .05), i*90);
   }
