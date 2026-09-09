@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhytoPlane Defender — Plant Pathology Sky Defense</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;background:#060e18;font-family:'Courier New',Courier,monospace;overflow-x:hidden;color:#e8fdf5}
+#page{max-width:980px;margin:0 auto;padding:12px 14px 28px}
+
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:center;padding:6px 0 12px;border-bottom:1px solid rgba(74,247,255,.25)}
+header h1{margin:0;font-size:19px;letter-spacing:1px;color:#b8ff56}
+header .sub{font-size:11px;color:rgba(220,255,240,.65);margin-top:2px}
+.headerTag{font-size:11px;color:#4af7ff;border:1px solid rgba(74,247,255,.4);padding:4px 8px;border-radius:4px;background:rgba(74,247,255,.08)}
+
+/* GAME CANVAS CONTAINER */
+#gameWrap{width:100%;aspect-ratio:16/9;margin:14px auto 0;position:relative;background:#07111d;touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;box-shadow:0 0 25px rgba(45,240,165,.15)}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;background:#07111d;outline:2px solid #2df0a5;outline-offset:-2px}
+
+/* OVERLAYS */
+.overlayPanel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,12,22,.88);backdrop-filter:blur(4px);padding:16px;z-index:20}
+.overlayPanel.active{display:flex}
+
+/* HANGAR (START SCREEN OVERLAY) */
+#hangarTitle{font-size:24px;font-weight:bold;letter-spacing:2px;color:#b8ff56;text-shadow:0 0 12px rgba(184,255,86,.6);margin-bottom:2px;text-align:center}
+#hangarSubtitle{font-size:12px;color:#4af7ff;letter-spacing:1px;margin-bottom:12px;text-align:center}
+#hangarGrid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;width:100%;max-width:780px;background:rgba(2,18,32,.85);border:1px solid rgba(74,247,255,.35);border-radius:6px;padding:14px}
+
+/* SHIP SELECTOR */
+.sectionTitle{font-size:12px;font-weight:bold;color:#ffe85e;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.shipCarousel{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.navArrow{background:rgba(74,247,255,.15);border:1px solid #4af7ff;color:#fff;padding:6px 14px;cursor:pointer;font-weight:bold;font-size:18px;border-radius:4px;transition:all .15s}
+.navArrow:hover{background:#4af7ff;color:#07111d}
+.shipNameBox{flex:1;text-align:center;padding:6px 8px;background:rgba(7,24,42,.9);border:1px solid rgba(184,255,86,.4);border-radius:4px}
+#currentShipName{font-size:15px;font-weight:bold;color:#b8ff56}
+#currentShipTag{font-size:10px;color:rgba(220,255,240,.75);margin-top:2px}
+
+/* STAT BARS */
+.statRow{display:flex;align-items:center;margin-bottom:5px;font-size:11px}
+.statLabel{width:75px;color:rgba(220,255,240,.7)}
+.statBarBg{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.statBarFill{height:100%;width:50%;background:#30ee83;transition:width .25s,background .25s}
+#shipDesc{font-size:11px;color:#d5f3e7;line-height:1.35;margin-top:8px;min-height:32px}
+
+/* BOMB SELECTOR */
+.bombGroup{display:flex;gap:6px;margin-bottom:10px}
+.bombBtn{flex:1;padding:8px 4px;background:rgba(3,18,34,.8);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;cursor:pointer;font-family:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s}
+.bombBtn .icon{font-size:17px}
+.bombBtn.selected{border-color:#ffe85e;background:rgba(255,232,94,.16);color:#ffe85e;box-shadow:0 0 10px rgba(255,232,94,.25)}
+#bombDesc{font-size:11px;color:#d5f3e7;line-height:1.35;min-height:30px}
+.bombTip{font-size:10px;color:#ffe85e;margin-top:10px;padding:6px;background:rgba(255,232,94,.08);border-left:3px solid #ffe85e}
+
+/* LAUNCH BUTTON */
+#launchBtn{margin-top:12px;padding:11px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s}
+#launchBtn:hover{background:#ffe85e;border-color:#ffe85e;transform:scale(1.03);box-shadow:0 0 22px rgba(255,232,94,.7)}
+
+/* TACTICAL PAUSE MENU */
+#pauseBox{display:flex;flex-direction:column;align-items:center;width:min(480px,94%);background:rgba(3,18,34,.96);border:2px solid #ffe85e;border-radius:6px;padding:18px;text-align:center;gap:12px}
+#pauseTitle{font-size:24px;color:#ffe85e;font-weight:bold;margin:0}
+.pauseActions{display:flex;width:100%;gap:8px}
+.menuActionBtn{flex:1;padding:11px 6px;border-radius:4px;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer;transition:all .15s;border:none}
+.btnPrimary{background:#30ee83;color:#07111d}
+.btnPrimary:hover{background:#b8ff56}
+.btnSecondary{background:rgba(74,247,255,.15);border:1px solid #4af7ff;color:#4af7ff}
+.btnSecondary:hover{background:#4af7ff;color:#07111d}
+.btnHangar{background:rgba(255,157,53,.18);border:1px solid #ff9d35;color:#ff9d35}
+.btnHangar:hover{background:#ff9d35;color:#07111d}
+#submitScoreBtn:disabled{opacity:.7;cursor:default}
+.overlayPanel.active{overflow:auto}
+
+/* GAME OVER OVERLAY */
+#gameOverBox{display:flex;flex-direction:column;align-items:center;width:min(350px,92%);background:rgba(3,18,34,.96);border:2px solid #ff4e62;border-radius:6px;padding:18px;text-align:center;gap:8px}
+#gameOverTitle{font-size:26px;color:#ff4e62;font-weight:bold;margin-bottom:2px}
+#finalScoreDisplay{font-size:20px;color:#ffe85e;font-weight:bold;margin:2px 0 6px}
+#nameInput{width:100%;padding:9px;border:2px solid #7affd2;border-radius:4px;background:rgba(2,18,30,.95);color:#fff;font:bold 15px inherit;text-align:center;outline:none}
+#nameInput:focus{border-color:#ffe85e;box-shadow:0 0 12px #ffe85e}
+#submitScoreBtn{width:100%;padding:9px;background:#b8ff56;color:#07111d;border:none;border-radius:4px;font:bold 14px inherit;cursor:pointer;transition:all .15s}
+#submitScoreBtn:hover{background:#ffe85e}
+.gameOverBtnsRow{display:flex;gap:8px;width:100%;margin-top:6px}
+.gameOverBtnsRow button{flex:1;padding:9px 4px;font-size:12px;font-weight:bold}
+
+/* CONTROLS BAR */
+#controlsBar{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;font-size:11px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
+
+/* NATIVE LEADERBOARD TABLE */
+#leaderboardSection{width:100%;margin-top:18px;border:2px solid rgba(74,247,255,.4);border-radius:6px;overflow:hidden;background:#050d17}
+.lbHeader{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(74,247,255,.08);border-bottom:1px solid rgba(74,247,255,.3);flex-wrap:wrap;gap:8px}
+.lbTitle{font-size:14px;font-weight:bold;color:#b8ff56;display:flex;align-items:center;gap:6px}
+.lbSub{font-size:11px;color:rgba(220,255,240,.65);width:100%;margin-top:2px}
+.lbActions{display:flex;align-items:center;gap:10px}
+.lbBtn{background:rgba(48,238,131,.15);border:1px solid #30ee83;color:#b8ff56;padding:5px 14px;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer;transition:all .15s}
+.lbBtn:hover{background:#30ee83;color:#07111d}
+
+.lbTableWrap{padding:10px 14px 16px;overflow-x:auto}
+table.scoreTable{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+table.scoreTable th{padding:8px 10px;background:rgba(7,24,42,.8);color:#ffe85e;border-bottom:2px solid rgba(74,247,255,.3);font-size:11px;letter-spacing:.5px}
+table.scoreTable td{padding:9px 10px;border-bottom:1px solid rgba(74,247,255,.12);color:#e8fdf5}
+table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
+.rankGold{color:#ffe85e;font-weight:bold}
+.rankSilver{color:#e8fdf5;font-weight:bold}
+.rankBronze{color:#ff9d35;font-weight:bold}
+.scoreNum{color:#4af7ff;font-weight:bold;font-size:13px}
+#scoresStatus{text-align:center;padding:18px;font-size:12px;color:rgba(220,255,240,.6)}
+
+/* Phone layout: maximize the game canvas and make every overlay a
+   full-screen modal so nothing needs internal scrolling on a 6.5–7"
+   portrait phone. */
+@media(max-width:680px){
+  html,body{width:100%;overflow-x:hidden}
+  #page{width:100%;max-width:none;padding:4px 0 10px}
+  header{padding:3px 8px 5px}
+  header h1{font-size:14px;letter-spacing:.2px}
+  header .sub{font-size:8px}
+  .headerTag{display:none}
+
+  #gameWrap{width:100vw;max-width:none;margin:4px auto 0;aspect-ratio:16/9;box-shadow:none}
+  canvas{outline-width:1px;outline-offset:-1px}
+
+  #controlsBar{width:100vw;margin:0 auto;padding:4px 8px;font-size:8px;line-height:1.3;gap:1px;text-align:center}
+  #leaderboardSection{width:100vw;margin:10px auto 0;border-width:1px}
+  .lbHeader{padding:8px 10px}
+  .lbTitle{font-size:12px}.lbSub{font-size:9px}.lbBtn{font-size:9px;padding:5px 8px}
+  .lbTableWrap{padding:7px 8px 10px}table.scoreTable{font-size:10px}
+  table.scoreTable th,table.scoreTable td{padding:6px 4px;font-size:9px}
+
+  .overlayPanel.active{
+    position:fixed; inset:0; width:100vw; height:100dvh;
+    z-index:999; overflow-y:auto; padding:14px 10px;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  #hangarTitle{font-size:16px;letter-spacing:.5px;margin:1px 0}
+  #hangarSubtitle{font-size:8px;letter-spacing:.3px;margin:1px 0 6px}
+  #hangarGrid{grid-template-columns:1.05fr .95fr;gap:6px;padding:8px;max-width:100%}
+  .sectionTitle{font-size:9px;margin-bottom:4px}.shipCarousel{gap:4px;margin-bottom:5px}
+  .navArrow{font-size:14px;padding:3px 8px}.shipNameBox{padding:4px 3px}
+  #currentShipName{font-size:10px}#currentShipTag{font-size:7px;margin-top:1px}
+  .statRow{font-size:8px;margin-bottom:3px}.statLabel{width:46px}.statBarBg{height:5px}
+  #shipDesc,#bombDesc{font-size:8px;line-height:1.2;min-height:0;margin-top:4px}
+  .bombGroup{gap:3px;margin-bottom:4px}.bombBtn{padding:4px 2px;font-size:8px;gap:1px}.bombBtn .icon{font-size:12px}
+  .bombTip{font-size:8px;padding:4px;margin-top:6px}
+  #launchBtn{margin-top:8px;padding:9px 16px;font-size:12px}
+
+  #pauseBox{width:min(360px,94%);padding:14px;gap:8px}#pauseTitle{font-size:19px}
+  #gameOverBox{width:min(360px,94%);padding:16px;gap:9px}
+  .menuActionBtn{padding:9px 3px;font-size:10.5px}
+}
+
+@media(max-width:380px){
+  #hangarTitle{font-size:14px}#hangarSubtitle{font-size:7px}
+  #hangarGrid{padding:5px;gap:4px}
+  #shipDesc,#bombDesc{font-size:7px}
+}
+</style>
+</head>
+<body>
+<div id="page">
+  <header>
+    <div>
+      <h1>⚡ PHYTOPLANE DEFENDER</h1>
+      <div class="sub">Bio-Aviation Plant Pathology Sky Defense</div>
+    </div>
+    <div class="headerTag">AGRI-BIOSECURITY DIVISION</div>
+  </header>
+
+  <div id="gameWrap">
+    <canvas id="game" width="960" height="540" aria-label="PhytoPlane Defender arcade game"></canvas>
+    
+    <!-- HANGAR (START / SHIP SELECTION SCREEN OVERLAY) -->
+    <div id="hangarOverlay" class="overlayPanel active">
+      <div id="hangarTitle">HANGAR & FLEET COMMAND</div>
+      <div id="hangarSubtitle">CONFIGURE INTERCEPTOR CRAFT & DEPLOYMENT WEAPONRY</div>
+      
+      <div id="hangarGrid">
+        <!-- SHIP SELECTOR -->
+        <div>
+          <div class="sectionTitle"><span>🚀</span> SELECT COMBAT SHIP</div>
+          <div class="shipCarousel">
+            <button class="navArrow" id="prevShipBtn" type="button" aria-label="Previous ship">&lt;</button>
+            <div class="shipNameBox">
+              <div id="currentShipName">Bactericidal Blaster</div>
+              <div id="currentShipTag">RAPID STERILIZER INTERCEPTOR</div>
+            </div>
+            <button class="navArrow" id="nextShipBtn" type="button" aria-label="Next ship">&gt;</button>
+          </div>
+          <div class="statRow"><div class="statLabel">SPEED</div><div class="statBarBg"><div class="statBarFill" id="statSpeed"></div></div></div>
+          <div class="statRow"><div class="statLabel">FIRE RATE</div><div class="statBarBg"><div class="statBarFill" id="statFireRate"></div></div></div>
+          <div class="statRow"><div class="statLabel">POWER</div><div class="statBarBg"><div class="statBarFill" id="statPower"></div></div></div>
+          <div class="statRow"><div class="statLabel">HULL</div><div class="statBarBg"><div class="statBarFill" id="statArmor"></div></div></div>
+          <div id="shipDesc">High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched fire rate.</div>
+        </div>
+
+        <!-- BOMB SELECTOR -->
+        <div>
+          <div class="sectionTitle"><span>💣</span> SELECT ORDNANCE BOMB</div>
+          <div class="bombGroup">
+            <button class="bombBtn selected" id="bombLaserBtn" type="button" data-bomb="laser">
+              <span class="icon">⚡</span>
+              <span>LASER</span>
+            </button>
+            <button class="bombBtn" id="bombNukeBtn" type="button" data-bomb="nuke">
+              <span class="icon">☢️</span>
+              <span>NUKE</span>
+            </button>
+            <button class="bombBtn" id="bombBioBtn" type="button" data-bomb="bio">
+              <span class="icon">🛡️</span>
+              <span>PULSE</span>
+            </button>
+          </div>
+          <div id="bombDesc">5 sweeping orbital laser beams slice across the battlefield for 2.5s, obliterating bullets and pathogens.</div>
+          <div class="bombTip">⚡ BOMB DEPLOYMENT: DOUBLE-CLICK / DOUBLE-TAP CANVAS OR PRESS 'K'<br>🎁 BOMBS REFILL EXCLUSIVELY BY DESTROYING BOSSES!</div>
+        </div>
+      </div>
+
+      <button id="launchBtn" type="button">LAUNCH MISSION [CLICK / SPACE]</button>
+    </div>
+
+    <!-- TACTICAL IN-GAME PAUSE MENU -->
+    <div id="pauseMenuOverlay" class="overlayPanel">
+      <div id="pauseBox">
+        <div id="pauseTitle">PAUSED</div>
+        <div class="pauseActions">
+          <button class="menuActionBtn btnPrimary" id="resumeBtn" type="button">▶ RESUME</button>
+          <button class="menuActionBtn btnSecondary" id="restartFromPauseBtn" type="button">↻ RESTART</button>
+          <button class="menuActionBtn btnHangar" id="hangarFromPauseBtn" type="button">⌂ HANGAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div id="gameOverOverlay" class="overlayPanel">
+      <div id="gameOverBox">
+        <div id="gameOverTitle">MISSION COMPLETE</div>
+        <div style="font-size:12px;color:rgba(220,255,240,.7)">PATHOGEN SURVEILLANCE REPORT</div>
+        <div id="finalScoreDisplay">SCORE: 0</div>
+        <input id="nameInput" maxlength="20" value="Anonymous" placeholder="Pilot Call-Sign" autocomplete="off">
+        <button id="submitScoreBtn" type="button">SUBMIT SCORE TO LEADERBOARD</button>
+        <div class="gameOverBtnsRow">
+          <button class="menuActionBtn btnSecondary" id="restartGameOverBtn" type="button">🔄 RESTART MISSION</button>
+          <button class="menuActionBtn btnHangar" id="hangarGameOverBtn" type="button">🚀 SELECT PLANE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IN-GAME CONTROLS BAR -->
+  <div id="controlsBar">
+    <div>🕹️ MOUSE / FINGER MOVES · AUTO-FIRE ON</div>
+    <div>💥 DOUBLE CLICK / DOUBLE TAP OR [K] = BOMB · [P] / [ESC] = MENU & PAUSE</div>
+  </div>
+
+  <!-- NATIVE LEADERBOARD TABLE -->
+  <div id="leaderboardSection">
+    <div class="lbHeader">
+      <div>
+        <div class="lbTitle">🏆 High Scores Leaderboard</div>
+        <div class="lbSub">Scores save on this device, then sync to Google Sheets when reachable.</div>
+      </div>
+      <div class="lbActions">
+        <button class="lbBtn" id="refreshScoresBtn" type="button">🔄 Refresh Scores</button>
+      </div>
+    </div>
+    <div class="lbTableWrap">
+      <table class="scoreTable" id="scoreTable">
+        <thead>
+          <tr>
+            <th style="width:12%">Rank</th>
+            <th style="width:45%">Player Call-Sign</th>
+            <th style="width:23%">High Score</th>
+            <th style="width:20%">Date</th>
+          </tr>
+        </thead>
+        <tbody id="scoreTableBody">
+          <!-- Dynamically populated from Google Apps Script -->
+        </tbody>
+      </table>
+      <div id="scoresStatus">Loading field records...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* CONSTANTS — CONNECTED DIRECTLY TO YOUR GOOGLE APPS SCRIPT WEB APP */
+const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbwSJkA07nl2L8toZ4fBgLciJS2qnwtZ1z2xSmLqn_kinRNxYOzHO4ADahvmj-jD_uwM7g/exec";
+
+/* SHIPS SPECIFICATIONS */
+const SHIPS = [
+  {
+    id: 'blaster',
+    name: 'Bactericidal Blaster',
+    tag: 'RAPID STERILIZER INTERCEPTOR',
+    color: '#30ee83',
+    secColor: '#4af7ff',
+    speed: 360,
+    hp: 100,
+    fireDelay: 0.11,
+    rapidDelay: 0.06,
+    stats: { speed: 95, fireRate: 98, power: 72, armor: 65 },
+    desc: 'High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched rate of fire.'
+  },
+  {
+    id: 'destroyer',
+    name: 'Fungicidal Destroyer',
+    tag: 'HEAVY 3-WAY SPORE BUSTER',
+    color: '#ff9d35',
+    secColor: '#ff4e62',
+    speed: 280,
+    hp: 130,
+    fireDelay: 0.25,
+    rapidDelay: 0.14,
+    stats: { speed: 65, fireRate: 65, power: 96, armor: 95 },
+    desc: 'Heavily armored assault vessel firing a 3-way spread cannon to obliterate widespread fungal spores.'
+  },
+  {
+    id: 'nighthawk',
+    name: 'IPM Nighthawk',
+    tag: 'PIERCING LANCE STEALTH JET',
+    color: '#4af7ff',
+    secColor: '#b8ff56',
+    speed: 335,
+    hp: 100,
+    fireDelay: 0.17,
+    rapidDelay: 0.09,
+    stats: { speed: 85, fireRate: 80, power: 88, armor: 70 },
+    desc: 'Twin rail lances that pierce clean through multiple pathogens, dealing continuous line damage.'
+  },
+  {
+    id: 'supernematicide',
+    name: 'Supernematicide',
+    tag: 'EXPLOSIVE DRILL TORPEDO CRAFT',
+    color: '#ff76d5',
+    secColor: '#ffe85e',
+    speed: 310,
+    hp: 110,
+    fireDelay: 0.22,
+    rapidDelay: 0.12,
+    stats: { speed: 75, fireRate: 70, power: 92, armor: 80 },
+    desc: 'Fires spiraling drill torpedoes that burst into an acidic chemical shockwave on contact.'
+  },
+  {
+    id: 'rocket',
+    name: 'Insecticide Rocket',
+    tag: 'HOMING MICRO-MISSILE BATTERY',
+    color: '#ffe85e',
+    secColor: '#ff4e62',
+    speed: 320,
+    hp: 100,
+    fireDelay: 0.20,
+    rapidDelay: 0.11,
+    stats: { speed: 80, fireRate: 75, power: 86, armor: 75 },
+    desc: 'Launches agile tracking rockets from wing pods that curve to hunt down the nearest pathogens.'
+  }
+];
+
+/* BOMB SPECIFICATIONS */
+const BOMBS = {
+  laser: {
+    id: 'laser',
+    name: 'Orbital Laser Bomb',
+    icon: '⚡',
+    color: '#4af7ff',
+    desc: '5 sweeping orbital death beams sweep the screen for 2.5s, vaporizing bullets and slicing pathogens.'
+  },
+  nuke: {
+    id: 'nuke',
+    name: 'Bio-Thermal Nuke',
+    icon: '☢️',
+    color: '#ffe85e',
+    desc: 'Thermonuclear shockwave that cleanses the entire airspace with screen-wide apocalyptic devastation.'
+  },
+  bio: {
+    id: 'bio',
+    name: 'Biosecurity Pulse',
+    icon: '🛡️',
+    color: '#30ee83',
+    desc: 'Instant high-frequency EMP blast that dissolves pathogen cell walls and cancels hostile projectiles.'
+  }
+};
+
+/* 5 REAL-LIFE PLANT PATHOLOGY BOSSES */
+const BOSS_TYPES = [
+  {
+    id: 'xoo',
+    name: 'XOO Blight Spreader',
+    sub: 'Xanthomonas Bacterial Xylem Spreader',
+    realLife: 'Infects rice hydathodes, invades xylem vessels, and exudes bacterial ooze droplets that spread leaf blight.',
+    color: '#ffe85e',
+    coreColor: '#30ee83',
+    accentColor: '#a9ff60',
+    hpMult: 1.0,
+    pattern: 'xoo_ooze',
+    superName: 'SYSTEMIC XYLEM BLIGHT SURGE'
+  },
+  {
+    id: 'fusarium',
+    name: 'Fusarium wilter',
+    sub: 'Vascular Wilt Subsoil Invader',
+    realLife: 'Soil fungus that enters roots, plugs water-conducting vascular bundles with fusaric toxins, causing total wilt.',
+    color: '#b8784e',
+    coreColor: '#bf55ec',
+    accentColor: '#ff76d5',
+    hpMult: 1.25,
+    pattern: 'fusarium_wilt',
+    superName: 'VASCULAR WILT COLLAPSE'
+  },
+  {
+    id: 'colletotrichum',
+    name: 'Colletotrichum bucket',
+    sub: 'Anthracnose Acervular Splash Hopper',
+    realLife: 'Forms sunken bucket-shaped acervuli lesions; spores disperse via rain-splashes and breach cuticle with appressoria.',
+    color: '#ff9d35',
+    coreColor: '#ff6f61',
+    accentColor: '#7f4932',
+    hpMult: 1.2,
+    pattern: 'acervulus_splash',
+    superName: 'ACERVULAR RAIN-SPLASH DELUGE'
+  },
+  {
+    id: 'puccinia',
+    name: 'Puccinia ship rust',
+    sub: 'Uredinial Rust Ironclad Cruiser',
+    realLife: 'Macrocyclic rust fungus erupting through plant epidermis in pustules, generating continental airborne spore clouds.',
+    color: '#ff4e62',
+    coreColor: '#d35400',
+    accentColor: '#f39c12',
+    hpMult: 1.15,
+    pattern: 'rust_storm',
+    superName: 'CONTINENTAL RUST STORM'
+  },
+  {
+    id: 'pop_ringspot',
+    name: 'Pop Ringspot',
+    sub: 'Papaya Ringspot Viral Halo Drone',
+    realLife: 'Potyvirus transmitted by aphid stylets, generating diagnostic concentric chlorotic rings and leaf distortion.',
+    color: '#ff3399',
+    coreColor: '#4af7ff',
+    accentColor: '#ffffff',
+    hpMult: 1.1,
+    pattern: 'concentric_ringspot',
+    superName: 'CONCENTRIC RINGSPOT CATASTROPHE'
+  }
+];
+
+let selectedShipIdx = 0;
+let selectedBombId = 'laser';
+
+/* CANVAS & ENGINE SETUP */
+const W=960, H=540;
+const STATE = { START:'START', PLAY:'PLAY', PAUSE:'PAUSE', GAME_OVER:'GAME_OVER' };
+const COLORS = { cyan:'#4af7ff', green:'#30ee83', lime:'#b8ff56', yellow:'#ffe85e', orange:'#ff9d35', red:'#ff4e62', pink:'#ff76d5', white:'#f5fff9', navy:'#07111d', soil:'#7f4932' };
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+/* Explicit pixel sizing for #gameWrap. Some in-app/WebView browsers only
+   partially support the CSS `aspect-ratio` property, which silently makes
+   the canvas render smaller than the phone's actual width. This forces the
+   true maximum size on every load/resize/orientation change. */
+const gameWrapEl = document.getElementById('gameWrap');
+function sizeGameWrap(){
+  const isPhone = window.innerWidth <= 680;
+  if(!isPhone){ gameWrapEl.style.width = ''; gameWrapEl.style.height = ''; return; }
+  const w = Math.floor(window.innerWidth);
+  const h = Math.floor(w * 9 / 16);
+  gameWrapEl.style.width = w + 'px';
+  gameWrapEl.style.height = h + 'px';
+}
+sizeGameWrap();
+window.addEventListener('resize', sizeGameWrap);
+window.addEventListener('orientationchange', () => setTimeout(sizeGameWrap, 60));
+
+/* DOM ELEMENTS */
+const hangarOverlay = document.getElementById('hangarOverlay');
+const pauseMenuOverlay = document.getElementById('pauseMenuOverlay');
+const gameOverOverlay = document.getElementById('gameOverOverlay');
+const prevShipBtn = document.getElementById('prevShipBtn');
+const nextShipBtn = document.getElementById('nextShipBtn');
+const currentShipNameEl = document.getElementById('currentShipName');
+const currentShipTagEl = document.getElementById('currentShipTag');
+const statSpeed = document.getElementById('statSpeed');
+const statFireRate = document.getElementById('statFireRate');
+const statPower = document.getElementById('statPower');
+const statArmor = document.getElementById('statArmor');
+const shipDescEl = document.getElementById('shipDesc');
+const bombDescEl = document.getElementById('bombDesc');
+const launchBtn = document.getElementById('launchBtn');
+const resumeBtn = document.getElementById('resumeBtn');
+const restartFromPauseBtn = document.getElementById('restartFromPauseBtn');
+const hangarFromPauseBtn = document.getElementById('hangarFromPauseBtn');
+const restartGameOverBtn = document.getElementById('restartGameOverBtn');
+const hangarGameOverBtn = document.getElementById('hangarGameOverBtn');
+const nameInput = document.getElementById('nameInput');
+const submitScoreBtn = document.getElementById('submitScoreBtn');
+const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+const scoreTableBody = document.getElementById('scoreTableBody');
+const scoresStatus = document.getElementById('scoresStatus');
+const refreshScoresBtn = document.getElementById('refreshScoresBtn');
+
+/* RUNTIME GAME STATE */
+let state = STATE.START;
+let keys = Object.create(null);
+let lastTime = 0, elapsed = 0, scroll = 0, score = 0;
+let bestScore = Number(localStorage.getItem('pathowingBest') || 0);
+let wave = 1, waveTimer = 0, swarmTimer = 0;
+let boss = null, bossSpawned = false;
+let player, enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [];
+let activeBombEffects = [];
+let leaderboard = [], submitted = false, shake = 0;
+let stars = Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,s:1+Math.random()*2,a:.15+Math.random()*.6}));
+const pointerTarget = {x:W/2, y:H-72, active:false};
+let pointerDown = false;
+let lastTapTime = 0;
+
+/* UI SELECTOR BINDINGS */
+function updateHangarUI() {
+  const ship = SHIPS[selectedShipIdx];
+  currentShipNameEl.textContent = ship.name;
+  currentShipNameEl.style.color = ship.color;
+  currentShipTagEl.textContent = ship.tag;
+  statSpeed.style.width = ship.stats.speed + '%';
+  statFireRate.style.width = ship.stats.fireRate + '%';
+  statPower.style.width = ship.stats.power + '%';
+  statArmor.style.width = ship.stats.armor + '%';
+  shipDescEl.textContent = ship.desc;
+
+  document.querySelectorAll('.bombBtn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.bomb === selectedBombId);
+  });
+  bombDescEl.textContent = BOMBS[selectedBombId].desc;
+}
+
+prevShipBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  selectedShipIdx = (selectedShipIdx - 1 + SHIPS.length) % SHIPS.length;
+  updateHangarUI();
+  beep(300, .05, 'sine');
+});
+nextShipBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  selectedShipIdx = (selectedShipIdx + 1) % SHIPS.length;
+  updateHangarUI();
+  beep(360, .05, 'sine');
+});
+
+document.querySelectorAll('.bombBtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    selectedBombId = btn.dataset.bomb;
+    updateHangarUI();
+    beep(440, .05, 'square');
+  });
+});
+
+launchBtn.addEventListener('click', () => startGame());
+updateHangarUI();
+
+/* RESTART & SELECT SHIP HANDLERS */
+function openHangar(){
+  state = STATE.START;
+  if(pauseMenuOverlay) pauseMenuOverlay.classList.remove('active');
+  if(gameOverOverlay) gameOverOverlay.classList.remove('active');
+  if(hangarOverlay) hangarOverlay.classList.add('active');
+  updateHangarUI();
+  beep(300, .08, 'sine');
+}
+
+function restartMission(){
+  if(pauseMenuOverlay) pauseMenuOverlay.classList.remove('active');
+  if(gameOverOverlay) gameOverOverlay.classList.remove('active');
+  if(hangarOverlay) hangarOverlay.classList.remove('active');
+  state = STATE.PLAY;
+  resetGame();
+  beep(400, .1, 'square');
+}
+
+function togglePauseMenu(){
+  if(state === STATE.PLAY){
+    state = STATE.PAUSE;
+    if(pauseMenuOverlay) pauseMenuOverlay.classList.add('active');
+    beep(200, .08, 'square');
+  } else if(state === STATE.PAUSE){
+    state = STATE.PLAY;
+    if(pauseMenuOverlay) pauseMenuOverlay.classList.remove('active');
+    beep(340, .08, 'square');
+  }
+}
+
+if(resumeBtn) resumeBtn.addEventListener('click', () => {
+  state = STATE.PLAY;
+  if(pauseMenuOverlay) pauseMenuOverlay.classList.remove('active');
+  beep(340, .08, 'square');
+});
+if(restartFromPauseBtn) restartFromPauseBtn.addEventListener('click', () => restartMission());
+if(hangarFromPauseBtn) hangarFromPauseBtn.addEventListener('click', () => openHangar());
+
+if(restartGameOverBtn) restartGameOverBtn.addEventListener('click', () => restartMission());
+if(hangarGameOverBtn) hangarGameOverBtn.addEventListener('click', () => openHangar());
+
+/* LEADERBOARD — local archive always works; Google Sheet syncs when reachable.
+   Every failure is written into #scoresStatus so it's visible instead of the
+   table silently staying empty. */
+const LOCAL_SCORES_KEY = 'phytoplaneLeaderboard';
+const PLAYER_NAME_KEY = 'phytoplanePlayerName';
+
+function loadLocalScores(){
+  try { const saved = JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY) || '[]'); return Array.isArray(saved) ? saved : []; }
+  catch(e) { return []; }
+}
+function saveLocalScores(records){ localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(records.slice(0, 50))); }
+function getSavedPlayerName(){ return localStorage.getItem(PLAYER_NAME_KEY) || 'Anonymous'; }
+function setSavedPlayerName(name){ if(name) localStorage.setItem(PLAYER_NAME_KEY, name); }
+
+function scoreNumber(value){
+  const first = String(Array.isArray(value) ? value[0] : value ?? '').match(/\d[\d,]*/);
+  const numeric = first ? Number(first[0].replace(/,/g, '')) : 0;
+  return numeric > 0 && numeric < 10000000 ? numeric : 0;
+}
+function dateOnly(value){
+  const raw = String(Array.isArray(value) ? value[value.length - 1] : value || '');
+  const cleaned = raw.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Z][a-z]{2}\s+\d{1,2}\s+\d{4}/)?.[0] || raw;
+  const parsed = new Date(cleaned);
+  return !Number.isNaN(parsed.getTime())
+    ? parsed.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'2-digit'})
+    : '—';
+}
+function normalizeEntries(rows){
+  if(!Array.isArray(rows)) return [];
+  return rows.map(row => {
+    const values = Array.isArray(row)
+      ? row
+      : [row.name || row.player || row.callSign, row.score ?? row.points ?? row.highScore, row.date || row.time || row.created];
+    return { name: String(values[0] || 'Anonymous').slice(0, 20), score: scoreNumber(values[1]), date: dateOnly(values[2]) };
+  }).filter(row => row.score > 0);
+}
+function mergeScores(...lists){
+  const unique = new Map();
+  lists.flat().forEach(row => {
+    const key = row.name + '|' + row.score + '|' + row.date;
+    if(!unique.has(key)) unique.set(key, row);
+  });
+  return [...unique.values()].sort((x, y) => y.score - x.score);
+}
+function remoteRows(data){
+  if(Array.isArray(data)) return data;
+  return (data && (data.leaderboard || data.scores || data.data || data.values || data.rows)) || [];
+}
+function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Records a finished run into the local table right away (not only when the
+// player clicks Submit), so the "BEST" shown in the HUD always matches an
+// actual row in the leaderboard instead of drifting apart from it.
+function recordLocalRun(finalScore){
+  if(!(finalScore > 0)) return;
+  const entry = { name: getSavedPlayerName(), score: Math.floor(finalScore), date: dateOnly(new Date().toString()) };
+  const merged = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
+  saveLocalScores(merged);
+  leaderboard = mergeScores(merged, leaderboard);
+  if(entry.score > bestScore){
+    bestScore = entry.score;
+    localStorage.setItem('pathowingBest', bestScore);
+  }
+  renderLeaderboardTable();
+}
+
+function renderLeaderboardTable(){
+  scoreTableBody.innerHTML = '';
+  if(!leaderboard.length){
+    scoresStatus.style.display = 'block';
+    scoresStatus.textContent = 'No records yet — be the first to log a score.';
+    return;
+  }
+  leaderboard.slice(0, 15).forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    const badge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : '#' + (idx + 1);
+    const rankClass = idx === 0 ? 'rankGold' : idx === 1 ? 'rankSilver' : idx === 2 ? 'rankBronze' : '';
+    tr.innerHTML = `<td class="${rankClass}">${badge}</td><td style="font-weight:bold">${escapeHtml(r.name)}</td><td class="scoreNum">${r.score.toLocaleString()}</td><td style="color:rgba(220,255,240,.65)">${escapeHtml(r.date)}</td>`;
+    scoreTableBody.appendChild(tr);
+  });
+}
+
+async function fetchLeaderboard(){
+  const local = normalizeEntries(loadLocalScores());
+  leaderboard = mergeScores(local, bestScore > 0 ? [{name:getSavedPlayerName(), score:bestScore, date:'—'}] : []);
+  renderLeaderboardTable();
+  scoresStatus.style.display = 'block';
+  scoresStatus.textContent = 'Checking Google Sheet...';
+
+  if(!LEADERBOARD_URL || !/^https:\/\/script\.google\.com\/.+\/exec$/.test(LEADERBOARD_URL)){
+    scoresStatus.textContent = local.length
+      ? 'Showing local scores (no valid Apps Script URL configured).'
+      : 'No valid Apps Script URL configured yet.';
+    return;
+  }
+
+  try {
+    const joiner = LEADERBOARD_URL.includes('?') ? '&' : '?';
+    const response = await fetch(LEADERBOARD_URL + joiner + 'action=list&t=' + Date.now(), {
+      method: 'GET', cache: 'no-store', redirect: 'follow'
+    });
+    if(!response.ok) throw new Error('Sheet returned HTTP ' + response.status);
+
+    const raw = await response.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch(parseErr){ throw new Error('Sheet did not return JSON (check Apps Script deployment access is "Anyone")'); }
+
+    const remote = normalizeEntries(remoteRows(data));
+    leaderboard = mergeScores(local, remote);
+    if(leaderboard[0] && leaderboard[0].score > bestScore){
+      bestScore = leaderboard[0].score;
+      localStorage.setItem('pathowingBest', bestScore);
+    }
+    renderLeaderboardTable();
+    scoresStatus.style.display = 'block';
+    scoresStatus.textContent = remote.length
+      ? 'Synced with Google Sheets · ' + leaderboard.length + ' records'
+      : 'Sheet reachable but returned 0 valid rows.';
+  } catch(e) {
+    console.warn('Leaderboard fetch failed:', e);
+    renderLeaderboardTable();
+    scoresStatus.style.display = 'block';
+    scoresStatus.textContent = 'Local only — Sheet sync failed: ' + e.message;
+  }
+}
+
+refreshScoresBtn.addEventListener('click', () => { beep(480, .05, 'sine'); fetchLeaderboard(); });
+
+async function submitScore(name, finalScore){
+  const entry = {
+    name: String(name || 'Anonymous').trim().slice(0, 20) || 'Anonymous',
+    score: Math.floor(finalScore),
+    date: dateOnly(new Date().toString())
+  };
+  setSavedPlayerName(entry.name);
+  const local = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
+  saveLocalScores(local);
+  leaderboard = mergeScores(local, leaderboard);
+  renderLeaderboardTable();
+  if(entry.score > bestScore){
+    bestScore = entry.score;
+    localStorage.setItem('pathowingBest', bestScore);
+  }
+
+  if(!LEADERBOARD_URL || !/^https:\/\/script\.google\.com\/.+\/exec$/.test(LEADERBOARD_URL)){
+    return { status: 'local', error: 'No valid Apps Script URL configured' };
+  }
+
+  try {
+    const params = new URLSearchParams({ action: 'submit', name: entry.name, score: String(entry.score), date: entry.date });
+    const response = await fetch(LEADERBOARD_URL + '?' + params.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    return { status: 'ok' };
+  } catch(e) {
+    console.warn('Leaderboard submit failed:', e);
+    return { status: 'local', error: e.message };
+  }
+}
+
+/* RESET & START */
+function resetGame(){
+  const shipCfg = SHIPS[selectedShipIdx];
+  score = 0; wave = 1; waveTimer = 0; swarmTimer = 0;
+  boss = null; bossSpawned = false;
+  enemies = []; bullets = []; enemyBullets = []; powerups = []; particles = []; floatingText = []; activeBombEffects = [];
+  
+  player = {
+    ship: shipCfg,
+    bombType: selectedBombId,
+    x: W/2, y: H-72, r: 19,
+    hp: shipCfg.hp, maxHp: shipCfg.hp,
+    lives: 3, maxLives: 5,
+    fireDelay: 0,
+    rapid: 0, shield: 0, multiplier: 0,
+    bombs: 3,
+    invincible: 0, tilt: 0,
+    rocketSide: 0
+  };
+  
+  submitted = false; shake = 0;
+  if(submitScoreBtn){
+    submitScoreBtn.disabled = false;
+    submitScoreBtn.textContent = 'SUBMIT SCORE TO LEADERBOARD';
+  }
+  pointerTarget.x = W/2; pointerTarget.y = H-72;
+  announceWave(wave);
+}
+
+function announceWave(w){
+  const titles = [
+    'BACTERIAL FIELD OUTBREAK',
+    'FUNGAL SPORE INVASION',
+    'VIRAL VECTOR SWARM',
+    'LOCUST PEST SQUADRON',
+    'BIO-PATHOGEN CITADEL'
+  ];
+  const t = titles[(w - 1) % titles.length];
+  floatingText.push({ x: W/2, y: H * 0.38, text: 'WAVE ' + w + ' — ' + t, color: COLORS.lime, life: 2.5, vy: -12, big: true });
+}
+
+function startGame(){
+  state = STATE.PLAY;
+  hangarOverlay.classList.remove('active');
+  pauseMenuOverlay.classList.remove('active');
+  gameOverOverlay.classList.remove('active');
+  resetGame();
+  beep(400, .1, 'square');
+}
+
+/* POINTER & DOUBLE-TAP DETECTION */
+function eventToCanvasXY(e){
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (W / rect.width),
+    y: (e.clientY - rect.top) * (H / rect.height)
+  };
+}
+
+canvas.addEventListener('pointerdown', e => {
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  const now = Date.now();
+
+  if(state === STATE.PLAY){
+    if(now - lastTapTime < 350){
+      triggerBomb();
+      lastTapTime = 0;
+    } else {
+      lastTapTime = now;
+    }
+  }
+
+  pointerDown = true;
+  canvas.setPointerCapture(e.pointerId);
+  const p = eventToCanvasXY(e);
+  pointerTarget.x = p.x; pointerTarget.y = p.y; pointerTarget.active = true;
+});
+
+canvas.addEventListener('pointermove', e => {
+  if(e.pointerType === 'mouse' || pointerDown){
+    const p = eventToCanvasXY(e);
+    pointerTarget.x = p.x; pointerTarget.y = p.y;
+  }
+});
+canvas.addEventListener('pointerup', () => { pointerDown = false; });
+canvas.addEventListener('pointercancel', () => { pointerDown = false; });
+canvas.addEventListener('pointerleave', () => { if(pointerDown) pointerDown = false; });
+
+/* KEYBOARD */
+window.addEventListener('keydown', e => {
+  const c = e.code;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(c)) e.preventDefault();
+  
+  if(state === STATE.START){
+    if(c === 'Space' || c === 'KeyJ' || c === 'Enter') startGame();
+    if(c === 'ArrowLeft' || c === 'KeyA'){ selectedShipIdx = (selectedShipIdx - 1 + SHIPS.length) % SHIPS.length; updateHangarUI(); beep(300,.05,'sine'); }
+    if(c === 'ArrowRight' || c === 'KeyD'){ selectedShipIdx = (selectedShipIdx + 1) % SHIPS.length; updateHangarUI(); beep(360,.05,'sine'); }
+    return;
+  }
+  if(state === STATE.GAME_OVER){
+    if(c === 'Enter') submitCurrentScore();
+    return;
+  }
+  if((c === 'KeyP' || c === 'Escape') && !e.repeat){
+    togglePauseMenu();
+    return;
+  }
+  if(state !== STATE.PLAY) return;
+  keys[c] = true;
+  if(c === 'KeyK' && !e.repeat) triggerBomb();
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+/* AUDIO SYNTHESIS */
+let audioCtx;
+function beep(f=440, d=.06, type='square', v=.035){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(v, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + d);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + d);
+  }catch(e){}
+}
+
+/* PLAYER UPDATE & SHIP WEAPONS */
+function updatePlayer(dt){
+  const p = player, s = p.ship;
+  let dx = 0, dy = 0, keyActive = false;
+  if(keys.ArrowLeft || keys.KeyA){ dx--; keyActive = true; }
+  if(keys.ArrowRight || keys.KeyD){ dx++; keyActive = true; }
+  if(keys.ArrowUp || keys.KeyW){ dy--; keyActive = true; }
+  if(keys.ArrowDown || keys.KeyS){ dy++; keyActive = true; }
+
+  if(keyActive){
+    p.x += dx * s.speed * dt;
+    p.y += dy * s.speed * 0.7 * dt;
+  } else {
+    const followSpeed = Math.min(1, dt * 16);
+    p.x += (pointerTarget.x - p.x) * followSpeed;
+    p.y += (pointerTarget.y - p.y) * followSpeed;
+  }
+
+  p.x = Math.max(25, Math.min(W - 25, p.x));
+  p.y = Math.max(H - 170, Math.min(H - 37, p.y));
+  p.tilt += (((keyActive ? dx * 0.35 : (pointerTarget.x - p.x) * 0.012)) - p.tilt) * Math.min(1, dt * 12);
+
+  p.fireDelay -= dt;
+  p.rapid = Math.max(0, p.rapid - dt);
+  p.shield = Math.max(0, p.shield - dt);
+  p.multiplier = Math.max(0, p.multiplier - dt);
+  p.invincible = Math.max(0, p.invincible - dt);
+
+  if(p.fireDelay <= 0) fireShipWeapon();
+}
+
+/* WEAPON FIRING */
+function fireShipWeapon(){
+  const p = player, s = p.ship, isRapid = p.rapid > 0;
+  p.fireDelay = isRapid ? s.rapidDelay : s.fireDelay;
+
+  if(s.id === 'blaster'){
+    bullets.push({x:p.x-8, y:p.y-18, vx:0, vy:-640, r:4, dmg:1.2, color:s.color, type:'pulse'});
+    bullets.push({x:p.x+8, y:p.y-18, vx:0, vy:-640, r:4, dmg:1.2, color:s.color, type:'pulse'});
+    if(isRapid){
+      bullets.push({x:p.x-16, y:p.y-10, vx:-60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
+      bullets.push({x:p.x+16, y:p.y-10, vx:60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
+    }
+    beep(isRapid?700:540, .03, 'square', .02);
+  }
+  else if(s.id === 'destroyer'){
+    bullets.push({x:p.x, y:p.y-22, vx:0, vy:-530, r:6, dmg:2.4, color:s.color, type:'heavy'});
+    bullets.push({x:p.x-14, y:p.y-15, vx:-110, vy:-500, r:5, dmg:1.8, color:s.secColor, type:'heavy'});
+    bullets.push({x:p.x+14, y:p.y-15, vx:110, vy:-500, r:5, dmg:1.8, color:s.secColor, type:'heavy'});
+    if(isRapid){
+      bullets.push({x:p.x-22, y:p.y-10, vx:-210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
+      bullets.push({x:p.x+22, y:p.y-10, vx:210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
+    }
+    beep(260, .05, 'sawtooth', .03);
+  }
+  else if(s.id === 'nighthawk'){
+    bullets.push({x:p.x-7, y:p.y-22, vx:0, vy:-720, r:4, dmg:1.6, pierce:3, color:s.color, type:'lance'});
+    bullets.push({x:p.x+7, y:p.y-22, vx:0, vy:-720, r:4, dmg:1.6, pierce:3, color:s.color, type:'lance'});
+    if(isRapid){
+      bullets.push({x:p.x, y:p.y-28, vx:0, vy:-780, r:5, dmg:2.2, pierce:5, color:s.secColor, type:'lance'});
+    }
+    beep(640, .04, 'sine', .025);
+  }
+  else if(s.id === 'supernematicide'){
+    bullets.push({x:p.x-10, y:p.y-18, vx:-25, vy:-560, r:5, dmg:2.0, splash:42, color:s.color, type:'drill'});
+    bullets.push({x:p.x+10, y:p.y-18, vx:25, vy:-560, r:5, dmg:2.0, splash:42, color:s.color, type:'drill'});
+    if(isRapid){
+      bullets.push({x:p.x-24, y:p.y-24, vx:0, vy:-590, r:6, dmg:2.8, splash:55, color:s.secColor, type:'drill'});
+    }
+    beep(340, .05, 'triangle', .03);
+  }
+  else if(s.id === 'rocket'){
+    p.rocketSide = 1 - p.rocketSide;
+    const sx = p.rocketSide ? p.x - 14 : p.x + 14;
+    bullets.push({x:sx, y:p.y-16, vx:(p.rocketSide?-80:80), vy:-380, r:5, dmg:2.2, homing:true, color:s.color, type:'rocket', age:0});
+    if(isRapid){
+      bullets.push({x:p.x, y:p.y-22, vx:0, vy:-520, r:4, dmg:1.5, homing:true, color:s.secColor, type:'rocket', age:0});
+    }
+    beep(480, .05, 'square', .025);
+  }
+}
+
+/* BOMB EXECUTION */
+function triggerBomb(){
+  if(player.bombs <= 0){
+    beep(110, .14, 'sawtooth');
+    floatingText.push({x:player.x, y:player.y-28, text:'NO BOMBS! DEFEAT A BOSS TO REFILL', color:COLORS.red, life:1.5, vy:-20, big:false});
+    return;
+  }
+  player.bombs--;
+  const bType = player.bombType;
+
+  if(bType === 'laser'){
+    shake = 0.4;
+    activeBombEffects.push({
+      type: 'laser',
+      life: 2.4,
+      beams: [0.15, 0.32, 0.5, 0.68, 0.85].map(ratio => ({
+        x: W * ratio,
+        width: 38,
+        sweepPhase: Math.random() * 6.28
+      }))
+    });
+    floatingText.push({x:W/2, y:H*0.5, text:'ORBITAL LASER BOMB ACTIVE!', color:COLORS.cyan, life:1.8, vy:-20, big:true});
+    for(let i=0; i<4; i++) setTimeout(() => beep(600 + i*100, .12, 'sawtooth', .04), i*70);
+  }
+  else if(bType === 'nuke'){
+    shake = 0.85;
+    activeBombEffects.push({
+      type: 'nuke',
+      life: 1.6,
+      radius: 10,
+      x: player.x, y: player.y
+    });
+    enemyBullets = [];
+    let hits = 0;
+    enemies.forEach(e => {
+      if(!e.dead){
+        e.hp -= 85;
+        hits++;
+        burst(e.x, e.y, COLORS.yellow, 16);
+        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
+      }
+    });
+    if(boss) boss.hp -= 160;
+    addScore(hits * 40);
+    floatingText.push({x:W/2, y:H*0.5, text:'BIO-THERMAL NUKE DETONATED!', color:COLORS.yellow, life:2.0, vy:-20, big:true});
+    for(let i=0; i<80; i++){
+      particles.push({
+        x: player.x, y: player.y,
+        vx: (Math.random() - .5) * 850, vy: (Math.random() - .5) * 850,
+        r: 2 + Math.random() * 4, c: Math.random() < .5 ? COLORS.yellow : COLORS.red,
+        life: 0.8 + Math.random() * 0.6
+      });
+    }
+    beep(80, .5, 'sawtooth', .08);
+  }
+  else {
+    shake = 0.3;
+    activeBombEffects.push({
+      type: 'pulse',
+      life: 0.8,
+      radius: 10,
+      x: player.x, y: player.y
+    });
+    enemyBullets = [];
+    let hits = 0;
+    enemies.forEach(e => {
+      if(!e.dead){
+        e.hp -= 42;
+        hits++;
+        burst(e.x, e.y, COLORS.lime, 10);
+        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
+      }
+    });
+    if(boss) boss.hp -= 80;
+    addScore(hits * 25);
+    floatingText.push({x:W/2, y:H*0.5, text:'BIOSECURITY EMP PULSE!', color:COLORS.lime, life:1.5, vy:-20, big:true});
+    beep(130, .25, 'triangle', .06);
+  }
+}
+
+/* UPDATE BOMB BEAMS & BLASTS */
+function updateBombEffects(dt){
+  for(let i = activeBombEffects.length - 1; i >= 0; i--){
+    const eff = activeBombEffects[i];
+    eff.life -= dt;
+
+    if(eff.type === 'laser'){
+      eff.beams.forEach(b => {
+        b.x += Math.sin(elapsed * 4 + b.sweepPhase) * 160 * dt;
+        enemyBullets = enemyBullets.filter(eb => Math.abs(eb.x - b.x) > b.width / 2 + eb.r);
+        enemies.forEach(e => {
+          if(!e.dead && Math.abs(e.x - b.x) < b.width / 2 + e.r){
+            e.hp -= 26 * dt;
+            burst(e.x, e.y, COLORS.cyan, 1);
+            if(e.hp <= 0) killEnemy(e);
+          }
+        });
+        if(boss && Math.abs(boss.x - b.x) < b.width / 2 + boss.r){
+          boss.hp -= 55 * dt;
+          burst(b.x, boss.y + 40, COLORS.white, 2);
+        }
+      });
+    }
+
+    if(eff.type === 'nuke' || eff.type === 'pulse'){
+      eff.radius += (eff.type === 'nuke' ? 620 : 750) * dt;
+      enemyBullets = enemyBullets.filter(eb => distance(eb.x, eb.y, eff.x, eff.y) > eff.radius);
+    }
+
+    if(eff.life <= 0) activeBombEffects.splice(i, 1);
+  }
+}
+
+/* ENEMIES & DYNAMIC MULTI-ENEMY SWARMS */
+const TYPES = {
+  bacteria: {hp:1, speed:135, points:70, r:12, color:'#a9ff60'},
+  fungus: {hp:3, speed:85, points:180, r:18, color:'#ffb45b'},
+  virus: {hp:7, speed:65, points:360, r:20, color:'#ff66b3'},
+  pest: {hp:4, speed:115, points:230, r:17, color:'#8caaff'},
+  pod: {hp:22, speed:46, points:950, r:32, color:'#b8784e'},
+  /* Basipetal wilt crawler — mimics basipetal (tip-to-base) symptom collapse
+     seen in vascular wilts like Ralstonia solanacearum on tomato. */
+  basipetal: {hp:9, speed:78, points:410, r:19, color:'#b8784e'},
+  /* Root-knot nematode — vermiform, tapering worm body like a microscope
+     still of a Meloidogyne / root-knot juvenile. */
+  nematode: {hp:6, speed:96, points:280, r:9, color:'#d7e4a1'},
+  /* Flagellate rod bacterium — dark bacillus with looping polar flagella,
+     referencing motile Xanthomonas-type rice/tomato pathogens. */
+  flagellate: {hp:8, speed:82, points:340, r:12, color:'#ff5fa2'}
+};
+
+function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
+  const d = TYPES[type], hp = d.hp + Math.floor((wave - 1) * 0.45);
+  const e = {
+    type,
+    x: x ?? (35 + Math.random() * (W - 70)),
+    y: -45 - yOffset, baseX: 0,
+    r: d.r, hp, maxHp: hp,
+    speed: (d.speed + wave * 5) * speedMult,
+    points: d.points, color: d.color,
+    age: 0, phase: Math.random() * 6.28,
+    shoot: 1.1 + Math.random() * 1.8, dead: false
+  };
+  e.baseX = e.x;
+  enemies.push(e);
+}
+
+/* MULTI-ENEMY SWARM FORMATIONS */
+function spawnSwarmFormation(){
+  const formations = ['V_SHAPE', 'LINE_SWEEP', 'PINCER', 'CLUSTER_RUSH', 'HEAVY_ESCORT', 'BASIPETAL_CASCADE', 'NEMATODE_SWARM', 'FLAGELLATE_DRIFT'];
+  const form = formations[Math.floor(Math.random() * formations.length)];
+  const centerX = 150 + Math.random() * (W - 300);
+  // Both the odds of picking a rarer enemy AND the size of its dedicated
+  // swarm grow with wave number, so nematodes/flagellates/basipetals show
+  // up more often and in bigger numbers the longer you survive.
+  const waveBonus = Math.min(1, wave * 0.06);
+
+  if(form === 'V_SHAPE'){
+    const roll = Math.random();
+    const t = roll < .4 ? 'bacteria' : roll < .7 ? 'pest' : roll < .7 + waveBonus * .5 ? 'basipetal' : 'nematode';
+    for(let i = -2; i <= 2; i++){
+      spawnEnemy(t, centerX + i * 46, Math.abs(i) * 32, 1.1);
+    }
+  }
+  else if(form === 'LINE_SWEEP'){
+    const roll = Math.random();
+    const t = roll < .3 ? 'fungus' : roll < .55 ? 'bacteria' : roll < .8 ? 'pest' : roll < .8 + waveBonus * .3 ? 'basipetal' : 'flagellate';
+    const startX = 60 + Math.random() * 120;
+    for(let i = 0; i < 6; i++){
+      spawnEnemy(t, startX + i * 130, (i % 2) * 20, 0.95);
+    }
+  }
+  else if(form === 'PINCER'){
+    for(let i = 0; i < 3; i++){
+      spawnEnemy('pest', 50 + i * 40, i * 28, 1.2);
+      spawnEnemy('pest', W - 50 - i * 40, i * 28, 1.2);
+    }
+  }
+  else if(form === 'CLUSTER_RUSH'){
+    for(let i = 0; i < 7; i++){
+      const ox = (Math.random() - .5) * 140;
+      const oy = Math.random() * 100;
+      const roll = Math.random();
+      const t = roll < .45 ? 'bacteria' : roll < .75 ? 'virus' : roll < .75 + waveBonus * .4 ? 'nematode' : 'flagellate';
+      spawnEnemy(t, centerX + ox, oy, 1.15);
+    }
+  }
+  else if(form === 'HEAVY_ESCORT'){
+    spawnEnemy('pod', centerX, 0, 0.9);
+    spawnEnemy('fungus', centerX - 60, 25, 1.0);
+    spawnEnemy('fungus', centerX + 60, 25, 1.0);
+    spawnEnemy('bacteria', centerX - 100, 45, 1.1);
+    spawnEnemy('bacteria', centerX + 100, 45, 1.1);
+  }
+  else if(form === 'BASIPETAL_CASCADE'){
+    /* Top-to-base wilt collapse: units enter progressively later, like
+       symptoms marching down a stem from the growing tip toward the base. */
+    const count = Math.min(4 + Math.floor(wave / 3), 8);
+    for(let i = 0; i < count; i++){
+      spawnEnemy('basipetal', centerX + (Math.random() - .5) * 60, i * 55, 0.85);
+    }
+  }
+  else if(form === 'NEMATODE_SWARM'){
+    /* Root-knot nematodes surfacing in a scattered burrowing pack — the
+       swarm size scales up with wave number. */
+    const count = Math.min(3 + Math.floor(wave / 2), 10);
+    for(let i = 0; i < count; i++){
+      spawnEnemy('nematode', 40 + Math.random() * (W - 80), Math.random() * 90, 1.0 + wave * 0.015);
+    }
+  }
+  else if(form === 'FLAGELLATE_DRIFT'){
+    /* A cluster of motile rod bacteria swimming down in loose formation,
+       propelled by their looping polar flagella; grows with wave number. */
+    const count = Math.min(3 + Math.floor(wave / 2), 9);
+    for(let i = 0; i < count; i++){
+      spawnEnemy('flagellate', centerX + (Math.random() - .5) * 220, Math.random() * 70, 1.0);
+    }
+  }
+}
+
+function updateWaves(dt){
+  waveTimer += dt;
+  swarmTimer -= dt;
+  const bossEvery = 38 + wave * 4;
+
+  if(!bossSpawned && waveTimer > bossEvery){
+    spawnRandomBoss();
+    bossSpawned = true;
+    return;
+  }
+
+  if(!bossSpawned && swarmTimer <= 0){
+    spawnSwarmFormation();
+    swarmTimer = Math.max(1.3, 2.8 - wave * 0.12 - (waveTimer * 0.015));
+  }
+}
+
+function updateEnemies(dt){
+  for(const e of enemies){
+    e.age += dt; e.shoot -= dt;
+    if(e.type === 'bacteria'){ e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 4 + e.phase) * 18; }
+    if(e.type === 'fungus'){ e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 2.2 + e.phase) * 74; }
+    if(e.type === 'virus'){
+      e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 1.8 + e.phase) * 95;
+      if(e.shoot <= 0 && e.y > 35){ shootEnemy(e, 0); e.shoot = 1.3 + Math.random() * 1.4; }
+    }
+    if(e.type === 'pest'){ e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 3.5 + e.phase) * 38; }
+    if(e.type === 'pod'){
+      e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 0.9 + e.phase) * 54;
+      if(e.shoot <= 0 && e.y > 50){ shootEnemy(e, 0); e.shoot = 1.7; }
+    }
+    if(e.type === 'basipetal'){
+      /* Sway starts wide near the top and narrows as it descends — a visual
+         nod to symptoms progressing basipetally from tip to base. */
+      e.y += e.speed * dt;
+      const collapse = Math.max(0.15, 1 - e.y / H);
+      e.x = e.baseX + Math.sin(e.age * 1.6 + e.phase) * 46 * collapse;
+      if(e.shoot <= 0 && e.y > 40){ shootEnemy(e, (Math.random() - .5) * 0.4); e.shoot = 1.6 + Math.random(); }
+    }
+    if(e.type === 'nematode'){
+      /* Long, slow serpentine slither, like a root-knot nematode
+         burrowing sideways through soil/roots. */
+      e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 2.4 + e.phase) * 85;
+    }
+    if(e.type === 'flagellate'){
+      /* Steady flagellar swim: gentle sideways drift powered by a
+         whip-like polar flagellum rather than legs. */
+      e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 1.9 + e.phase) * 30;
+      if(e.shoot <= 0 && e.y > 45){ shootEnemy(e, 0); e.shoot = 2.1 + Math.random(); }
+    }
+    if(e.y > H + 70) e.dead = true;
+    if(!e.dead && distance(e.x, e.y, player.x, player.y) < e.r + player.r){
+      damagePlayer(22);
+      e.dead = true;
+      burst(e.x, e.y, e.color, 14);
+    }
+  }
+  enemies = enemies.filter(e => !e.dead);
+}
+
+function shootEnemy(e, spread){
+  const a = Math.atan2(player.y - e.y, player.x - e.x) + spread;
+  const dripColor = e.type === 'virus' ? COLORS.pink
+    : e.type === 'basipetal' ? '#c48a3d'
+    : e.type === 'flagellate' ? '#ff79b9'
+    : COLORS.orange;
+  enemyBullets.push({
+    x: e.x, y: e.y + e.r * 0.5,
+    vx: Math.cos(a) * 190, vy: Math.sin(a) * 190,
+    r: 5, c: dripColor
+  });
+  beep(180, .04, 'sawtooth', .012);
+}
+
+/* RANDOMIZED BOSS LOGIC WITH BIOLOGICAL INFECTION ATTACKS */
+function spawnRandomBoss(){
+  enemies = enemies.filter(e => e.type !== 'pod');
+  const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
+  const hp = Math.floor((150 + wave * 55) * bossType.hpMult);
+
+  boss = {
+    cfg: bossType,
+    x: W/2, y: -90, targetY: 110, r: 75,
+    hp, maxHp: hp,
+    age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true
+  };
+
+  floatingText.push({x:W/2, y:H*0.32, text:'⚠️ ' + bossType.name.toUpperCase() + ' ⚠️', color:bossType.color, life:3.0, vy:-10, big:true});
+  floatingText.push({x:W/2, y:H*0.38, text:bossType.sub.toUpperCase(), color:COLORS.white, life:3.0, vy:-8, big:false});
+  beep(90, .45, 'sawtooth', .08);
+}
+
+function updateBoss(dt){
+  if(!boss) return;
+  const b = boss;
+  b.age += dt;
+  b.x = W/2 + Math.sin(b.age * 0.55) * 240;
+  if(b.y < b.targetY) b.y += 65 * dt;
+  b.shoot -= dt;
+  b.spawn -= dt;
+  b.superTimer = (b.superTimer || 7.0) - dt;
+
+  // SUPER MOVE COOLDOWN TRIGGER (Every 7.5s, based on real-life infection!)
+  if(b.superTimer <= 0 && b.y >= b.targetY - 2){
+    b.superTimer = 7.5 + Math.random() * 2.0;
+    shake = 0.45;
+    floatingText.push({
+      x: W/2, y: H * 0.46,
+      text: b.cfg.name + ' SUPER: ' + b.cfg.superName + '!',
+      color: b.cfg.color, life: 2.2, vy: -15, big: true
+    });
+    beep(80, .3, 'sawtooth', .08);
+
+    // 1. XOO Blight Spreader Super: Systemic Xylem Blight Surge
+    if(b.cfg.id === 'xoo'){
+      for(let i = -5; i <= 5; i++){
+        const a = Math.PI / 2 + (i * 0.12);
+        enemyBullets.push({x:b.x + i*12, y:b.y+35, vx:Math.cos(a)*230, vy:Math.sin(a)*230, r:6, c:b.cfg.color, ooze:true});
+      }
+      spawnEnemy('bacteria', b.x - 100);
+      spawnEnemy('bacteria', b.x + 100);
+    }
+    // 2. Fusarium wilter Super: Vascular Wilt Collapse
+    else if(b.cfg.id === 'fusarium'){
+      for(let i = 0; i < 14; i++){
+        const a = (i * Math.PI * 2) / 14;
+        enemyBullets.push({x:b.x, y:b.y+30, vx:Math.cos(a)*150, vy:Math.sin(a)*150, r:7, c:b.cfg.coreColor});
+      }
+      for(let i = 0; i < 5; i++){
+        const rx = 100 + i * 180;
+        enemyBullets.push({x:rx, y:H + 20, vx:0, vy:-220, r:6, c:b.cfg.color});
+      }
+    }
+    // 3. Colletotrichum bucket Super: Acervular Rain-Splash Deluge
+    else if(b.cfg.id === 'colletotrichum'){
+      for(let i = 0; i < 16; i++){
+        const a = (i * Math.PI * 2) / 16;
+        enemyBullets.push({x:b.x, y:b.y+25, vx:Math.cos(a)*190, vy:Math.sin(a)*190, r:7, c:b.cfg.color, splashDrop:true});
+      }
+    }
+    // 4. Puccinia ship rust Super: Continental Rust Storm
+    else if(b.cfg.id === 'puccinia'){
+      for(let i = 0; i < 20; i++){
+        const a = b.age * 4 + (i * Math.PI * 2 / 20);
+        enemyBullets.push({x:b.x, y:b.y+35, vx:Math.cos(a)*210, vy:Math.sin(a)*210, r:6, c:b.cfg.color});
+      }
+    }
+    // 5. Pop Ringspot Super: Concentric Ringspot Catastrophe
+    else if(b.cfg.id === 'pop_ringspot'){
+      [140, 200, 260].forEach((spd, waveIdx) => {
+        setTimeout(() => {
+          if(!boss) return;
+          for(let i = 0; i < 16; i++){
+            if(i % 4 === 0) continue; // Safe gap to weave through!
+            const a = (i * Math.PI * 2) / 16;
+            enemyBullets.push({x:b.x, y:b.y+20, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd, r:6, c:b.cfg.color});
+          }
+          beep(280 + waveIdx*60, .05, 'triangle', .03);
+        }, waveIdx * 250);
+      });
+    }
+  }
+
+  // REGULAR ATTACKS
+  if(b.shoot <= 0 && b.y >= b.targetY - 2){
+    if(b.cfg.id === 'xoo'){
+      for(let i = -2; i <= 2; i++){
+        const a = Math.PI / 2 + (i * 0.16) + Math.sin(b.age * 4) * 0.1;
+        enemyBullets.push({x:b.x, y:b.y+38, vx:Math.cos(a)*195, vy:Math.sin(a)*195, r:5, c:b.cfg.color});
+      }
+      b.shoot = 0.7;
+      beep(160, .04, 'sawtooth', .02);
+    }
+    else if(b.cfg.id === 'fusarium'){
+      const angle = Math.atan2(player.y - b.y, player.x - b.x);
+      for(let i = -1; i <= 1; i++){
+        const a = angle + i * 0.18;
+        enemyBullets.push({x:b.x, y:b.y+42, vx:Math.cos(a)*220, vy:Math.sin(a)*220, r:6, c:b.cfg.coreColor});
+      }
+      b.shoot = 0.85;
+      beep(140, .06, 'sawtooth', .025);
+    }
+    else if(b.cfg.id === 'colletotrichum'){
+      for(let i = -2; i <= 2; i++){
+        const a = Math.PI / 2 + (i * 0.22);
+        enemyBullets.push({x:b.x, y:b.y+35, vx:Math.cos(a)*175, vy:Math.sin(a)*175, r:6, c:b.cfg.color, splashDrop:true});
+      }
+      b.shoot = 0.95;
+      beep(150, .05, 'sawtooth', .025);
+    }
+    else if(b.cfg.id === 'puccinia'){
+      for(let i = 0; i < 8; i++){
+        const a = b.age * 2.5 + (i * Math.PI / 4);
+        enemyBullets.push({x:b.x, y:b.y+35, vx:Math.cos(a)*180, vy:Math.sin(a)*180, r:5, c:b.cfg.color});
+      }
+      b.shoot = 0.65;
+      beep(175, .04, 'sawtooth', .02);
+    }
+    else if(b.cfg.id === 'pop_ringspot'){
+      const a = Math.atan2(player.y - b.y, player.x - b.x);
+      enemyBullets.push({x:b.x - 12, y:b.y+25, vx:Math.cos(a)*260, vy:Math.sin(a)*260, r:5, c:b.cfg.color});
+      enemyBullets.push({x:b.x + 12, y:b.y+25, vx:Math.cos(a)*260, vy:Math.sin(a)*260, r:5, c:b.cfg.color});
+      b.shoot = 0.6;
+      beep(320, .04, 'triangle', .02);
+    }
+  }
+
+  // Minion escort spawns
+  if(b.spawn <= 0){
+    spawnEnemy(Math.random() < .5 ? 'bacteria' : 'fungus', b.x + (Math.random() - .5) * 120);
+    b.spawn = Math.max(2.4, 5.0 - wave * 0.2);
+  }
+
+  if(distance(b.x, b.y, player.x, player.y) < b.r + player.r) damagePlayer(35);
+
+  // BOSS DEFEATED
+  if(b.hp <= 0){
+    const bonus = b.noDamage ? 1500 : 0;
+    addScore(3500 + wave * 500 + bonus);
+    burst(b.x, b.y, b.cfg.color, 60);
+
+    powerups.push({
+      x: b.x, y: b.y,
+      type: 'bomb', label: '💣', name: '+1 BOMB REFILL',
+      color: COLORS.yellow, age: 0
+    });
+
+    player.bombs = Math.min(5, player.bombs + 1);
+
+    floatingText.push({x:b.x, y:b.y-25, text:b.cfg.name + ' NEUTRALIZED!', color:COLORS.yellow, life:2.2, vy:-24, big:true});
+    floatingText.push({x:b.x, y:b.y+10, text:'+1 BOMB ORDNANCE REFILLED!', color:COLORS.lime, life:2.4, vy:-18, big:true});
+
+    for(let i = 0; i < 5; i++) setTimeout(() => beep(100 + i * 60, .1, 'square', .05), i * 80);
+
+    boss = null;
+    wave++;
+    waveTimer = 0;
+    bossSpawned = false;
+    player.hp = Math.min(player.maxHp, player.hp + 30);
+    shake = 0.5;
+    announceWave(wave);
+  }
+}
+
+/* BULLETS & COLLISION LOGIC */
+function updateBullets(dt){
+  for(const b of bullets){
+    if(b.homing){
+      b.age += dt;
+      let target = boss;
+      if(!target){
+        let nearestDist = 9999;
+        enemies.forEach(e => {
+          if(!e.dead && e.y < b.y){
+            const d = distance(b.x, b.y, e.x, e.y);
+            if(d < nearestDist){ nearestDist = d; target = e; }
+          }
+        });
+      }
+      if(target){
+        const angle = Math.atan2(target.y - b.y, target.x - b.x);
+        b.vx += Math.cos(angle) * 750 * dt;
+        b.vy += Math.sin(angle) * 750 * dt;
+        const spd = Math.hypot(b.vx, b.vy);
+        if(spd > 580){ b.vx = (b.vx / spd) * 580; b.vy = (b.vy / spd) * 580; }
+      }
+    }
+    b.x += b.vx * dt; b.y += b.vy * dt;
+  }
+
+  enemyBullets.forEach(b => { b.x += b.vx * dt; b.y += b.vy * dt; });
+
+  for(const b of bullets){
+    if(boss && distance(b.x, b.y, boss.x, boss.y) < b.r + boss.r){
+      boss.hp -= b.dmg;
+      if(!b.pierce) b.dead = true;
+      burst(b.x, b.y, COLORS.yellow, 2);
+      if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6);
+      continue;
+    }
+
+    for(const e of enemies){
+      if(!e.dead && distance(b.x, b.y, e.x, e.y) < b.r + e.r){
+        e.hp -= b.dmg;
+        if(b.pierce){
+          b.pierce--;
+          if(b.pierce <= 0) b.dead = true;
+        } else {
+          b.dead = true;
+        }
+        burst(b.x, b.y, b.color || COLORS.yellow, 3);
+        if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6);
+        if(e.hp <= 0) killEnemy(e);
+        break;
+      }
+    }
+  }
+
+  for(const b of enemyBullets){
+    if(!b.dead && distance(b.x, b.y, player.x, player.y) < b.r + player.r){
+      b.dead = true;
+      damagePlayer(12);
+    }
+  }
+
+  bullets = bullets.filter(b => !b.dead && b.y > -30 && b.x > -30 && b.x < W + 30);
+  enemyBullets = enemyBullets.filter(b => !b.dead && b.y > -20 && b.y < H + 25 && b.x > -25 && b.x < W + 25);
+}
+
+function triggerSplash(x, y, radius, dmg){
+  burst(x, y, COLORS.pink, 14);
+  enemies.forEach(e => {
+    if(!e.dead && distance(x, y, e.x, e.y) < radius + e.r){
+      e.hp -= dmg;
+      if(e.hp <= 0) killEnemy(e);
+    }
+  });
+}
+
+function killEnemy(e){
+  e.dead = true;
+  addScore(e.points);
+  burst(e.x, e.y, e.color, 10 + Math.floor(e.r / 3));
+  if(Math.random() < .08) spawnPowerup(e.x, e.y);
+  beep(220 + Math.random() * 140, .08, 'square', .025);
+}
+
+function damagePlayer(a){
+  if(player.invincible > 0) return;
+  if(player.shield > 0){
+    burst(player.x, player.y, COLORS.cyan, 7);
+    beep(470, .06, 'sine', .025);
+    return;
+  }
+  player.hp -= a;
+  player.invincible = .7;
+  if(boss) boss.noDamage = false;
+  shake = .22;
+  burst(player.x, player.y, COLORS.red, 14);
+  beep(80, .16, 'sawtooth', .055);
+
+  if(player.hp <= 0){
+    player.lives--;
+    player.hp = player.maxHp;
+    player.invincible = 2.2;
+    floatingText.push({x:player.x, y:player.y-34, text:'LIFE LOST! ❤️ -1', color:COLORS.red, life:1.6, vy:-20, big:true});
+    if(player.lives <= 0) endGame();
+  }
+}
+
+function distance(x1, y1, x2, y2){ return Math.hypot(x2 - x1, y2 - y1); }
+function addScore(v){
+  score += Math.floor(v * (player.multiplier > 0 ? 2 : 1));
+  if(score > bestScore){
+    bestScore = score;
+    localStorage.setItem('pathowingBest', bestScore);
+  }
+}
+
+/* POWER-UPS */
+const REGULAR_POWERS = [
+  {type:'rapid', label:'R', name:'RESISTANCE BOOST', color:COLORS.lime},
+  {type:'shield', label:'S', name:'IPM SHIELD', color:COLORS.cyan},
+  {type:'fertility', label:'+', name:'FERTILITY PACK', color:COLORS.yellow},
+  {type:'scan', label:'2X', name:'EXTENSION SCAN', color:COLORS.pink}
+];
+
+function spawnPowerup(x, y){
+  const q = REGULAR_POWERS[Math.floor(Math.random() * REGULAR_POWERS.length)];
+  powerups.push({x, y, type:q.type, label:q.label, name:q.name, color:q.color, age:0});
+}
+
+function updatePowerups(dt){
+  for(const p of powerups){
+    p.age += dt; p.y += 75 * dt; p.x += Math.sin(p.age * 3) * 30 * dt;
+    if(distance(p.x, p.y, player.x, player.y) < 18 + player.r){
+      collectPowerup(p); p.dead = true;
+    }
+    if(p.y > H + 30) p.dead = true;
+  }
+  powerups = powerups.filter(p => !p.dead);
+}
+
+function collectPowerup(p){
+  if(p.type === 'bomb'){
+    player.bombs = Math.min(5, player.bombs + 1);
+    floatingText.push({x:p.x, y:p.y-12, text:'+1 BOMB REFILLED!', color:COLORS.yellow, life:1.6, vy:-25, big:true});
+    beep(880, .15, 'square', .05);
+    burst(p.x, p.y, COLORS.yellow, 20);
+    return;
+  }
+  if(p.type === 'rapid') player.rapid = 10;
+  if(p.type === 'shield') player.shield = 10;
+  if(p.type === 'fertility'){
+    player.hp = Math.min(player.maxHp, player.hp + 45);
+    if(player.hp >= player.maxHp && player.lives < 5) player.lives++;
+  }
+  if(p.type === 'scan') player.multiplier = 12;
+  addScore(120);
+  burst(p.x, p.y, p.color, 16);
+  floatingText.push({x:p.x, y:p.y-12, text:p.name, color:p.color, life:1.35, vy:-25, big:false});
+  beep(720, .12, 'sine', .04);
+}
+
+function burst(x, y, c, n){
+  for(let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 180;
+    particles.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:1+Math.random()*3, c, life:.3+Math.random()*.55});
+  }
+}
+
+function updateParticles(dt){
+  particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .95; p.vy *= .95; p.life -= dt; });
+  particles = particles.filter(p => p.life > 0);
+  floatingText.forEach(t => { t.y += t.vy * dt; t.life -= dt; });
+  floatingText = floatingText.filter(t => t.life > 0);
+}
+
+/* UPDATE ENGINE */
+function update(dt){
+  elapsed += dt;
+  scroll += dt * (52 + wave * 3);
+  shake = Math.max(0, shake - dt);
+  stars.forEach(s => {
+    s.y += (25 + s.s * 18) * dt;
+    if(s.y > H){ s.y = 0; s.x = Math.random() * W; }
+  });
+
+  if(state === STATE.PLAY){
+    updatePlayer(dt);
+    updateWaves(dt);
+    updateEnemies(dt);
+    updateBoss(dt);
+    updateBullets(dt);
+    updateBombEffects(dt);
+    updatePowerups(dt);
+  }
+  updateParticles(dt);
+}
+
+/* RENDERING HELPERS */
+function rect(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
+function circle(x,y,r,c,fill=true){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  if(fill){ ctx.fillStyle=c; ctx.fill(); } else { ctx.strokeStyle=c; ctx.stroke(); }
+}
+function text(s,x,y,z,c,a='left'){
+  ctx.fillStyle=c; ctx.font=`bold ${z}px 'Courier New',Courier,monospace`;
+  ctx.textAlign=a; ctx.textBaseline='middle'; ctx.fillText(s,x,y);
+}
+function line(x1,y1,x2,y2,c,w=1){
+  ctx.strokeStyle=c; ctx.lineWidth=w;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+}
+
+/* DRAW GLOWING VECTOR HEARTS FOR LIVES */
+function drawHeart(x, y, s, filled = true, color = '#ff4e62'){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const d = s * 0.5;
+  ctx.moveTo(0, d * 0.3);
+  ctx.bezierCurveTo(-d * 0.9, -d * 0.8, -d * 1.6, d * 0.4, 0, d * 1.5);
+  ctx.bezierCurveTo(d * 1.6, d * 0.4, d * 0.9, -d * 0.8, 0, d * 0.3);
+  if(filled) ctx.fill(); else ctx.stroke();
+  ctx.restore();
+}
+
+/* FULL POLYGON RENDERING */
+function poly(p, c, st = null){
+  if(!p || p.length < 2) return;
+  ctx.beginPath();
+  ctx.moveTo(p[0][0], p[0][1]);
+  for(let i = 1; i < p.length; i++){
+    ctx.lineTo(p[i][0], p[i][1]);
+  }
+  ctx.closePath();
+  if(c){ ctx.fillStyle = c; ctx.fill(); }
+  if(st){ ctx.strokeStyle = st; ctx.lineWidth = 2; ctx.stroke(); }
+}
+
+function renderBackground(){
+  rect(0, 0, W, H, '#07111d');
+  for(const s of stars) circle(s.x, s.y, s.s, `rgba(125,255,210,${s.a})`);
+  const b = Math.floor(wave / 2) % 4;
+  if(b === 0) drawRice();
+  else if(b === 1) drawGreenhouse();
+  else if(b === 2) drawSoil();
+  else drawForest();
+  rect(0, 0, W, H, 'rgba(3,13,25,.20)');
+}
+
+function drawRice(){
+  for(let y = -50; y < H + 60; y += 58){
+    let yy = y + (scroll * 0.55) % 58 - 58;
+    rect(0, yy, W, 2, 'rgba(48,238,131,.38)');
+    for(let x = y % 2 ? 18 : 0; x < W; x += 40) line(x, yy + 2, x + 19, yy + 55, 'rgba(69,215,113,.20)');
+  }
+  rect(0, H - 55, W, 55, 'rgba(66,107,46,.38)');
+}
+function drawGreenhouse(){
+  for(let x = -40; x < W + 50; x += 90){
+    let xx = x + Math.sin(scroll * 0.01) * 8;
+    line(xx, 0, xx + 120, H, 'rgba(74,247,255,.10)', 2);
+    line(xx + 45, 0, xx + 165, H, 'rgba(74,247,255,.06)');
+  }
+  for(let y = 30; y < H; y += 75) line(0, y, W, y, 'rgba(74,247,255,.06)');
+}
+function drawSoil(){
+  let o = (scroll * 0.45) % 100;
+  for(let y = -100; y < H + 100; y += 100){
+    let yy = y + o;
+    rect(0, yy, W, 48, 'rgba(121,69,44,.25)');
+    rect(0, yy + 49, W, 3, 'rgba(198,126,70,.20)');
+    for(let x = 15; x < W; x += 76) circle(x + yy % 19, yy + 25, 2, 'rgba(255,204,120,.34)');
+  }
+}
+function drawForest(){
+  let o = (scroll * 0.6) % 90;
+  for(let y = -90; y < H + 90; y += 90){
+    let yy = y + o;
+    line(0, yy, W, yy, 'rgba(48,238,131,.16)', 2);
+    for(let x = 25; x < W; x += 95){
+      line(x, yy + 8, x, yy + 50, 'rgba(103,77,43,.42)', 4);
+      circle(x, yy + 3, 17, 'rgba(48,238,131,.19)');
+      circle(x - 11, yy + 10, 11, 'rgba(89,255,130,.16)');
+    }
+  }
+}
+
+/* SHIP SPRITE RENDERING */
+function drawPlayer(p){
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.tilt);
+
+  if(p.shield > 0){
+    circle(0, 0, 30 + Math.sin(elapsed * 8) * 2, 'rgba(74,247,255,.14)');
+    ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke();
+  }
+  if(p.invincible > 0 && Math.floor(elapsed * 14) % 2 === 0){
+    ctx.restore(); return;
+  }
+
+  const s = p.ship;
+
+  if(s.id === 'blaster'){
+    poly([[0,-25],[-12,13],[-25,19],[-20,24],[0,17],[20,24],[25,19],[12,13]], '#1ca358', s.color);
+    poly([[0,-25],[-7,14],[0,20],[7,14]], '#d6ffea');
+    circle(0, -3, 5, s.secColor);
+    circle(-10, 13, 4, s.color); circle(10, 13, 4, s.color);
+    poly([[-6,20],[0,33],[6,20]], '#ffb045');
+  }
+  else if(s.id === 'destroyer'){
+    poly([[0,-22],[-28,0],[-32,18],[-18,24],[0,16],[18,24],[32,18],[28,0]], '#b05e19', s.color);
+    poly([[0,-18],[-12,10],[0,18],[12,10]], '#ffe4c2');
+    rect(-18, -10, 5, 20, '#5a3011');
+    rect(13, -10, 5, 20, '#5a3011');
+    circle(0, -2, 7, '#ff4e62');
+    poly([[-12,20],[0,34],[12,20]], '#ff9d35');
+  }
+  else if(s.id === 'nighthawk'){
+    poly([[0,-28],[-24,18],[-14,24],[0,19],[14,24],[24,18]], '#146077', s.color);
+    poly([[0,-26],[-6,12],[0,17],[6,12]], '#d2f9ff');
+    line(-16, 8, -16, -12, s.color, 3);
+    line(16, 8, 16, -12, s.color, 3);
+    circle(0, -4, 5, '#b8ff56');
+    poly([[-5,20],[0,31],[5,20]], '#4af7ff');
+  }
+  else if(s.id === 'supernematicide'){
+    poly([[0,-30],[-8,-6],[-24,16],[-12,25],[0,16],[12,25],[24,16],[8,-6]], '#912876', s.color);
+    circle(-14, 8, 6, '#ffe85e');
+    circle(14, 8, 6, '#ffe85e');
+    circle(0, -2, 6, '#ffffff');
+    poly([[-6,18],[0,32],[6,18]], '#ff76d5');
+  }
+  else if(s.id === 'rocket'){
+    poly([[0,-26],[-14,8],[-28,18],[-18,22],[0,17],[18,22],[28,18],[14,8]], '#9e8011', s.color);
+    rect(-24, 0, 7, 18, '#1e1e1e');
+    rect(17, 0, 7, 18, '#1e1e1e');
+    circle(-20, 0, 3, '#ff4e62');
+    circle(21, 0, 3, '#ff4e62');
+    circle(0, -4, 6, '#ffffff');
+    poly([[-7,19],[0,33],[7,19]], '#ffe85e');
+  }
+
+  ctx.restore();
+}
+
+/* ENEMIES RENDERING */
+function drawEnemy(e){
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  if(e.type === 'bacteria'){
+    circle(0, 0, e.r, e.color);
+    circle(-5, -2, 3, '#0d5d49'); circle(5, 4, 2, '#0d5d49');
+    for(let i = 0; i < 4; i++){
+      let a = i * Math.PI / 2 + e.age * 2;
+      line(Math.cos(a) * e.r, Math.sin(a) * e.r, Math.cos(a) * (e.r + 5), Math.sin(a) * (e.r + 5), '#ccff91');
+    }
+  }
+  if(e.type === 'fungus'){
+    for(let i = 0; i < 7; i++){
+      let a = i * Math.PI * 2 / 7;
+      circle(Math.cos(a) * 11, Math.sin(a) * 11, 8, e.color);
+    }
+    circle(0, 0, 10, '#fff0c8'); circle(0, 0, 4, '#c16c3f');
+  }
+  if(e.type === 'virus'){
+    poly([[0,-e.r],[-e.r,0],[0,e.r],[e.r,0]], e.color, COLORS.white);
+    circle(0, 0, 8, '#43154e');
+    for(let i = 0; i < 4; i++) circle(Math.cos(i*Math.PI/2)*14, Math.sin(i*Math.PI/2)*14, 3, COLORS.white);
+  }
+  if(e.type === 'pest'){
+    poly([[0,-15],[-20,-5],[-24,10],[-5,8],[0,17],[5,8],[24,10],[20,-5]], e.color, '#dce8ff');
+    circle(0, 0, 7, '#2c335d');
+    line(-4, 8, -10, 20, '#dce8ff', 2); line(4, 8, 10, 20, '#dce8ff', 2);
+  }
+  if(e.type === 'pod'){
+    circle(0, 0, e.r, e.color);
+    circle(-10, -7, 9, '#4e2c20'); circle(11, 8, 7, '#4e2c20');
+    for(let i = 0; i < 6; i++){
+      let a = i * Math.PI / 3;
+      line(Math.cos(a) * e.r * 0.7, Math.sin(a) * e.r * 0.7, Math.cos(a) * e.r * 1.1, Math.sin(a) * e.r * 1.1, '#e5a66b', 3);
+    }
+  }
+  if(e.type === 'basipetal'){
+    /* Drooping stem-and-leaf silhouette that visibly wilts downward. */
+    const droop = Math.min(1, e.age * 0.6);
+    line(0, -e.r, 0, e.r * (0.4 + droop * 0.5), '#6b4a26', 4);
+    poly([[0,-e.r],[-14,-4-droop*6],[-4,2],[0,-e.r*0.2]], '#8f6a3a', e.color);
+    poly([[0,-e.r*0.3],[14,4+droop*8],[4,10],[0,e.r*0.1]], '#8f6a3a', e.color);
+    circle(0, e.r * 0.5, 6, '#3a2410');
+    for(let i = 0; i < 3; i++){
+      circle(-6 + i * 6, e.r * 0.9 + Math.sin(e.age * 3 + i) * 2, 2, '#c48a3d');
+    }
+  }
+  if(e.type === 'nematode'){
+    /* Continuous tapering vermiform body — a smooth curved tube rather than
+       a bead chain, matching a microscope still of a root-knot nematode
+       juvenile: pointed tail, blunt rounded head, faint internal stipple. */
+    const len = e.r * 7.2;
+    const steps = 22;
+    const pts = [];
+    for(let i = 0; i <= steps; i++){
+      const t = i / steps;
+      const py = -len * 0.5 + t * len;
+      const bend = Math.sin(e.age * 2.2 + e.phase + t * Math.PI * 1.4) * e.r * 2.15;
+      pts.push([bend, py]);
+    }
+    ctx.save();
+    ctx.strokeStyle = e.color;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for(let i = 0; i < pts.length - 1; i++){
+      const t = i / (pts.length - 1);
+      ctx.lineWidth = Math.max(0.7, e.r * 0.42 * (1 - t * 0.86));
+      ctx.beginPath();
+      ctx.moveTo(pts[i][0], pts[i][1]);
+      ctx.lineTo(pts[i+1][0], pts[i+1][1]);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // Faint internal granularity (gut/body stipple seen under the scope)
+    for(let i = 2; i < pts.length - 2; i += 3){
+      circle(pts[i][0], pts[i][1], 0.75, 'rgba(60,70,20,.35)');
+    }
+    circle(pts[0][0], pts[0][1], 1.1, '#4a5a1e'); // tiny mouth/stylet dot at head
+  }
+  if(e.type === 'flagellate'){
+    /* Dark rod-shaped (bacillus) body with 1–2 thin, looping polar flagella
+       trailing behind — modeled on a TEM of a motile rod bacterium such as
+       Xanthomonas. */
+    ctx.save();
+    ctx.rotate(Math.sin(e.age * 1.3 + e.phase) * 0.12);
+    const bodyLen = e.r * 2.3, bodyW = e.r * 1.05;
+    ctx.beginPath();
+    ctx.moveTo(-bodyW, -bodyLen * 0.5 + bodyW);
+    ctx.arcTo(-bodyW, -bodyLen * 0.5, 0, -bodyLen * 0.5, bodyW);
+    ctx.arcTo(bodyW, -bodyLen * 0.5, bodyW, -bodyLen * 0.5 + bodyW, bodyW);
+    ctx.lineTo(bodyW, bodyLen * 0.5 - bodyW);
+    ctx.arcTo(bodyW, bodyLen * 0.5, 0, bodyLen * 0.5, bodyW);
+    ctx.arcTo(-bodyW, bodyLen * 0.5, -bodyW, bodyLen * 0.5 - bodyW, bodyW);
+    ctx.closePath();
+    ctx.fillStyle = e.color;
+    ctx.fill();
+
+    // Looping polar flagella trailing from the top pole
+    ctx.strokeStyle = 'rgba(255,205,228,.92)';
+    ctx.lineWidth = 1.3;
+    for(let f = -1; f <= 1; f += 2){
+      const wag = Math.sin(e.age * 3 + e.phase + f) * 6;
+      ctx.beginPath();
+      ctx.moveTo(f * bodyW * 0.4, -bodyLen * 0.5);
+      ctx.bezierCurveTo(
+        f * (10 + wag), -bodyLen * 0.5 - 16,
+        f * -6, -bodyLen * 0.5 - 26,
+        f * 4 + wag * 0.5, -bodyLen * 0.5 - 12
+      );
+      ctx.bezierCurveTo(
+        f * 14, -bodyLen * 0.5 - 4,
+        f * 2, -bodyLen * 0.5 - 30,
+        f * (12 + wag), -bodyLen * 0.5 - 34
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  if(e.maxHp > 3){
+    rect(-e.r, -e.r - 10, e.r * 2, 4, '#442236');
+    rect(-e.r, -e.r - 10, e.r * 2 * (e.hp / e.maxHp), 4, COLORS.lime);
+  }
+  ctx.restore();
+}
+
+/* RENDERING THE 5 PLANT PATHOLOGY MACHINES */
+function drawBoss(b){
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  const cfg = b.cfg;
+
+  // 1. XOO Blight Spreader (Bacterial Harvester with Spinning Flagella Rotors & Xylem Drippers)
+  if(cfg.id === 'xoo'){
+    poly([[0,-65],[-75,-25],[-65,25],[-35,45],[0,35],[35,45],[65,25],[75,-25]], '#1e3820', cfg.color);
+    for(let side of [-45, 45]){
+      circle(side, -5, 14, '#142816');
+      for(let i=0; i<4; i++){
+        let fa = b.age * 8 + i * Math.PI/2;
+        line(side, -5, side + Math.cos(fa)*18, -5 + Math.sin(fa)*18, cfg.accentColor, 3);
+      }
+    }
+    circle(0, -10, 18, '#142816');
+    circle(0, -10, 10, cfg.color);
+    for(let i=-2; i<=2; i++){
+      rect(i*24 - 3, 30, 6, 18, cfg.accentColor);
+      circle(i*24, 48, 4, cfg.color);
+    }
+  }
+
+  // 2. Fusarium wilter (Subsoil Excavator / Vascular Root Drill Behemoth)
+  else if(cfg.id === 'fusarium'){
+    poly([[0,68],[-25,35],[-68,15],[-78,-35],[0,-60],[78,-35],[68,15],[25,35]], '#3a2016', cfg.color);
+    poly([[0,75],[-14,35],[0,25],[14,35]], '#ffffff', cfg.coreColor);
+    circle(-35, -12, 16, '#281326');
+    circle(-35, -12, 9, cfg.coreColor);
+    circle(35, -12, 16, '#281326');
+    circle(35, -12, 9, cfg.coreColor);
+    line(-68, 15, -85, 48, cfg.accentColor, 4);
+    line(68, 15, 85, 48, cfg.accentColor, 4);
+  }
+
+  // 3. Colletotrichum bucket (Sunken Acervulus Bucket Dredge / Splash Mortar)
+  else if(cfg.id === 'colletotrichum'){
+    poly([[0,-55],[-82,-20],[-65,30],[-40,55],[0,45],[40,55],[65,30],[82,-20]], '#421e14', cfg.accentColor);
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 42, 24, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#260e0a'; ctx.fill();
+    ctx.strokeStyle = cfg.color; ctx.lineWidth = 3; ctx.stroke();
+    for(let i=-2; i<=2; i++){
+      circle(i*14, 5 + Math.sin(b.age*3 + i)*4, 7, cfg.color);
+    }
+    rect(-65, 5, 12, 28, '#260e0a');
+    rect(53, 5, 12, 28, '#260e0a');
+    circle(-59, 36, 6, cfg.color);
+    circle(59, 36, 6, cfg.color);
+  }
+
+  // 4. Puccinia ship rust (Uredinial Ironclad Cruiser Warship)
+  else if(cfg.id === 'puccinia'){
+    poly([[0,-75],[-70,-35],[-60,40],[-25,55],[0,48],[25,55],[60,40],[70,-35]], '#4d1e18', cfg.color);
+    rect(-18, -35, 10, 22, '#210a08');
+    rect(8, -35, 10, 22, '#210a08');
+    for(let side of [-42, 0, 42]){
+      circle(side, 12, 10, '#260805');
+      circle(side, 12, 6, cfg.color);
+      line(side, 18, side, 34, cfg.accentColor, 3);
+    }
+    poly([[0,-75],[-15,-40],[0,-30],[15,-40]], '#ffffff', cfg.color);
+  }
+
+  // 5. Pop Ringspot (Viral Concentric Vector Halo Drone)
+  else {
+    for(let r = 32; r <= 68; r += 18){
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,51,153,' + (1.0 - r/90) + ')';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+    poly([[0,-28],[-25,-12],[-25,18],[0,32],[25,18],[25,-12]], '#29061c', cfg.color);
+    circle(0, 0, 14, '#0d1e2b');
+    circle(0, 0, 8, cfg.coreColor);
+    line(-10, 28, -10, 58, cfg.accentColor, 2);
+    line(10, 28, 10, 58, cfg.accentColor, 2);
+    circle(-10, 60, 3, cfg.color);
+    circle(10, 60, 3, cfg.color);
+  }
+
+  ctx.restore();
+
+  // Boss HP Bar & Real-Life Pathology Banner
+  rect(130, 36, 700, 16, '#2e1222');
+  rect(130, 36, 700 * (b.hp / b.maxHp), 16, cfg.color);
+  ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1;
+  ctx.strokeRect(130, 36, 700, 16);
+
+  text('⚠ ' + cfg.name.toUpperCase() + ' ⚠', W/2, 23, 13, cfg.accentColor, 'center');
+}
+
+function drawPowerup(p){
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.age * 2);
+  circle(0, 0, 16, 'rgba(7,17,29,.88)');
+  ctx.strokeStyle = p.color; ctx.lineWidth = 3; ctx.stroke();
+  text(p.label, 0, 1, p.label === '2X' || p.label === '💣' ? 12 : 17, p.color, 'center');
+  ctx.restore();
+}
+
+/* RENDERING BOMB EFFECTS */
+function drawActiveBombEffects(){
+  activeBombEffects.forEach(eff => {
+    if(eff.type === 'laser'){
+      eff.beams.forEach(b => {
+        rect(b.x - b.width/2 - 6, 0, b.width + 12, H, 'rgba(74,247,255,.15)');
+        rect(b.x - b.width/2, 0, b.width, H, 'rgba(74,247,255,.45)');
+        rect(b.x - 4, 0, 8, H, '#ffffff');
+        for(let k=0; k<5; k++){
+          const sy = Math.random() * H;
+          circle(b.x + (Math.random() - .5) * b.width, sy, 2 + Math.random() * 3, '#ffffff');
+        }
+      });
+    }
+    if(eff.type === 'nuke'){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,232,94,' + Math.max(0, eff.life) + ')';
+      ctx.lineWidth = 18;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(eff.x, eff.y, eff.radius * 0.8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,78,98,' + Math.max(0, eff.life * 0.8) + ')';
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.restore();
+    }
+    if(eff.type === 'pulse'){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(48,238,131,' + Math.max(0, eff.life * 1.5) + ')';
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.restore();
+    }
+  });
+}
+
+function drawHUD(){
+  if(!player) return;
+  // Top Left: Score & Best
+  rect(9, 9, 250, 58, 'rgba(1,11,20,.76)');
+  ctx.strokeStyle = 'rgba(74,247,255,.45)'; ctx.strokeRect(9, 9, 250, 58);
+  text('SCORE ' + String(score).padStart(7, '0'), 18, 24, 15, COLORS.white);
+  text('BEST  ' + String(bestScore).padStart(7, '0'), 18, 46, 12, COLORS.yellow);
+
+  // Top Right: Wave, Hearts (Lives), Bomb Count
+  rect(W - 275, 9, 266, 58, 'rgba(1,11,20,.76)');
+  ctx.strokeStyle = 'rgba(74,247,255,.45)'; ctx.strokeRect(W - 275, 9, 266, 58);
+  text('WAVE ' + wave, W - 18, 24, 15, COLORS.white, 'right');
+
+  // DRAW HEARTS FOR LIVES
+  const heartStartX = W - 260;
+  const heartY = 46;
+  text('HULL', heartStartX, heartY, 11, COLORS.white);
+  for(let i = 0; i < 3; i++){
+    const hx = heartStartX + 42 + i * 18;
+    drawHeart(hx, heartY - 2, 10, i < player.lives, '#ff4e62');
+  }
+
+  // Thunder sign = remaining bombs
+  const bombLeft = Math.max(0, player.bombs | 0);
+  text('⚡ x' + bombLeft, W - 18, 46, 16, bombLeft > 0 ? COLORS.yellow : COLORS.red, 'right');
+
+  // Center: HP / Shield Bar
+  if(!boss){
+    rect(275, 15, 150, 12, '#381c31');
+    rect(275, 15, 150 * (player.hp / player.maxHp), 12, player.hp > (player.maxHp * 0.35) ? COLORS.green : COLORS.red);
+    ctx.strokeStyle = COLORS.white; ctx.strokeRect(275, 15, 150, 12);
+    text('SHIELD', 266, 21, 10, COLORS.white, 'right');
+  }
+
+  // Bottom Center: Active Buffs & Ship Name
+  let s = [player.ship.name.toUpperCase()];
+  if(player.rapid > 0) s.push('RAPID ' + Math.ceil(player.rapid));
+  if(player.shield > 0) s.push('SHIELD ' + Math.ceil(player.shield));
+  if(player.multiplier > 0) s.push('2X SCORE ' + Math.ceil(player.multiplier));
+  text(s.join(' | '), W / 2, H - 15, 11, COLORS.lime, 'center');
+}
+
+function hexRgb(h){
+  h = h.replace('#',''); let n = parseInt(h, 16);
+  return `${n>>16&255},${n>>8&255},${n&255}`;
+}
+
+function render(){
+  ctx.save();
+  let s = shake > 0 ? (Math.random() - .5) * shake * 18 : 0;
+  ctx.translate(s, s);
+
+  renderBackground();
+
+  if(state === STATE.PLAY || state === STATE.PAUSE || state === STATE.GAME_OVER){
+    for(const p of powerups) drawPowerup(p);
+    for(const e of enemies) drawEnemy(e);
+    if(boss) drawBoss(boss);
+    
+    for(const b of bullets){
+      circle(b.x, b.y, b.r, b.color || COLORS.lime);
+      if(b.type === 'lance') rect(b.x - 2, b.y, 4, 18, '#ffffff');
+      else if(b.type === 'rocket'){
+        rect(b.x - 2, b.y + 2, 4, 8, '#ff4e62');
+        circle(b.x, b.y + 10, 2, COLORS.yellow);
+      } else {
+        rect(b.x - 1, b.y, b.r * 2, 8, 'rgba(184,255,86,.45)');
+      }
+    }
+
+    for(const b of enemyBullets) circle(b.x, b.y, b.r, b.c);
+    drawActiveBombEffects();
+    
+    for(const p of particles) circle(p.x, p.y, p.r, `rgba(${hexRgb(p.c)},${Math.max(0, p.life * 1.5)})`);
+    drawPlayer(player);
+    drawHUD();
+  }
+
+  for(const t of floatingText) text(t.text, t.x, t.y, t.big ? 17 : 12, t.color, 'center');
+
+  ctx.restore();
+}
+
+/* GAME OVER FLOW */
+function endGame(){
+  state = STATE.GAME_OVER;
+  keys = Object.create(null);
+  gameOverOverlay.classList.add('active');
+  pauseMenuOverlay.classList.remove('active');
+  finalScoreDisplay.textContent = 'FINAL SCORE: ' + score;
+  nameInput.value = getSavedPlayerName();
+  nameInput.focus();
+  nameInput.select();
+  recordLocalRun(score);
+  fetchLeaderboard();
+}
+
+async function submitCurrentScore(){
+  if(state !== STATE.GAME_OVER || submitted) return;
+  submitted = true;
+  submitScoreBtn.disabled = true;
+  submitScoreBtn.textContent = 'TRANSMITTING RECORD...';
+
+  const r = await submitScore(nameInput.value, score);
+  if(r.status === 'ok'){
+    submitScoreBtn.textContent = 'SCORE LOGGED TO DATABASE!';
+  } else {
+    submitScoreBtn.textContent = 'SAVED ON THIS DEVICE';
+    if(r.error) console.warn('Score not synced:', r.error);
+  }
+}
+
+submitScoreBtn.addEventListener('click', () => submitCurrentScore());
+nameInput.addEventListener('keydown', e => { if(e.code === 'Enter') submitCurrentScore(); });
+
+/* MAIN ANIMATION LOOP */
+function loop(t){
+  let dt = Math.min(0.034, (t - lastTime || 0) / 1000);
+  lastTime = t;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+fetchLeaderboard();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
