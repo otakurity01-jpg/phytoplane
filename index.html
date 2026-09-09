@@ -115,9 +115,6 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   header .sub{font-size:8px}
   .headerTag{display:none}
 
-  /* The canvas box is sized in pixels by JS (sizeGameWrap) for reliable,
-     maximum full-width scaling even in browsers with weak aspect-ratio
-     support. This CSS is only the fallback before JS runs. */
   #gameWrap{width:100vw;max-width:none;margin:4px auto 0;aspect-ratio:16/9;box-shadow:none}
   canvas{outline-width:1px;outline-offset:-1px}
 
@@ -128,9 +125,6 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   .lbTableWrap{padding:7px 8px 10px}table.scoreTable{font-size:10px}
   table.scoreTable th,table.scoreTable td{padding:6px 4px;font-size:9px}
 
-  /* Every overlay (hangar, pause, game over) becomes a true full-screen
-     modal on phones instead of being squeezed into the short 16:9 canvas
-     box — this is what was clipping the Game Over buttons. */
   .overlayPanel.active{
     position:fixed; inset:0; width:100vw; height:100dvh;
     z-index:999; overflow-y:auto; padding:14px 10px;
@@ -1014,6 +1008,7 @@ function triggerBomb(){
         e.hp -= 85;
         hits++;
         burst(e.x, e.y, COLORS.yellow, 16);
+        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
       }
     });
     if(boss) boss.hp -= 160;
@@ -1044,6 +1039,7 @@ function triggerBomb(){
         e.hp -= 42;
         hits++;
         burst(e.x, e.y, COLORS.lime, 10);
+        if(e.hp <= 0) killEnemy(e); // BUGFIX: bomb damage never killed enemies before
       }
     });
     if(boss) boss.hp -= 80;
@@ -2163,7 +2159,7 @@ async function submitCurrentScore(){
 
   const r = await submitScore(nameInput.value, score);
   if(r.status === 'ok'){
-    submitScoreBtn.textContent = 'SCORE LOGGED TO SPREADSHEET!';
+    submitScoreBtn.textContent = 'SCORE LOGGED TO DATABASE!';
   } else {
     submitScoreBtn.textContent = 'SAVED ON THIS DEVICE';
     if(r.error) console.warn('Score not synced:', r.error);
