@@ -193,7 +193,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
             </button>
           </div>
           <div id="bombDesc">5 sweeping orbital laser beams slice across the battlefield for 2.5s, obliterating bullets and pathogens.</div>
-          <div class="bombTip">⚡ BOMB: DOUBLE-TAP CANVAS OR PRESS [K]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
+          <div class="bombTip">⚡ BOMB: DOUBLE-TAP (TOUCH) OR PRESS [K] / [SPACE]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
         </div>
       </div>
 
@@ -232,7 +232,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   <div id="controlsBar">
     <div class="controlInstructions">
       <span id="controlHelp">🖱️ MOUSE / FINGER MOVES</span>
-      <span>💥 [K] BOMB · [P] / [ESC] PAUSE</span>
+      <span>💥 [K] / [SPACE] BOMB · [P] / [ESC] PAUSE</span>
     </div>
     <div class="controlSwitches">
       <button class="miniToggle" id="inputModeToggle" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
@@ -815,7 +815,7 @@ function startGame(){
   beep(400, .1, 'square');
 }
 
-/* POINTER & DOUBLE-TAP DETECTION */
+/* POINTER & DOUBLE-TAP DETECTION (TOUCH ONLY) */
 function eventToCanvasXY(e){
   const rect = canvas.getBoundingClientRect();
   return {
@@ -828,7 +828,7 @@ canvas.addEventListener('pointerdown', e => {
   if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   const now = Date.now();
 
-  if(state === STATE.PLAY){
+  if(state === STATE.PLAY && e.pointerType === 'touch'){
     if(now - lastTapTime < 350){
       triggerBomb();
       lastTapTime = 0;
@@ -838,7 +838,11 @@ canvas.addEventListener('pointerdown', e => {
   }
 
   pointerDown = true;
-  canvas.setPointerCapture(e.pointerId);
+  try {
+    canvas.setPointerCapture(e.pointerId);
+  } catch (err) {
+    console.warn('Pointer capture failed:', err);
+  }
   const p = eventToCanvasXY(e);
   pointerTarget.x = p.x; pointerTarget.y = p.y; pointerTarget.active = true;
 });
@@ -853,7 +857,7 @@ canvas.addEventListener('pointerup', () => { pointerDown = false; });
 canvas.addEventListener('pointercancel', () => { pointerDown = false; });
 canvas.addEventListener('pointerleave', () => { if(pointerDown) pointerDown = false; });
 
-/* KEYBOARD */
+/* KEYBOARD — NOW INCLUDES SPACE FOR BOMBS */
 window.addEventListener('keydown', e => {
   const c = e.code;
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(c)) e.preventDefault();
@@ -874,7 +878,8 @@ window.addEventListener('keydown', e => {
   }
   if(state !== STATE.PLAY) return;
   keys[c] = true;
-  if(c === 'KeyK' && !e.repeat) triggerBomb();
+  // Trigger bomb on K or Space (non-repeat)
+  if((c === 'KeyK' || c === 'Space') && !e.repeat) triggerBomb();
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -885,7 +890,6 @@ function beep(f=440, d=.06, type='square', v=.035){
   try{
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    // 1.35× louder than the prior build, capped to avoid harsh clipping.
     const volume = Math.min(0.12, v * 1.35);
     o.type = type; o.frequency.value = f;
     g.gain.setValueAtTime(volume, audioCtx.currentTime);
@@ -971,7 +975,6 @@ function fireShipWeapon(){
     beep(340, .05, 'triangle', .03);
   }
   else if(s.id === 'rocket'){
-    // Rapid launcher: lower damage per missile, higher firing cadence.
     p.rocketSide = 1 - p.rocketSide;
     const sx = p.rocketSide ? p.x - 14 : p.x + 14;
     bullets.push({x:sx, y:p.y-17, vx:(p.rocketSide ? -55 : 55), vy:-530, r:5, dmg:1.05, homing:true, color:s.color, type:'rocket', age:0});
@@ -1045,9 +1048,6 @@ function triggerBomb(){
     beep(80, .5, 'sawtooth', .08);
   }
   else {
-    // OVERDRIVE replaces the EMP: no screen-clear damage. It activates every
-    // player special for 5 seconds — rapid-fire, shield, 2X scoring, and a
-    // weapon boost handled by fireShipWeapon's isOverdrive flag.
     shake = 0.18;
     player.overdrive = Math.max(player.overdrive, 5);
     player.rapid = Math.max(player.rapid, 5);
@@ -1115,14 +1115,8 @@ const TYPES = {
   virus: {hp:7, speed:65, points:360, r:20, color:'#ff66b3'},
   pest: {hp:4, speed:115, points:230, r:17, color:'#8caaff'},
   pod: {hp:22, speed:46, points:950, r:32, color:'#b8784e'},
-  /* Basipetal wilt crawler — mimics basipetal (tip-to-base) symptom collapse
-     seen in vascular wilts like Ralstonia solanacearum on tomato. */
   basipetal: {hp:9, speed:78, points:410, r:19, color:'#b8784e'},
-  /* Root-knot nematode — vermiform, tapering worm body like a microscope
-     still of a Meloidogyne / root-knot juvenile. */
   nematode: {hp:6, speed:96, points:280, r:9, color:'#d7e4a1'},
-  /* Flagellate rod bacterium — dark bacillus with looping polar flagella,
-     referencing motile Xanthomonas-type rice/tomato pathogens. */
   flagellate: {hp:8, speed:82, points:340, r:12, color:'#ff5fa2'}
 };
 
@@ -1147,9 +1141,6 @@ function spawnSwarmFormation(){
   const formations = ['V_SHAPE', 'LINE_SWEEP', 'PINCER', 'CLUSTER_RUSH', 'HEAVY_ESCORT', 'BASIPETAL_CASCADE', 'NEMATODE_SWARM', 'FLAGELLATE_DRIFT'];
   const form = formations[Math.floor(Math.random() * formations.length)];
   const centerX = 150 + Math.random() * (W - 300);
-  // Both the odds of picking a rarer enemy AND the size of its dedicated
-  // swarm grow with wave number, so nematodes/flagellates/basipetals show
-  // up more often and in bigger numbers the longer you survive.
   const waveBonus = Math.min(1, wave * 0.06);
 
   if(form === 'V_SHAPE'){
@@ -1190,24 +1181,18 @@ function spawnSwarmFormation(){
     spawnEnemy('bacteria', centerX + 100, 45, 1.1);
   }
   else if(form === 'BASIPETAL_CASCADE'){
-    /* Top-to-base wilt collapse: units enter progressively later, like
-       symptoms marching down a stem from the growing tip toward the base. */
     const count = Math.min(4 + Math.floor(wave / 3), 8);
     for(let i = 0; i < count; i++){
       spawnEnemy('basipetal', centerX + (Math.random() - .5) * 60, i * 55, 0.85);
     }
   }
   else if(form === 'NEMATODE_SWARM'){
-    /* Root-knot nematodes surfacing in a scattered burrowing pack — the
-       swarm size scales up with wave number. */
     const count = Math.min(3 + Math.floor(wave / 2), 10);
     for(let i = 0; i < count; i++){
       spawnEnemy('nematode', 40 + Math.random() * (W - 80), Math.random() * 90, 1.0 + wave * 0.015);
     }
   }
   else if(form === 'FLAGELLATE_DRIFT'){
-    /* A cluster of motile rod bacteria swimming down in loose formation,
-       propelled by their looping polar flagella; grows with wave number. */
     const count = Math.min(3 + Math.floor(wave / 2), 9);
     for(let i = 0; i < count; i++){
       spawnEnemy('flagellate', centerX + (Math.random() - .5) * 220, Math.random() * 70, 1.0);
@@ -1247,21 +1232,15 @@ function updateEnemies(dt){
       if(e.shoot <= 0 && e.y > 50){ shootEnemy(e, 0); e.shoot = 1.7; }
     }
     if(e.type === 'basipetal'){
-      /* Sway starts wide near the top and narrows as it descends — a visual
-         nod to symptoms progressing basipetally from tip to base. */
       e.y += e.speed * dt;
       const collapse = Math.max(0.15, 1 - e.y / H);
       e.x = e.baseX + Math.sin(e.age * 1.6 + e.phase) * 46 * collapse;
       if(e.shoot <= 0 && e.y > 40){ shootEnemy(e, (Math.random() - .5) * 0.4); e.shoot = 1.6 + Math.random(); }
     }
     if(e.type === 'nematode'){
-      /* Long, slow serpentine slither, like a root-knot nematode
-         burrowing sideways through soil/roots. */
       e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 2.4 + e.phase) * 85;
     }
     if(e.type === 'flagellate'){
-      /* Steady flagellar swim: gentle sideways drift powered by a
-         whip-like polar flagellum rather than legs. */
       e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 1.9 + e.phase) * 30;
       if(e.shoot <= 0 && e.y > 45){ shootEnemy(e, 0); e.shoot = 2.1 + Math.random(); }
     }
@@ -1317,7 +1296,6 @@ function updateBoss(dt){
   b.spawn -= dt;
   b.superTimer = (b.superTimer || 7.0) - dt;
 
-  // SUPER MOVE COOLDOWN TRIGGER (Every 7.5s, based on real-life infection!)
   if(b.superTimer <= 0 && b.y >= b.targetY - 2){
     b.superTimer = 7.5 + Math.random() * 2.0;
     shake = 0.45;
@@ -1328,7 +1306,8 @@ function updateBoss(dt){
     });
     beep(80, .3, 'sawtooth', .08);
 
-    // 1. XOO Blight Spreader Super: Systemic Xylem Blight Surge
+    const bossAtLaunch = boss;
+
     if(b.cfg.id === 'xoo'){
       for(let i = -5; i <= 5; i++){
         const a = Math.PI / 2 + (i * 0.12);
@@ -1337,7 +1316,6 @@ function updateBoss(dt){
       spawnEnemy('bacteria', b.x - 100);
       spawnEnemy('bacteria', b.x + 100);
     }
-    // 2. Fusarium wilter Super: Vascular Wilt Collapse
     else if(b.cfg.id === 'fusarium'){
       for(let i = 0; i < 14; i++){
         const a = (i * Math.PI * 2) / 14;
@@ -1348,27 +1326,24 @@ function updateBoss(dt){
         enemyBullets.push({x:rx, y:H + 20, vx:0, vy:-220, r:6, c:b.cfg.color});
       }
     }
-    // 3. Colletotrichum bucket Super: Acervular Rain-Splash Deluge
     else if(b.cfg.id === 'colletotrichum'){
       for(let i = 0; i < 16; i++){
         const a = (i * Math.PI * 2) / 16;
         enemyBullets.push({x:b.x, y:b.y+25, vx:Math.cos(a)*190, vy:Math.sin(a)*190, r:7, c:b.cfg.color, splashDrop:true});
       }
     }
-    // 4. Puccinia ship rust Super: Continental Rust Storm
     else if(b.cfg.id === 'puccinia'){
       for(let i = 0; i < 20; i++){
         const a = b.age * 4 + (i * Math.PI * 2 / 20);
         enemyBullets.push({x:b.x, y:b.y+35, vx:Math.cos(a)*210, vy:Math.sin(a)*210, r:6, c:b.cfg.color});
       }
     }
-    // 5. Pop Ringspot Super: Concentric Ringspot Catastrophe
     else if(b.cfg.id === 'pop_ringspot'){
       [140, 200, 260].forEach((spd, waveIdx) => {
         setTimeout(() => {
-          if(!boss) return;
+          if(!boss || boss !== bossAtLaunch || state !== STATE.PLAY) return;
           for(let i = 0; i < 16; i++){
-            if(i % 4 === 0) continue; // Safe gap to weave through!
+            if(i % 4 === 0) continue;
             const a = (i * Math.PI * 2) / 16;
             enemyBullets.push({x:b.x, y:b.y+20, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd, r:6, c:b.cfg.color});
           }
@@ -1378,7 +1353,6 @@ function updateBoss(dt){
     }
   }
 
-  // REGULAR ATTACKS
   if(b.shoot <= 0 && b.y >= b.targetY - 2){
     if(b.cfg.id === 'xoo'){
       for(let i = -2; i <= 2; i++){
@@ -1422,7 +1396,6 @@ function updateBoss(dt){
     }
   }
 
-  // Minion escort spawns
   if(b.spawn <= 0){
     spawnEnemy(Math.random() < .5 ? 'bacteria' : 'fungus', b.x + (Math.random() - .5) * 120);
     b.spawn = Math.max(2.4, 5.0 - wave * 0.2);
@@ -1430,7 +1403,6 @@ function updateBoss(dt){
 
   if(distance(b.x, b.y, player.x, player.y) < b.r + player.r) damagePlayer(35);
 
-  // BOSS DEFEATED
   if(b.hp <= 0){
     const bonus = b.noDamage ? 1500 : 0;
     addScore(3500 + wave * 500 + bonus);
@@ -1670,7 +1642,6 @@ function line(x1,y1,x2,y2,c,w=1){
   ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
 }
 
-/* DRAW GLOWING VECTOR HEARTS FOR LIVES */
 function drawHeart(x, y, s, filled = true, color = '#ff4e62'){
   ctx.save();
   ctx.translate(x, y);
@@ -1686,7 +1657,6 @@ function drawHeart(x, y, s, filled = true, color = '#ff4e62'){
   ctx.restore();
 }
 
-/* FULL POLYGON RENDERING */
 function poly(p, c, st = null){
   if(!p || p.length < 2) return;
   ctx.beginPath();
@@ -1748,7 +1718,6 @@ function drawForest(){
   }
 }
 
-/* SHIP SPRITE RENDERING */
 function drawPlayer(p){
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -1815,413 +1784,179 @@ function drawPlayer(p){
   ctx.restore();
 }
 
-/* ENEMIES RENDERING */
-function drawEnemy(e){
+/* GAME LOOP */
+function gameLoop(timestamp){
+  if(!lastTime) lastTime = timestamp;
+  const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+  lastTime = timestamp;
+
+  update(dt);
+
   ctx.save();
-  ctx.translate(e.x, e.y);
-  if(e.type === 'bacteria'){
-    circle(0, 0, e.r, e.color);
-    circle(-5, -2, 3, '#0d5d49'); circle(5, 4, 2, '#0d5d49');
-    for(let i = 0; i < 4; i++){
-      let a = i * Math.PI / 2 + e.age * 2;
-      line(Math.cos(a) * e.r, Math.sin(a) * e.r, Math.cos(a) * (e.r + 5), Math.sin(a) * (e.r + 5), '#ccff91');
-    }
-  }
-  if(e.type === 'fungus'){
-    for(let i = 0; i < 7; i++){
-      let a = i * Math.PI * 2 / 7;
-      circle(Math.cos(a) * 11, Math.sin(a) * 11, 8, e.color);
-    }
-    circle(0, 0, 10, '#fff0c8'); circle(0, 0, 4, '#c16c3f');
-  }
-  if(e.type === 'virus'){
-    poly([[0,-e.r],[-e.r,0],[0,e.r],[e.r,0]], e.color, COLORS.white);
-    circle(0, 0, 8, '#43154e');
-    for(let i = 0; i < 4; i++) circle(Math.cos(i*Math.PI/2)*14, Math.sin(i*Math.PI/2)*14, 3, COLORS.white);
-  }
-  if(e.type === 'pest'){
-    poly([[0,-15],[-20,-5],[-24,10],[-5,8],[0,17],[5,8],[24,10],[20,-5]], e.color, '#dce8ff');
-    circle(0, 0, 7, '#2c335d');
-    line(-4, 8, -10, 20, '#dce8ff', 2); line(4, 8, 10, 20, '#dce8ff', 2);
-  }
-  if(e.type === 'pod'){
-    circle(0, 0, e.r, e.color);
-    circle(-10, -7, 9, '#4e2c20'); circle(11, 8, 7, '#4e2c20');
-    for(let i = 0; i < 6; i++){
-      let a = i * Math.PI / 3;
-      line(Math.cos(a) * e.r * 0.7, Math.sin(a) * e.r * 0.7, Math.cos(a) * e.r * 1.1, Math.sin(a) * e.r * 1.1, '#e5a66b', 3);
-    }
-  }
-  if(e.type === 'basipetal'){
-    /* Drooping stem-and-leaf silhouette that visibly wilts downward. */
-    const droop = Math.min(1, e.age * 0.6);
-    line(0, -e.r, 0, e.r * (0.4 + droop * 0.5), '#6b4a26', 4);
-    poly([[0,-e.r],[-14,-4-droop*6],[-4,2],[0,-e.r*0.2]], '#8f6a3a', e.color);
-    poly([[0,-e.r*0.3],[14,4+droop*8],[4,10],[0,e.r*0.1]], '#8f6a3a', e.color);
-    circle(0, e.r * 0.5, 6, '#3a2410');
-    for(let i = 0; i < 3; i++){
-      circle(-6 + i * 6, e.r * 0.9 + Math.sin(e.age * 3 + i) * 2, 2, '#c48a3d');
-    }
-  }
-  if(e.type === 'nematode'){
-    /* Continuous tapering vermiform body — a smooth curved tube rather than
-       a bead chain, matching a microscope still of a root-knot nematode
-       juvenile: pointed tail, blunt rounded head, faint internal stipple. */
-    const len = e.r * 7.2;
-    const steps = 22;
-    const pts = [];
-    for(let i = 0; i <= steps; i++){
-      const t = i / steps;
-      const py = -len * 0.5 + t * len;
-      const bend = Math.sin(e.age * 2.2 + e.phase + t * Math.PI * 1.4) * e.r * 2.15;
-      pts.push([bend, py]);
-    }
-    ctx.save();
-    ctx.strokeStyle = e.color;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    for(let i = 0; i < pts.length - 1; i++){
-      const t = i / (pts.length - 1);
-      ctx.lineWidth = Math.max(0.7, e.r * 0.42 * (1 - t * 0.86));
-      ctx.beginPath();
-      ctx.moveTo(pts[i][0], pts[i][1]);
-      ctx.lineTo(pts[i+1][0], pts[i+1][1]);
-      ctx.stroke();
-    }
-    ctx.restore();
-    // Faint internal granularity (gut/body stipple seen under the scope)
-    for(let i = 2; i < pts.length - 2; i += 3){
-      circle(pts[i][0], pts[i][1], 0.75, 'rgba(60,70,20,.35)');
-    }
-    circle(pts[0][0], pts[0][1], 1.1, '#4a5a1e'); // tiny mouth/stylet dot at head
-  }
-  if(e.type === 'flagellate'){
-    /* Dark rod-shaped (bacillus) body with 1–2 thin, looping polar flagella
-       trailing behind — modeled on a TEM of a motile rod bacterium such as
-       Xanthomonas. */
-    ctx.save();
-    ctx.rotate(Math.sin(e.age * 1.3 + e.phase) * 0.12);
-    const bodyLen = e.r * 2.3, bodyW = e.r * 1.05;
-    ctx.beginPath();
-    ctx.moveTo(-bodyW, -bodyLen * 0.5 + bodyW);
-    ctx.arcTo(-bodyW, -bodyLen * 0.5, 0, -bodyLen * 0.5, bodyW);
-    ctx.arcTo(bodyW, -bodyLen * 0.5, bodyW, -bodyLen * 0.5 + bodyW, bodyW);
-    ctx.lineTo(bodyW, bodyLen * 0.5 - bodyW);
-    ctx.arcTo(bodyW, bodyLen * 0.5, 0, bodyLen * 0.5, bodyW);
-    ctx.arcTo(-bodyW, bodyLen * 0.5, -bodyW, bodyLen * 0.5 - bodyW, bodyW);
-    ctx.closePath();
-    ctx.fillStyle = e.color;
-    ctx.fill();
-
-    // Looping polar flagella trailing from the top pole
-    ctx.strokeStyle = 'rgba(255,205,228,.92)';
-    ctx.lineWidth = 1.3;
-    for(let f = -1; f <= 1; f += 2){
-      const wag = Math.sin(e.age * 3 + e.phase + f) * 6;
-      ctx.beginPath();
-      ctx.moveTo(f * bodyW * 0.4, -bodyLen * 0.5);
-      ctx.bezierCurveTo(
-        f * (10 + wag), -bodyLen * 0.5 - 16,
-        f * -6, -bodyLen * 0.5 - 26,
-        f * 4 + wag * 0.5, -bodyLen * 0.5 - 12
-      );
-      ctx.bezierCurveTo(
-        f * 14, -bodyLen * 0.5 - 4,
-        f * 2, -bodyLen * 0.5 - 30,
-        f * (12 + wag), -bodyLen * 0.5 - 34
-      );
-      ctx.stroke();
-    }
-    ctx.restore();
+  if(shake > 0){
+    const sx = (Math.random() - 0.5) * shake * 12;
+    const sy = (Math.random() - 0.5) * shake * 12;
+    ctx.translate(sx, sy);
   }
 
-  if(e.maxHp > 3){
-    rect(-e.r, -e.r - 10, e.r * 2, 4, '#442236');
-    rect(-e.r, -e.r - 10, e.r * 2 * (e.hp / e.maxHp), 4, COLORS.lime);
-  }
-  ctx.restore();
-}
+  renderBackground();
 
-/* RENDERING THE 5 PLANT PATHOLOGY MACHINES */
-function drawBoss(b){
-  ctx.save();
-  ctx.translate(b.x, b.y);
-  const cfg = b.cfg;
+  if(state === STATE.PLAY){
+    for(const p of powerups){
+      circle(p.x, p.y, 10, 'rgba(255,232,94,.15)');
+      circle(p.x, p.y, 8, p.color);
+      text(p.label, p.x, p.y, 10, '#07111d', 'center');
+    }
 
-  // 1. XOO Blight Spreader (Bacterial Harvester with Spinning Flagella Rotors & Xylem Drippers)
-  if(cfg.id === 'xoo'){
-    poly([[0,-65],[-75,-25],[-65,25],[-35,45],[0,35],[35,45],[65,25],[75,-25]], '#1e3820', cfg.color);
-    for(let side of [-45, 45]){
-      circle(side, -5, 14, '#142816');
-      for(let i=0; i<4; i++){
-        let fa = b.age * 8 + i * Math.PI/2;
-        line(side, -5, side + Math.cos(fa)*18, -5 + Math.sin(fa)*18, cfg.accentColor, 3);
+    for(const b of bullets){
+      circle(b.x, b.y, b.r, b.color || COLORS.yellow);
+    }
+
+    for(const eb of enemyBullets){
+      circle(eb.x, eb.y, eb.r, eb.c);
+    }
+
+    for(const e of enemies){
+      if(e.type === 'bacteria'){
+        circle(e.x, e.y, e.r, e.color);
+        circle(e.x - 4, e.y - 3, 3, '#a9ff60');
+        circle(e.x + 4, e.y - 3, 3, '#a9ff60');
+      } else if(e.type === 'nematode'){
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4);
+        rect(-12, -4, 24, 8, e.color);
+        ctx.restore();
+      } else if(e.type === 'flagellate'){
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
+        rect(-8, -5, 16, 10, e.color);
+        ctx.strokeStyle = '#ff5fa2';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.quadraticCurveTo(18, -8, 24, -12);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        circle(e.x, e.y, e.r, e.color);
+      }
+
+      const hpPct = e.hp / e.maxHp;
+      if(hpPct < 1){
+        rect(e.x - 10, e.y - e.r - 6, 20, 3, 'rgba(255,255,255,.2)');
+        rect(e.x - 10, e.y - e.r - 6, 20 * hpPct, 3, COLORS.lime);
       }
     }
-    circle(0, -10, 18, '#142816');
-    circle(0, -10, 10, cfg.color);
-    for(let i=-2; i<=2; i++){
-      rect(i*24 - 3, 30, 6, 18, cfg.accentColor);
-      circle(i*24, 48, 4, cfg.color);
+
+    if(boss){
+      const b = boss;
+      circle(b.x, b.y, b.r, b.cfg.color);
+      circle(b.x, b.y, b.r * 0.6, b.cfg.coreColor);
+      circle(b.x, b.y, b.r * 0.3, b.cfg.accentColor);
+
+      const hpPct = b.hp / b.maxHp;
+      rect(b.x - 40, b.y - b.r - 10, 80, 6, 'rgba(255,255,255,.2)');
+      rect(b.x - 40, b.y - b.r - 10, 80 * hpPct, 6, COLORS.lime);
+    }
+
+    drawPlayer(player);
+
+    for(const eff of activeBombEffects){
+      if(eff.type === 'laser'){
+        eff.beams.forEach(bm => {
+          ctx.save();
+          ctx.translate(bm.x, 0);
+          ctx.fillStyle = 'rgba(74,247,255,.35)';
+          ctx.fillRect(-bm.width/2, 0, bm.width, H);
+          ctx.restore();
+        });
+      } else if(eff.type === 'nuke'){
+        const grad = ctx.createRadialGradient(eff.x, eff.y, 0, eff.x, eff.y, eff.radius);
+        grad.addColorStop(0, 'rgba(255,232,94,.9)');
+        grad.addColorStop(0.4, 'rgba(255,157,53,.6)');
+        grad.addColorStop(1, 'rgba(255,78,98,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
-  // 2. Fusarium wilter (Subsoil Excavator / Vascular Root Drill Behemoth)
-  else if(cfg.id === 'fusarium'){
-    poly([[0,68],[-25,35],[-68,15],[-78,-35],[0,-60],[78,-35],[68,15],[25,35]], '#3a2016', cfg.color);
-    poly([[0,75],[-14,35],[0,25],[14,35]], '#ffffff', cfg.coreColor);
-    circle(-35, -12, 16, '#281326');
-    circle(-35, -12, 9, cfg.coreColor);
-    circle(35, -12, 16, '#281326');
-    circle(35, -12, 9, cfg.coreColor);
-    line(-68, 15, -85, 48, cfg.accentColor, 4);
-    line(68, 15, 85, 48, cfg.accentColor, 4);
+  for(const pt of particles){
+    circle(pt.x, pt.y, pt.r, pt.c);
   }
 
-  // 3. Colletotrichum bucket (Sunken Acervulus Bucket Dredge / Splash Mortar)
-  else if(cfg.id === 'colletotrichum'){
-    poly([[0,-55],[-82,-20],[-65,30],[-40,55],[0,45],[40,55],[65,30],[82,-20]], '#421e14', cfg.accentColor);
-    ctx.beginPath();
-    ctx.ellipse(0, 5, 42, 24, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#260e0a'; ctx.fill();
-    ctx.strokeStyle = cfg.color; ctx.lineWidth = 3; ctx.stroke();
-    for(let i=-2; i<=2; i++){
-      circle(i*14, 5 + Math.sin(b.age*3 + i)*4, 7, cfg.color);
-    }
-    rect(-65, 5, 12, 28, '#260e0a');
-    rect(53, 5, 12, 28, '#260e0a');
-    circle(-59, 36, 6, cfg.color);
-    circle(59, 36, 6, cfg.color);
-  }
-
-  // 4. Puccinia ship rust (Uredinial Ironclad Cruiser Warship)
-  else if(cfg.id === 'puccinia'){
-    poly([[0,-75],[-70,-35],[-60,40],[-25,55],[0,48],[25,55],[60,40],[70,-35]], '#4d1e18', cfg.color);
-    rect(-18, -35, 10, 22, '#210a08');
-    rect(8, -35, 10, 22, '#210a08');
-    for(let side of [-42, 0, 42]){
-      circle(side, 12, 10, '#260805');
-      circle(side, 12, 6, cfg.color);
-      line(side, 18, side, 34, cfg.accentColor, 3);
-    }
-    poly([[0,-75],[-15,-40],[0,-30],[15,-40]], '#ffffff', cfg.color);
-  }
-
-  // 5. Pop Ringspot (Viral Concentric Vector Halo Drone)
-  else {
-    for(let r = 32; r <= 68; r += 18){
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,51,153,' + (1.0 - r/90) + ')';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-    }
-    poly([[0,-28],[-25,-12],[-25,18],[0,32],[25,18],[25,-12]], '#29061c', cfg.color);
-    circle(0, 0, 14, '#0d1e2b');
-    circle(0, 0, 8, cfg.coreColor);
-    line(-10, 28, -10, 58, cfg.accentColor, 2);
-    line(10, 28, 10, 58, cfg.accentColor, 2);
-    circle(-10, 60, 3, cfg.color);
-    circle(10, 60, 3, cfg.color);
+  for(const ft of floatingText){
+    text(ft.text, ft.x, ft.y, ft.big ? 18 : 12, ft.color, 'center');
   }
 
   ctx.restore();
 
-  // Boss HP Bar & Real-Life Pathology Banner
-  rect(130, 36, 700, 16, '#2e1222');
-  rect(130, 36, 700 * (b.hp / b.maxHp), 16, cfg.color);
-  ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1;
-  ctx.strokeRect(130, 36, 700, 16);
+  if(state === STATE.PLAY){
+    const hudY = 16;
+    text('SCORE: ' + score.toLocaleString(), 12, hudY, 14, COLORS.yellow, 'left');
+    text('WAVE: ' + wave, W - 12, hudY, 14, COLORS.lime, 'right');
 
-  text('⚠ ' + cfg.name.toUpperCase() + ' ⚠', W/2, 23, 13, cfg.accentColor, 'center');
+    const barW = 110, barH = 8, barX = 12, barY = 38;
+    rect(barX, barY, barW, barH, 'rgba(255,255,255,.15)');
+    rect(barX, barY, barW * (player.hp / player.maxHp), barH, COLORS.lime);
+    text('HP', barX - 22, barY + barH/2, 12, COLORS.white, 'right');
+
+    for(let i = 0; i < player.lives; i++){
+      drawHeart(W - 24 - i * 22, hudY, 16, true, COLORS.red);
+    }
+
+    text('💣 ' + player.bombs, W/2, hudY + 22, 14, COLORS.yellow, 'center');
+  }
+
+  requestAnimationFrame(gameLoop);
 }
 
-function drawPowerup(p){
-  ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.rotate(p.age * 2);
-  circle(0, 0, 16, 'rgba(7,17,29,.88)');
-  ctx.strokeStyle = p.color; ctx.lineWidth = 3; ctx.stroke();
-  text(p.label, 0, 1, p.label === '2X' || p.label === '💣' ? 12 : 17, p.color, 'center');
-  ctx.restore();
+/* MISSING FUNCTIONS STUBS */
+function endGame(){
+  state = STATE.GAME_OVER;
+  if(gameOverOverlay) gameOverOverlay.classList.add('active');
+  if(finalScoreDisplay) finalScoreDisplay.textContent = 'SCORE: ' + score.toLocaleString();
+  recordLocalRun(score);
+  beep(120, .35, 'sawtooth', .07);
 }
 
-/* RENDERING BOMB EFFECTS */
-function drawActiveBombEffects(){
-  activeBombEffects.forEach(eff => {
-    if(eff.type === 'laser'){
-      eff.beams.forEach(b => {
-        rect(b.x - b.width/2 - 6, 0, b.width + 12, H, 'rgba(74,247,255,.15)');
-        rect(b.x - b.width/2, 0, b.width, H, 'rgba(74,247,255,.45)');
-        rect(b.x - 4, 0, 8, H, '#ffffff');
-        for(let k=0; k<5; k++){
-          const sy = Math.random() * H;
-          circle(b.x + (Math.random() - .5) * b.width, sy, 2 + Math.random() * 3, '#ffffff');
-        }
-      });
-    }
-    if(eff.type === 'nuke'){
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,232,94,' + Math.max(0, eff.life) + ')';
-      ctx.lineWidth = 18;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(eff.x, eff.y, eff.radius * 0.8, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,78,98,' + Math.max(0, eff.life * 0.8) + ')';
-      ctx.lineWidth = 8;
-      ctx.stroke();
-      ctx.restore();
-    }
-    if(eff.type === 'pulse'){
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(48,238,131,' + Math.max(0, eff.life * 1.5) + ')';
-      ctx.lineWidth = 8;
-      ctx.stroke();
-      ctx.restore();
+function submitCurrentScore(){
+  if(submitted) return;
+  const name = nameInput.value.trim() || 'Anonymous';
+  submitScore(name, score).then(res => {
+    submitted = true;
+    if(submitScoreBtn){
+      submitScoreBtn.disabled = true;
+      submitScoreBtn.textContent = res.status === 'ok' ? 'SUBMITTED ✓' : 'SAVED LOCALLY';
     }
   });
 }
 
-function drawHUD(){
-  if(!player) return;
-  // Top Left: Score & Best
-  rect(9, 9, 250, 58, 'rgba(1,11,20,.76)');
-  ctx.strokeStyle = 'rgba(74,247,255,.45)'; ctx.strokeRect(9, 9, 250, 58);
-  text('SCORE ' + String(score).padStart(7, '0'), 18, 24, 15, COLORS.white);
-  text('BEST  ' + String(bestScore).padStart(7, '0'), 18, 46, 12, COLORS.yellow);
-
-  // Top Right: Wave, Hearts (Lives), Bomb Count
-  rect(W - 275, 9, 266, 58, 'rgba(1,11,20,.76)');
-  ctx.strokeStyle = 'rgba(74,247,255,.45)'; ctx.strokeRect(W - 275, 9, 266, 58);
-  text('WAVE ' + wave, W - 18, 24, 15, COLORS.white, 'right');
-
-  // DRAW HEARTS FOR LIVES
-  const heartStartX = W - 260;
-  const heartY = 46;
-  text('HULL', heartStartX, heartY, 11, COLORS.white);
-  for(let i = 0; i < 3; i++){
-    const hx = heartStartX + 42 + i * 18;
-    drawHeart(hx, heartY - 2, 10, i < player.lives, '#ff4e62');
-  }
-
-  // Thunder sign = remaining bombs
-  const bombLeft = Math.max(0, player.bombs | 0);
-  text('⚡ x' + bombLeft, W - 18, 46, 16, bombLeft > 0 ? COLORS.yellow : COLORS.red, 'right');
-
-  // Center: HP / Shield Bar
-  if(!boss){
-    rect(275, 15, 150, 12, '#381c31');
-    rect(275, 15, 150 * (player.hp / player.maxHp), 12, player.hp > (player.maxHp * 0.35) ? COLORS.green : COLORS.red);
-    ctx.strokeStyle = COLORS.white; ctx.strokeRect(275, 15, 150, 12);
-    text('SHIELD', 266, 21, 10, COLORS.white, 'right');
-  }
-
-  // Bottom Center: Active Buffs & Ship Name
-  let s = [player.ship.name.toUpperCase()];
-  if(player.rapid > 0) s.push('RAPID ' + Math.ceil(player.rapid));
-  if(player.shield > 0) s.push('SHIELD ' + Math.ceil(player.shield));
-  if(player.multiplier > 0) s.push('2X SCORE ' + Math.ceil(player.multiplier));
-  if(player.overdrive > 0) s.push('⚡ OVERDRIVE ' + Math.ceil(player.overdrive));
-  text(s.join(' | '), W / 2, H - 15, 11, COLORS.lime, 'center');
-}
-
-function hexRgb(h){
-  h = h.replace('#',''); let n = parseInt(h, 16);
-  return `${n>>16&255},${n>>8&255},${n&255}`;
-}
-
-function render(){
-  ctx.save();
-  let s = shake > 0 ? (Math.random() - .5) * shake * 18 : 0;
-  ctx.translate(s, s);
-
-  renderBackground();
-
-  if(state === STATE.PLAY || state === STATE.PAUSE || state === STATE.GAME_OVER){
-    for(const p of powerups) drawPowerup(p);
-    for(const e of enemies) drawEnemy(e);
-    if(boss) drawBoss(boss);
-    
-    for(const b of bullets){
-      circle(b.x, b.y, b.r, b.color || COLORS.lime);
-      if(b.type === 'lance') rect(b.x - 2, b.y, 4, 18, '#ffffff');
-      else if(b.type === 'rocket'){
-        // A real missile silhouette: pointed nose, fins, exhaust, and rotates
-        // in the direction the homing rocket is actually travelling.
-        ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
-        poly([[0,-10],[-4,3],[-6,7],[6,7],[4,3]], b.color || COLORS.yellow, '#ffffff');
-        poly([[-6,5],[-9,9],[-3,8]], '#ff4e62');
-        poly([[6,5],[9,9],[3,8]], '#ff4e62');
-        poly([[-2,7],[0,14],[2,7]], COLORS.orange);
-        ctx.restore();
-      } else {
-        rect(b.x - 1, b.y, b.r * 2, 8, 'rgba(184,255,86,.45)');
-      }
-    }
-
-    for(const b of enemyBullets) circle(b.x, b.y, b.r, b.c);
-    drawActiveBombEffects();
-    
-    for(const p of particles) circle(p.x, p.y, p.r, `rgba(${hexRgb(p.c)},${Math.max(0, p.life * 1.5)})`);
-    drawPlayer(player);
-    drawHUD();
-  }
-
-  for(const t of floatingText) text(t.text, t.x, t.y, t.big ? 17 : 12, t.color, 'center');
-
-  ctx.restore();
-}
-
-/* GAME OVER FLOW */
-function endGame(){
-  state = STATE.GAME_OVER;
-  keys = Object.create(null);
-  gameOverOverlay.classList.add('active');
-  pauseMenuOverlay.classList.remove('active');
-  finalScoreDisplay.textContent = 'FINAL SCORE: ' + score;
+if(nameInput){
   nameInput.value = getSavedPlayerName();
-  nameInput.focus();
-  nameInput.select();
-  recordLocalRun(score);
-  fetchLeaderboard();
+  nameInput.addEventListener('input', () => {
+    setSavedPlayerName(nameInput.value.trim());
+  });
+}
+if(submitScoreBtn){
+  submitScoreBtn.addEventListener('click', () => {
+    if(!submitted){
+      const name = nameInput.value.trim() || 'Anonymous';
+      submitScore(name, score).then(res => {
+        submitted = true;
+        submitScoreBtn.disabled = true;
+        submitScoreBtn.textContent = res.status === 'ok' ? 'SUBMITTED ✓' : 'SAVED LOCALLY';
+      });
+    }
+  });
 }
 
-async function submitCurrentScore(){
-  if(state !== STATE.GAME_OVER || submitted) return;
-  submitted = true;
-  submitScoreBtn.disabled = true;
-  submitScoreBtn.textContent = 'TRANSMITTING RECORD...';
-
-  const r = await submitScore(nameInput.value, score);
-  if(r.status === 'ok'){
-    submitScoreBtn.textContent = 'SCORE LOGGED TO DATABASE!';
-  } else {
-    submitScoreBtn.textContent = 'SAVED ON THIS DEVICE';
-    if(r.error) console.warn('Score not synced:', r.error);
-  }
-}
-
-submitScoreBtn.addEventListener('click', () => submitCurrentScore());
-nameInput.addEventListener('keydown', e => { if(e.code === 'Enter') submitCurrentScore(); });
-
-/* MAIN ANIMATION LOOP */
-function loop(t){
-  let dt = Math.min(0.034, (t - lastTime || 0) / 1000);
-  lastTime = t;
-  update(dt);
-  render();
-  requestAnimationFrame(loop);
-}
-
+requestAnimationFrame(gameLoop);
 fetchLeaderboard();
-requestAnimationFrame(loop);
 </script>
 </body>
 </html>
