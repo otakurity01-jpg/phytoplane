@@ -1153,6 +1153,11 @@ const TYPES = {
   flagellate: {hp:8, speed:82, points:340, r:12, color:'#ff5fa2'}
 };
 
+function getRandomEnemyType() {
+  const types = ['bacteria', 'fungus', 'virus', 'pest', 'basipetal', 'nematode', 'flagellate', 'pod'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
 function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   const d = TYPES[type], hp = d.hp + Math.floor((wave - 1) * 0.45);
   const e = {
@@ -1160,7 +1165,8 @@ function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
     x: x ?? (35 + Math.random() * (W - 70)),
     y: -45 - yOffset, baseX: 0,
     r: d.r, hp, maxHp: hp,
-    speed: (d.speed + wave * 5) * speedMult,
+    // MASSIVE SPEED INCREASE SCALING PER WAVE
+    speed: (d.speed + wave * 15) * speedMult,
     points: d.points, color: d.color,
     age: 0, phase: Math.random() * 6.28,
     shoot: 1.1 + Math.random() * 1.8, dead: false
@@ -1169,67 +1175,49 @@ function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   enemies.push(e);
 }
 
-/* MULTI-ENEMY SWARM FORMATIONS */
+/* MULTI-ENEMY SWARM FORMATIONS (NOW FULLY RANDOMIZED) */
 function spawnSwarmFormation(){
   const formations = ['V_SHAPE', 'LINE_SWEEP', 'PINCER', 'CLUSTER_RUSH', 'HEAVY_ESCORT', 'BASIPETAL_CASCADE', 'NEMATODE_SWARM', 'FLAGELLATE_DRIFT'];
   const form = formations[Math.floor(Math.random() * formations.length)];
   const centerX = 150 + Math.random() * (W - 300);
-  const waveBonus = Math.min(1, wave * 0.06);
 
   if(form === 'V_SHAPE'){
-    const roll = Math.random();
-    const t = roll < .4 ? 'bacteria' : roll < .7 ? 'pest' : roll < .7 + waveBonus * .5 ? 'basipetal' : 'nematode';
-    for(let i = -2; i <= 2; i++){
-      spawnEnemy(t, centerX + i * 46, Math.abs(i) * 32, 1.1);
-    }
+    for(let i = -2; i <= 2; i++) spawnEnemy(getRandomEnemyType(), centerX + i * 46, Math.abs(i) * 32, 1.1);
   }
   else if(form === 'LINE_SWEEP'){
-    const roll = Math.random();
-    const t = roll < .3 ? 'fungus' : roll < .55 ? 'bacteria' : roll < .8 ? 'pest' : roll < .8 + waveBonus * .3 ? 'basipetal' : 'flagellate';
     const startX = 60 + Math.random() * 120;
-    for(let i = 0; i < 6; i++){
-      spawnEnemy(t, startX + i * 130, (i % 2) * 20, 0.95);
-    }
+    for(let i = 0; i < 6; i++) spawnEnemy(getRandomEnemyType(), startX + i * 130, (i % 2) * 20, 0.95);
   }
   else if(form === 'PINCER'){
     for(let i = 0; i < 3; i++){
-      spawnEnemy('pest', 50 + i * 40, i * 28, 1.2);
-      spawnEnemy('pest', W - 50 - i * 40, i * 28, 1.2);
+      spawnEnemy(getRandomEnemyType(), 50 + i * 40, i * 28, 1.2);
+      spawnEnemy(getRandomEnemyType(), W - 50 - i * 40, i * 28, 1.2);
     }
   }
   else if(form === 'CLUSTER_RUSH'){
     for(let i = 0; i < 7; i++){
-      const ox = (Math.random() - .5) * 140;
-      const oy = Math.random() * 100;
-      const roll = Math.random();
-      const t = roll < .45 ? 'bacteria' : roll < .75 ? 'virus' : roll < .75 + waveBonus * .4 ? 'nematode' : 'flagellate';
-      spawnEnemy(t, centerX + ox, oy, 1.15);
+      const ox = (Math.random() - .5) * 140, oy = Math.random() * 100;
+      spawnEnemy(getRandomEnemyType(), centerX + ox, oy, 1.15);
     }
   }
   else if(form === 'HEAVY_ESCORT'){
     spawnEnemy('pod', centerX, 0, 0.9);
-    spawnEnemy('fungus', centerX - 60, 25, 1.0);
-    spawnEnemy('fungus', centerX + 60, 25, 1.0);
-    spawnEnemy('bacteria', centerX - 100, 45, 1.1);
-    spawnEnemy('bacteria', centerX + 100, 45, 1.1);
+    spawnEnemy(getRandomEnemyType(), centerX - 60, 25, 1.0);
+    spawnEnemy(getRandomEnemyType(), centerX + 60, 25, 1.0);
+    spawnEnemy(getRandomEnemyType(), centerX - 100, 45, 1.1);
+    spawnEnemy(getRandomEnemyType(), centerX + 100, 45, 1.1);
   }
   else if(form === 'BASIPETAL_CASCADE'){
     const count = Math.min(4 + Math.floor(wave / 3), 8);
-    for(let i = 0; i < count; i++){
-      spawnEnemy('basipetal', centerX + (Math.random() - .5) * 60, i * 55, 0.85);
-    }
+    for(let i = 0; i < count; i++) spawnEnemy(getRandomEnemyType(), centerX + (Math.random() - .5) * 60, i * 55, 0.85);
   }
   else if(form === 'NEMATODE_SWARM'){
     const count = Math.min(3 + Math.floor(wave / 2), 10);
-    for(let i = 0; i < count; i++){
-      spawnEnemy('nematode', 40 + Math.random() * (W - 80), Math.random() * 90, 1.0 + wave * 0.015);
-    }
+    for(let i = 0; i < count; i++) spawnEnemy(getRandomEnemyType(), 40 + Math.random() * (W - 80), Math.random() * 90, 1.0 + wave * 0.015);
   }
   else if(form === 'FLAGELLATE_DRIFT'){
     const count = Math.min(3 + Math.floor(wave / 2), 9);
-    for(let i = 0; i < count; i++){
-      spawnEnemy('flagellate', centerX + (Math.random() - .5) * 220, Math.random() * 70, 1.0);
-    }
+    for(let i = 0; i < count; i++) spawnEnemy(getRandomEnemyType(), centerX + (Math.random() - .5) * 220, Math.random() * 70, 1.0);
   }
 }
 
@@ -1271,7 +1259,10 @@ function updateEnemies(dt){
       if(e.shoot <= 0 && e.y > 40){ shootEnemy(e, (Math.random() - .5) * 0.4); e.shoot = 1.6 + Math.random(); }
     }
     if(e.type === 'nematode'){
-      e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 2.4 + e.phase) * 85;
+      // VERTICAL SEEKING MOVEMENT
+      e.y += e.speed * 1.5 * dt; 
+      const angle = Math.atan2(player.y - e.y, player.x - e.x);
+      e.x += Math.cos(angle) * (30 + wave*2) * dt;
     }
     if(e.type === 'flagellate'){
       e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 1.9 + e.phase) * 30;
@@ -1331,7 +1322,11 @@ function updateBoss(dt){
 
   if(b.superTimer <= 0 && b.y >= b.targetY - 2){
     b.superTimer = 7.5 + Math.random() * 2.0;
-    shake = 0.45;
+    shake = 0.85;
+    
+    // MASSIVE FLASH FOR BOSS SUPER
+    activeBombEffects.push({ type: 'boss_flash', life: 0.5, x: b.x, y: b.y, color: b.cfg.color });
+    
     floatingText.push({
       x: W/2, y: H * 0.46,
       text: b.cfg.name + ' SUPER: ' + b.cfg.superName + '!',
@@ -1753,6 +1748,16 @@ function drawForest(){
   }
 }
 
+function drawEngineFlame(x, y, scale) {
+  const flameH = 10 + Math.random() * 10 * scale;
+  ctx.fillStyle = '#4af7ff';
+  ctx.beginPath(); 
+  ctx.moveTo(x, y); 
+  ctx.lineTo(x-4*scale, y+flameH); 
+  ctx.lineTo(x+4*scale, y+flameH); 
+  ctx.fill();
+}
+
 function drawPlayer(p){
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -1763,13 +1768,19 @@ function drawPlayer(p){
     ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke();
   }
+  
   if(p.overdrive > 0){
-    const pulse = 34 + Math.sin(elapsed * 12) * 4;
-    ctx.strokeStyle = 'rgba(255,118,213,.92)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, pulse, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,232,94,.8)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(0, 0, pulse + 6, 0, Math.PI * 2); ctx.stroke();
+    const pulse = 35 + Math.sin(elapsed * 15) * 5;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#ff76d5';
+    ctx.strokeStyle = '#ff76d5';
+    ctx.lineWidth = 3;
+    // High-tech Hex Shield
+    poly([[0, -pulse], [pulse*0.8, -pulse*0.4], [pulse*0.8, pulse*0.4], [0, pulse], [-pulse*0.8, pulse*0.4], [-pulse*0.8, -pulse*0.4]], null, '#ff76d5');
+    ctx.shadowBlur = 0;
+    circle(0, 0, pulse*0.6, 'rgba(255,118,213,0.3)');
   }
+  
   if(p.invincible > 0 && Math.floor(elapsed * 14) % 2 === 0){
     ctx.restore(); return;
   }
@@ -1781,45 +1792,39 @@ function drawPlayer(p){
   if (img && img.complete && img.naturalHeight !== 0) {
     ctx.drawImage(img, -30, -30, 60, 60);
   } else {
-    // FALLBACK: DRAW THE GEOMETRIC SHAPES
+    // UPGRADED COOLER GEOMETRIC SHIP SHAPES
+    ctx.shadowBlur = 0; 
+    
     if(s.id === 'blaster'){
-      poly([[0,-25],[-12,13],[-25,19],[-20,24],[0,17],[20,24],[25,19],[12,13]], '#1ca358', s.color);
-      poly([[0,-25],[-7,14],[0,20],[7,14]], '#d6ffea');
-      circle(0, -3, 5, s.secColor);
-      circle(-10, 13, 4, s.color); circle(10, 13, 4, s.color);
-      poly([[-6,20],[0,33],[6,20]], '#ffb045');
+      poly([[0,-30], [-10,15], [-30,25], [-15,30], [0,20], [15,30], [30,25], [10,15]], '#0d2217', s.color);
+      poly([[0,-15], [-5,10], [0,15], [5,10]], '#d6ffea');
+      drawEngineFlame(-10, 20, 1.2);
+      drawEngineFlame(10, 20, 1.2);
     }
     else if(s.id === 'destroyer'){
-      poly([[0,-22],[-28,0],[-32,18],[-18,24],[0,16],[18,24],[32,18],[28,0]], '#b05e19', s.color);
-      poly([[0,-18],[-12,10],[0,18],[12,10]], '#ffe4c2');
-      rect(-18, -10, 5, 20, '#5a3011');
-      rect(13, -10, 5, 20, '#5a3011');
-      circle(0, -2, 7, '#ff4e62');
-      poly([[-12,20],[0,34],[12,20]], '#ff9d35');
+      poly([[0,-25], [-25,-5], [-40,15], [-25,30], [-15,20], [0,25], [15,20], [25,30], [40,15], [25,-5]], '#3d1604', s.color);
+      poly([[0,-10], [-10,5], [0,15], [10,5]], '#ffe4c2');
+      drawEngineFlame(-15, 25, 1.5);
+      drawEngineFlame(15, 25, 1.5);
+      drawEngineFlame(0, 25, 2);
     }
     else if(s.id === 'nighthawk'){
-      poly([[0,-28],[-24,18],[-14,24],[0,19],[14,24],[24,18]], '#146077', s.color);
-      poly([[0,-26],[-6,12],[0,17],[6,12]], '#d2f9ff');
-      line(-16, 8, -16, -12, s.color, 3);
-      line(16, 8, 16, -12, s.color, 3);
-      circle(0, -4, 5, '#b8ff56');
-      poly([[-5,20],[0,31],[5,20]], '#4af7ff');
+      poly([[0,-35], [-25,25], [-10,25], [0,15], [10,25], [25,25]], '#061a21', s.color);
+      poly([[0,-25], [-5,5], [0,15], [5,5]], '#d2f9ff');
+      drawEngineFlame(-8, 15, 0.9);
+      drawEngineFlame(8, 15, 0.9);
     }
     else if(s.id === 'supernematicide'){
-      poly([[0,-30],[-8,-6],[-24,16],[-12,25],[0,16],[12,25],[24,16],[8,-6]], '#912876', s.color);
-      circle(-14, 8, 6, '#ffe85e');
-      circle(14, 8, 6, '#ffe85e');
-      circle(0, -2, 6, '#ffffff');
-      poly([[-6,18],[0,32],[6,18]], '#ff76d5');
+      poly([[0,-15], [-12,-5], [-25,-20], [-30,25], [-15,30], [0,15], [15,30], [30,25], [25,-20], [12,-5]], '#2e0a24', s.color);
+      circle(0, 5, 8, '#fff');
+      drawEngineFlame(-20, 25, 1.2);
+      drawEngineFlame(20, 25, 1.2);
     }
     else if(s.id === 'rocket'){
-      poly([[0,-26],[-14,8],[-28,18],[-18,22],[0,17],[18,22],[28,18],[14,8]], '#9e8011', s.color);
-      rect(-24, 0, 7, 18, '#1e1e1e');
-      rect(17, 0, 7, 18, '#1e1e1e');
-      circle(-20, 0, 3, '#ff4e62');
-      circle(21, 0, 3, '#ff4e62');
-      circle(0, -4, 6, '#ffffff');
-      poly([[-7,19],[0,33],[7,19]], '#ffe85e');
+      poly([[0,-30], [-15,5], [-35,5], [-20,30], [0,20], [20,30], [35,5], [15,5]], '#2e2603', s.color);
+      poly([[0,-15], [-8,10], [0,20], [8,10]], '#fff');
+      drawEngineFlame(-10, 20, 1);
+      drawEngineFlame(10, 20, 1);
     }
   }
 
@@ -1871,19 +1876,17 @@ function gameLoop(timestamp){
         ctx.translate(e.x, e.y);
         
         if (e.type === 'bacteria') {
-          // Pill shape with flagella (tails) based on references
-          ctx.rotate(e.age * 2);
+          // Rigid Rod shape (Bacillus)
+          ctx.rotate(Math.sin(e.age*3)*0.2 + e.phase);
           ctx.fillStyle = e.color;
           ctx.beginPath();
-          ctx.arc(-e.r/2, 0, e.r/1.8, Math.PI/2, Math.PI*1.5);
-          ctx.arc(e.r/2, 0, e.r/1.8, Math.PI*1.5, Math.PI/2);
+          ctx.arc(0, -e.r*0.6, e.r*0.4, Math.PI, 0);
+          ctx.lineTo(e.r*0.4, e.r*0.6);
+          ctx.arc(0, e.r*0.6, e.r*0.4, 0, Math.PI);
           ctx.closePath();
           ctx.fill();
-          
-          ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(-e.r, 0); ctx.quadraticCurveTo(-e.r-e.r, e.r, -e.r-e.r*1.5, -e.r*0.5);
-          ctx.moveTo(e.r, 0); ctx.quadraticCurveTo(e.r+e.r, -e.r, e.r+e.r*1.5, e.r*0.5);
+          ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+          ctx.lineWidth = 2;
           ctx.stroke();
         } 
         else if (e.type === 'virus') {
@@ -1920,15 +1923,17 @@ function gameLoop(timestamp){
           }
         } 
         else if (e.type === 'nematode') {
-          // Horizontal undulating sinusoidal thread worms
+          // Vertical undulating sinusoidal thread worms aiming downward
+          const trackAngle = Math.atan2(player.y - e.y, player.x - e.x) - Math.PI/2;
+          ctx.rotate(trackAngle); 
           ctx.strokeStyle = e.color;
           ctx.lineWidth = 3.5;
           ctx.lineCap = 'round';
           ctx.beginPath();
-          let phase = e.age * 8 + e.phase;
-          ctx.moveTo(-e.r*1.8, Math.sin(-e.r*1.8 * 0.4 + phase) * (e.r * 0.6));
-          for(let x = -e.r*1.8; x <= e.r*1.8; x+=2) {
-            let y = Math.sin(x * 0.4 + phase) * (e.r * 0.6);
+          let phase = e.age * 12 + e.phase;
+          ctx.moveTo(Math.sin(-e.r*1.5 * 0.5 + phase) * (e.r * 0.5), -e.r*1.5);
+          for(let y = -e.r*1.5; y <= e.r*1.5; y+=2) {
+            let x = Math.sin(y * 0.5 + phase) * (e.r * 0.5);
             ctx.lineTo(x, y);
           }
           ctx.stroke();
@@ -2017,8 +2022,24 @@ function gameLoop(timestamp){
         // COMPLEX BOSS SHAPES FALLBACK
         ctx.save();
         ctx.translate(b.x, b.y);
-        ctx.rotate(Math.sin(b.age)*0.1);
         
+        // BOSS TELEGRAPHING CHARGE EFFECT BEFORE SUPER
+        if (b.superTimer < 1.5 && b.superTimer > 0) {
+            const chargePct = 1 - (b.superTimer / 1.5);
+            ctx.strokeStyle = b.cfg.accentColor;
+            ctx.lineWidth = 5 * chargePct;
+            ctx.beginPath();
+            ctx.arc(0, 0, b.r + (100 * (1 - chargePct)), 0, Math.PI*2);
+            ctx.stroke();
+            
+            for(let i=0; i<8; i++){
+                ctx.rotate(Math.PI/4);
+                ctx.fillStyle = '#fff';
+                circle(0, b.r + (100 * (1 - chargePct)), 4);
+            }
+        }
+        
+        ctx.rotate(Math.sin(b.age)*0.1);
         ctx.globalAlpha = 0.3 + Math.sin(b.age*5)*0.1;
         circle(0, 0, b.r*1.1, b.cfg.accentColor);
         ctx.globalAlpha = 1.0;
@@ -2066,7 +2087,15 @@ function gameLoop(timestamp){
     drawPlayer(player);
 
     for(const eff of activeBombEffects){
-      if(eff.type === 'laser'){
+      if(eff.type === 'boss_flash'){
+        const pct = eff.life / 0.5;
+        ctx.save();
+        ctx.translate(eff.x, eff.y);
+        ctx.globalAlpha = pct;
+        circle(0, 0, 300 * (1 - pct), eff.color);
+        ctx.restore();
+      }
+      else if(eff.type === 'laser'){
         eff.beams.forEach(bm => {
           ctx.save();
           ctx.translate(bm.x, 0);
@@ -2086,13 +2115,17 @@ function gameLoop(timestamp){
       } else if(eff.type === 'overdrive' && player && player.overdrive > 0){
         ctx.save();
         ctx.translate(player.x, player.y);
-        ctx.rotate(elapsed * 5);
-        ctx.strokeStyle = 'rgba(255,118,213,.72)';
-        ctx.lineWidth = 2;
+        ctx.rotate(elapsed * 8);
+        ctx.strokeStyle = 'rgba(74,247,255,0.9)';
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#4af7ff';
         for(let j = 0; j < 4; j++){
           ctx.rotate(Math.PI / 2);
           ctx.beginPath();
-          ctx.arc(0, 0, 43, -0.5, 0.5);
+          ctx.moveTo(40, 0);
+          ctx.lineTo(90, 20);
+          ctx.lineTo(140, 0);
           ctx.stroke();
         }
         ctx.restore();
