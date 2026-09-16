@@ -302,7 +302,6 @@ const IMAGES = {
 };
 
 /* --> ADD YOUR IMAGE PATHS OR URLS HERE <-- */
-// Example: IMAGES.blaster.src = "my_ship_art.png";
 IMAGES.blaster.src = ""; 
 IMAGES.destroyer.src = "";
 IMAGES.nighthawk.src = "";
@@ -1921,16 +1920,15 @@ function gameLoop(timestamp){
           }
         } 
         else if (e.type === 'nematode') {
-          // Long wavy sinusoidal thread worms
-          ctx.rotate(Math.PI/2); 
+          // Horizontal undulating sinusoidal thread worms
           ctx.strokeStyle = e.color;
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 3.5;
           ctx.lineCap = 'round';
           ctx.beginPath();
           let phase = e.age * 8 + e.phase;
-          ctx.moveTo(0, -e.r*1.5);
-          for(let y = -e.r*1.5; y <= e.r*1.5; y+=3) {
-            let x = Math.sin(y * 0.4 + phase) * (e.r * 0.6);
+          ctx.moveTo(-e.r*1.8, Math.sin(-e.r*1.8 * 0.4 + phase) * (e.r * 0.6));
+          for(let x = -e.r*1.8; x <= e.r*1.8; x+=2) {
+            let y = Math.sin(x * 0.4 + phase) * (e.r * 0.6);
             ctx.lineTo(x, y);
           }
           ctx.stroke();
@@ -1954,24 +1952,45 @@ function gameLoop(timestamp){
           circle(-e.r*0.2, 0, e.r*0.2, '#111'); 
         } 
         else if (e.type === 'pest') {
-          ctx.fillStyle = 'rgba(255,255,255,0.6)';
-          const flap = Math.sin(e.age*30)*0.3;
-          ctx.beginPath(); ctx.ellipse(-e.r*0.7, 0, e.r*0.8, e.r*0.4, Math.PI/6 + flap, 0, Math.PI*2); ctx.fill();
-          ctx.beginPath(); ctx.ellipse(e.r*0.7, 0, e.r*0.8, e.r*0.4, -Math.PI/6 - flap, 0, Math.PI*2); ctx.fill();
-          circle(0, 0, e.r*0.6, e.color);
-          circle(0, -e.r*0.5, e.r*0.3, '#111');
+          // Mollicute (irregular amoeba-like "fried egg" shape)
+          ctx.rotate(e.age * 0.5);
+          ctx.fillStyle = e.color;
+          ctx.beginPath();
+          for(let i=0; i<10; i++){
+            let a = (i/10) * Math.PI * 2;
+            let dist = e.r * 0.8 + Math.sin(a*4 + e.age*6)*4;
+            ctx.lineTo(Math.cos(a)*dist, Math.sin(a)*dist);
+          }
+          ctx.closePath();
+          ctx.fill();
+          
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          circle(e.r*0.2, -e.r*0.2, e.r*0.25);
+          circle(-e.r*0.3, e.r*0.1, e.r*0.15);
         } 
         else if (e.type === 'pod') {
+          // Sporangium sac
+          ctx.rotate(Math.sin(e.age)*0.1);
+          ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(0, e.r); ctx.lineTo(0, e.r*0.4); ctx.stroke(); // Stalk
+          
+          ctx.fillStyle = 'rgba(255,255,255,0.15)';
+          circle(0, -e.r*0.2, e.r*0.7); // Transparent sac
+          ctx.strokeStyle = e.color; ctx.stroke();
+          
           ctx.fillStyle = e.color;
-          ctx.beginPath(); ctx.moveTo(0, -e.r); ctx.quadraticCurveTo(e.r, 0, 0, e.r); ctx.quadraticCurveTo(-e.r, 0, 0, -e.r); ctx.fill();
-          circle(0, e.r*0.3, e.r*0.2, 'rgba(0,0,0,0.3)'); 
-          circle(0, -e.r*0.3, e.r*0.2, 'rgba(0,0,0,0.3)');
+          circle(0, -e.r*0.2, e.r*0.2);
+          circle(-e.r*0.3, -e.r*0.3, e.r*0.15);
+          circle(e.r*0.3, -e.r*0.1, e.r*0.15);
+          circle(0, -e.r*0.5, e.r*0.15);
         } 
         else if (e.type === 'basipetal') {
+          // Chain of conidia spores
           ctx.fillStyle = e.color;
-          circle(0, -e.r*0.5, e.r*0.8);
-          circle(0, e.r*0.3, e.r*0.6);
-          circle(0, e.r*0.9, e.r*0.4);
+          circle(0, -e.r*0.6, e.r*0.45);
+          circle(0, 0, e.r*0.35);
+          circle(0, e.r*0.5, e.r*0.25);
+          circle(0, e.r*0.8, e.r*0.15);
         } else {
           circle(0, 0, e.r, e.color);
         }
@@ -2103,7 +2122,7 @@ function gameLoop(timestamp){
 
     // SHIFTED DOWN TO PREVENT OVERLAP
     for(let i = 0; i < player.lives; i++){
-      drawHeart(W - 20 - i * 22, hudY + 24, 16, true, COLORS.red);
+      drawHeart(W - 20 - i * 22, hudY + 28, 16, true, COLORS.red);
     }
 
     text('💣 ' + player.bombs, W/2, hudY + 22, 14, COLORS.yellow, 'center');
