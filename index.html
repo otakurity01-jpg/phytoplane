@@ -1867,51 +1867,91 @@ function gameLoop(timestamp){
         // DRAW THE ENEMY IMAGE
         ctx.drawImage(img, e.x - e.r, e.y - e.r, e.r * 2, e.r * 2);
       } else {
-        // COMPLEX PATHOGEN SHAPES FALLBACK
+        // COMPLEX BIOLOGICAL PATHOGEN SHAPES FALLBACK
         ctx.save();
         ctx.translate(e.x, e.y);
         
         if (e.type === 'bacteria') {
+          // Pill shape with flagella (tails) based on references
           ctx.rotate(e.age * 2);
           ctx.fillStyle = e.color;
-          ctx.beginPath(); ctx.ellipse(0, 0, e.r, e.r/1.8, 0, 0, Math.PI*2); ctx.fill();
-          ctx.fillStyle = '#111';
-          circle(-e.r/2, 0, 2); circle(e.r/2, 0, 2);
+          ctx.beginPath();
+          ctx.arc(-e.r/2, 0, e.r/1.8, Math.PI/2, Math.PI*1.5);
+          ctx.arc(e.r/2, 0, e.r/1.8, Math.PI*1.5, Math.PI/2);
+          ctx.closePath();
+          ctx.fill();
+          
+          ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-e.r, 0); ctx.quadraticCurveTo(-e.r-e.r, e.r, -e.r-e.r*1.5, -e.r*0.5);
+          ctx.moveTo(e.r, 0); ctx.quadraticCurveTo(e.r+e.r, -e.r, e.r+e.r*1.5, e.r*0.5);
+          ctx.stroke();
         } 
         else if (e.type === 'virus') {
+          // Segmented rod/bullet shape based on references
           ctx.rotate(e.age * -1.5);
-          ctx.strokeStyle = e.color; ctx.lineWidth = 2;
-          for (let j=0; j<6; j++) {
-            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -e.r); ctx.stroke();
-            circle(0, -e.r, 3, '#fff');
-            ctx.rotate(Math.PI/3);
+          ctx.fillStyle = e.color;
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+          const segs = 5;
+          const h = (e.r * 1.8) / segs;
+          for (let j=0; j<segs; j++) {
+            ctx.fillRect(-e.r*0.6, -e.r*0.9 + (j*h), e.r*1.2, h-1);
           }
-          circle(0, 0, e.r*0.6, e.color);
+          ctx.beginPath(); ctx.arc(0, -e.r*0.9, e.r*0.6, Math.PI, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(0, e.r*0.9 - 1, e.r*0.6, 0, Math.PI); ctx.fill();
         } 
         else if (e.type === 'fungus') {
+          // Branching mycelium hyphae and spore clusters
           ctx.rotate(e.age * 0.5);
-          ctx.fillStyle = e.color;
+          ctx.strokeStyle = e.color; ctx.lineWidth = 2.5;
           ctx.beginPath();
-          for (let j=0; j<8; j++) {
-            let a = (j/8)*Math.PI*2;
-            ctx.arc(Math.cos(a)*e.r*0.5, Math.sin(a)*e.r*0.5, e.r*0.5, 0, Math.PI*2);
+          for(let j=0; j<3; j++) {
+            let angle = (j * Math.PI*2/3);
+            ctx.moveTo(0,0);
+            ctx.lineTo(Math.cos(angle)*e.r*1.2, Math.sin(angle)*e.r*1.2);
           }
-          ctx.fill();
-          circle(-e.r*0.2, -e.r*0.2, e.r*0.15, '#fff');
+          ctx.stroke();
+          
+          ctx.fillStyle = e.color;
+          circle(0,0, e.r*0.5); 
+          ctx.fillStyle = '#fff';
+          for(let j=0; j<3; j++) {
+            let angle = (j * Math.PI*2/3);
+            circle(Math.cos(angle)*e.r*1.2, Math.sin(angle)*e.r*1.2, 3);
+          }
         } 
         else if (e.type === 'nematode') {
-          ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4 + Math.PI/2);
-          ctx.fillStyle = e.color;
-          for (let j=-2; j<=2; j++) {
-             circle(0, j * (e.r*0.5), e.r*0.8 - Math.abs(j)*2);
+          // Long wavy sinusoidal thread worms
+          ctx.rotate(Math.PI/2); 
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          let phase = e.age * 8 + e.phase;
+          ctx.moveTo(0, -e.r*1.5);
+          for(let y = -e.r*1.5; y <= e.r*1.5; y+=3) {
+            let x = Math.sin(y * 0.4 + phase) * (e.r * 0.6);
+            ctx.lineTo(x, y);
           }
+          ctx.stroke();
         } 
         else if (e.type === 'flagellate') {
-          ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
+          // Pointed teardrop protozoa with a whipping tail and nucleus
+          ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.4 - Math.PI/2);
           ctx.fillStyle = e.color;
-          ctx.beginPath(); ctx.ellipse(0, -e.r*0.2, e.r*0.6, e.r*0.8, 0, 0, Math.PI*2); ctx.fill();
-          ctx.strokeStyle = '#ff5fa2'; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(0, e.r*0.6); ctx.quadraticCurveTo(e.r, e.r+6, 0, e.r+14); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(e.r, 0);
+          ctx.quadraticCurveTo(0, -e.r*0.7, -e.r*0.8, 0);
+          ctx.quadraticCurveTo(0, e.r*0.7, e.r, 0);
+          ctx.fill();
+          
+          ctx.strokeStyle = '#ff5fa2'; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(e.r, 0);
+          ctx.quadraticCurveTo(e.r*1.5, Math.sin(e.age*15)*8, e.r*2.5, 0);
+          ctx.stroke();
+          
+          circle(-e.r*0.2, 0, e.r*0.2, '#111'); 
         } 
         else if (e.type === 'pest') {
           ctx.fillStyle = 'rgba(255,255,255,0.6)';
