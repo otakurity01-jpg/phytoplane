@@ -135,7 +135,6 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   .bombBtn{padding:4px 2px;font-size:8px}.bombBtn .icon{font-size:12px}
   #launchBtn{margin-top:7px;padding:8px 14px;font-size:11px}
 }
-
 </style>
 </head>
 <body>
@@ -274,6 +273,58 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 'use strict';
 /* CONSTANTS — CONNECTED DIRECTLY TO YOUR GOOGLE APPS SCRIPT WEB APP */
 const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbwSJkA07nl2L8toZ4fBgLciJS2qnwtZ1z2xSmLqn_kinRNxYOzHO4ADahvmj-jD_uwM7g/exec";
+
+/* 🖼️ IMAGE ASSET CONFIGURATION 🖼️ */
+/* The game will load these images. If the file is missing or broken, it 
+   will automatically fall back to drawing the original geometric shapes! */
+const IMAGES = {
+  // Player Ships
+  blaster: new Image(),
+  destroyer: new Image(),
+  nighthawk: new Image(),
+  supernematicide: new Image(),
+  rocket: new Image(),
+  // Regular Enemies
+  bacteria: new Image(),
+  fungus: new Image(),
+  virus: new Image(),
+  pest: new Image(),
+  pod: new Image(),
+  basipetal: new Image(),
+  nematode: new Image(),
+  flagellate: new Image(),
+  // Bosses
+  boss_xoo: new Image(),
+  boss_fusarium: new Image(),
+  boss_colletotrichum: new Image(),
+  boss_puccinia: new Image(),
+  boss_pop_ringspot: new Image()
+};
+
+/* --> ADD YOUR IMAGE PATHS OR URLS HERE <-- */
+// Example: IMAGES.blaster.src = "my_ship_art.png";
+IMAGES.blaster.src = ""; 
+IMAGES.destroyer.src = "";
+IMAGES.nighthawk.src = "";
+IMAGES.supernematicide.src = "";
+IMAGES.rocket.src = "";
+
+IMAGES.bacteria.src = "";
+IMAGES.fungus.src = "";
+IMAGES.virus.src = "";
+IMAGES.pest.src = "";
+IMAGES.pod.src = "";
+IMAGES.basipetal.src = "";
+IMAGES.nematode.src = "";
+IMAGES.flagellate.src = "";
+
+IMAGES.boss_xoo.src = "";
+IMAGES.boss_fusarium.src = "";
+IMAGES.boss_colletotrichum.src = "";
+IMAGES.boss_puccinia.src = "";
+IMAGES.boss_pop_ringspot.src = "";
+/* ------------------------------------------- */
+
 
 /* SHIPS SPECIFICATIONS */
 const SHIPS = [
@@ -605,9 +656,7 @@ if(hangarFromPauseBtn) hangarFromPauseBtn.addEventListener('click', () => openHa
 if(restartGameOverBtn) restartGameOverBtn.addEventListener('click', () => restartMission());
 if(hangarGameOverBtn) hangarGameOverBtn.addEventListener('click', () => openHangar());
 
-/* LEADERBOARD — local archive always works; Google Sheet syncs when reachable.
-   Every failure is written into #scoresStatus so it's visible instead of the
-   table silently staying empty. */
+/* LEADERBOARD — local archive always works; Google Sheet syncs when reachable. */
 const LOCAL_SCORES_KEY = 'phytoplaneLeaderboard';
 const PLAYER_NAME_KEY = 'phytoplanePlayerName';
 
@@ -655,9 +704,6 @@ function remoteRows(data){
 }
 function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Records a finished run into the local table right away (not only when the
-// player clicks Submit), so the "BEST" shown in the HUD always matches an
-// actual row in the leaderboard instead of drifting apart from it.
 function recordLocalRun(finalScore){
   if(!(finalScore > 0)) return;
   const entry = { name: getSavedPlayerName(), score: Math.floor(finalScore), date: dateOnly(new Date().toString()) };
@@ -715,10 +761,6 @@ async function fetchLeaderboard(){
 
     const remote = normalizeEntries(remoteRows(data));
     leaderboard = mergeScores(local, remote);
-    if(leaderboard[0] && leaderboard[0].score > bestScore){
-      bestScore = leaderboard[0].score;
-      localStorage.setItem('pathowingBest', bestScore);
-    }
     renderLeaderboardTable();
     scoresStatus.style.display = 'block';
     scoresStatus.textContent = remote.length
@@ -1087,21 +1129,6 @@ function updateBombEffects(dt){
     if(eff.type === 'nuke' || eff.type === 'pulse'){
       eff.radius += (eff.type === 'nuke' ? 620 : 750) * dt;
       enemyBullets = enemyBullets.filter(eb => distance(eb.x, eb.y, eff.x, eff.y) > eff.radius);
-    }
-
-    if(eff.type === 'overdrive' && player && player.overdrive > 0){
-      ctx.save();
-      ctx.translate(player.x, player.y);
-      ctx.rotate(elapsed * 5);
-      ctx.strokeStyle = 'rgba(255,118,213,.72)';
-      ctx.lineWidth = 2;
-      for(let i=0; i<4; i++){
-        ctx.rotate(Math.PI / 2);
-        ctx.beginPath();
-        ctx.arc(0, 0, 43, -0.5, 0.5);
-        ctx.stroke();
-      }
-      ctx.restore();
     }
 
     if(eff.life <= 0) activeBombEffects.splice(i, 1);
@@ -1487,8 +1514,10 @@ function updateBullets(dt){
 
   for(const b of enemyBullets){
     if(!b.dead && distance(b.x, b.y, player.x, player.y) < b.r + player.r){
-      b.dead = true;
-      damagePlayer(12);
+      if (player.invincible <= 0) {
+        b.dead = true;
+        damagePlayer(12);
+      }
     }
   }
 
@@ -1740,45 +1769,52 @@ function drawPlayer(p){
   }
 
   const s = p.ship;
+  const img = IMAGES[s.id];
 
-  if(s.id === 'blaster'){
-    poly([[0,-25],[-12,13],[-25,19],[-20,24],[0,17],[20,24],[25,19],[12,13]], '#1ca358', s.color);
-    poly([[0,-25],[-7,14],[0,20],[7,14]], '#d6ffea');
-    circle(0, -3, 5, s.secColor);
-    circle(-10, 13, 4, s.color); circle(10, 13, 4, s.color);
-    poly([[-6,20],[0,33],[6,20]], '#ffb045');
-  }
-  else if(s.id === 'destroyer'){
-    poly([[0,-22],[-28,0],[-32,18],[-18,24],[0,16],[18,24],[32,18],[28,0]], '#b05e19', s.color);
-    poly([[0,-18],[-12,10],[0,18],[12,10]], '#ffe4c2');
-    rect(-18, -10, 5, 20, '#5a3011');
-    rect(13, -10, 5, 20, '#5a3011');
-    circle(0, -2, 7, '#ff4e62');
-    poly([[-12,20],[0,34],[12,20]], '#ff9d35');
-  }
-  else if(s.id === 'nighthawk'){
-    poly([[0,-28],[-24,18],[-14,24],[0,19],[14,24],[24,18]], '#146077', s.color);
-    poly([[0,-26],[-6,12],[0,17],[6,12]], '#d2f9ff');
-    line(-16, 8, -16, -12, s.color, 3);
-    line(16, 8, 16, -12, s.color, 3);
-    circle(0, -4, 5, '#b8ff56');
-    poly([[-5,20],[0,31],[5,20]], '#4af7ff');
-  }
-  else if(s.id === 'supernematicide'){
-    poly([[0,-30],[-8,-6],[-24,16],[-12,25],[0,16],[12,25],[24,16],[8,-6]], '#912876', s.color);
-    circle(-14, 8, 6, '#ffe85e');
-    circle(14, 8, 6, '#ffe85e');
-    circle(0, -2, 6, '#ffffff');
-    poly([[-6,18],[0,32],[6,18]], '#ff76d5');
-  }
-  else if(s.id === 'rocket'){
-    poly([[0,-26],[-14,8],[-28,18],[-18,22],[0,17],[18,22],[28,18],[14,8]], '#9e8011', s.color);
-    rect(-24, 0, 7, 18, '#1e1e1e');
-    rect(17, 0, 7, 18, '#1e1e1e');
-    circle(-20, 0, 3, '#ff4e62');
-    circle(21, 0, 3, '#ff4e62');
-    circle(0, -4, 6, '#ffffff');
-    poly([[-7,19],[0,33],[7,19]], '#ffe85e');
+  // DRAW THE SHIP IMAGE IF IT IS FULLY LOADED
+  if (img && img.complete && img.naturalHeight !== 0) {
+    ctx.drawImage(img, -30, -30, 60, 60);
+  } else {
+    // FALLBACK: DRAW THE GEOMETRIC SHAPES
+    if(s.id === 'blaster'){
+      poly([[0,-25],[-12,13],[-25,19],[-20,24],[0,17],[20,24],[25,19],[12,13]], '#1ca358', s.color);
+      poly([[0,-25],[-7,14],[0,20],[7,14]], '#d6ffea');
+      circle(0, -3, 5, s.secColor);
+      circle(-10, 13, 4, s.color); circle(10, 13, 4, s.color);
+      poly([[-6,20],[0,33],[6,20]], '#ffb045');
+    }
+    else if(s.id === 'destroyer'){
+      poly([[0,-22],[-28,0],[-32,18],[-18,24],[0,16],[18,24],[32,18],[28,0]], '#b05e19', s.color);
+      poly([[0,-18],[-12,10],[0,18],[12,10]], '#ffe4c2');
+      rect(-18, -10, 5, 20, '#5a3011');
+      rect(13, -10, 5, 20, '#5a3011');
+      circle(0, -2, 7, '#ff4e62');
+      poly([[-12,20],[0,34],[12,20]], '#ff9d35');
+    }
+    else if(s.id === 'nighthawk'){
+      poly([[0,-28],[-24,18],[-14,24],[0,19],[14,24],[24,18]], '#146077', s.color);
+      poly([[0,-26],[-6,12],[0,17],[6,12]], '#d2f9ff');
+      line(-16, 8, -16, -12, s.color, 3);
+      line(16, 8, 16, -12, s.color, 3);
+      circle(0, -4, 5, '#b8ff56');
+      poly([[-5,20],[0,31],[5,20]], '#4af7ff');
+    }
+    else if(s.id === 'supernematicide'){
+      poly([[0,-30],[-8,-6],[-24,16],[-12,25],[0,16],[12,25],[24,16],[8,-6]], '#912876', s.color);
+      circle(-14, 8, 6, '#ffe85e');
+      circle(14, 8, 6, '#ffe85e');
+      circle(0, -2, 6, '#ffffff');
+      poly([[-6,18],[0,32],[6,18]], '#ff76d5');
+    }
+    else if(s.id === 'rocket'){
+      poly([[0,-26],[-14,8],[-28,18],[-18,22],[0,17],[18,22],[28,18],[14,8]], '#9e8011', s.color);
+      rect(-24, 0, 7, 18, '#1e1e1e');
+      rect(17, 0, 7, 18, '#1e1e1e');
+      circle(-20, 0, 3, '#ff4e62');
+      circle(21, 0, 3, '#ff4e62');
+      circle(0, -4, 6, '#ffffff');
+      poly([[-7,19],[0,33],[7,19]], '#ffe85e');
+    }
   }
 
   ctx.restore();
@@ -1816,33 +1852,43 @@ function gameLoop(timestamp){
       circle(eb.x, eb.y, eb.r, eb.c);
     }
 
+    // DRAW ENEMIES
     for(const e of enemies){
-      if(e.type === 'bacteria'){
-        circle(e.x, e.y, e.r, e.color);
-        circle(e.x - 4, e.y - 3, 3, '#a9ff60');
-        circle(e.x + 4, e.y - 3, 3, '#a9ff60');
-      } else if(e.type === 'nematode'){
-        ctx.save();
-        ctx.translate(e.x, e.y);
-        ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4);
-        rect(-12, -4, 24, 8, e.color);
-        ctx.restore();
-      } else if(e.type === 'flagellate'){
-        ctx.save();
-        ctx.translate(e.x, e.y);
-        ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
-        rect(-8, -5, 16, 10, e.color);
-        ctx.strokeStyle = '#ff5fa2';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(8, 0);
-        ctx.quadraticCurveTo(18, -8, 24, -12);
-        ctx.stroke();
-        ctx.restore();
+      const img = IMAGES[e.type];
+
+      if (img && img.complete && img.naturalHeight !== 0) {
+        // DRAW THE ENEMY IMAGE
+        ctx.drawImage(img, e.x - e.r, e.y - e.r, e.r * 2, e.r * 2);
       } else {
-        circle(e.x, e.y, e.r, e.color);
+        // FALLBACK: DRAW GEOMETRIC ENEMY
+        if(e.type === 'bacteria'){
+          circle(e.x, e.y, e.r, e.color);
+          circle(e.x - 4, e.y - 3, 3, '#a9ff60');
+          circle(e.x + 4, e.y - 3, 3, '#a9ff60');
+        } else if(e.type === 'nematode'){
+          ctx.save();
+          ctx.translate(e.x, e.y);
+          ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4);
+          rect(-12, -4, 24, 8, e.color);
+          ctx.restore();
+        } else if(e.type === 'flagellate'){
+          ctx.save();
+          ctx.translate(e.x, e.y);
+          ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
+          rect(-8, -5, 16, 10, e.color);
+          ctx.strokeStyle = '#ff5fa2';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(8, 0);
+          ctx.quadraticCurveTo(18, -8, 24, -12);
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          circle(e.x, e.y, e.r, e.color);
+        }
       }
 
+      // Draw Enemy HP bar
       const hpPct = e.hp / e.maxHp;
       if(hpPct < 1){
         rect(e.x - 10, e.y - e.r - 6, 20, 3, 'rgba(255,255,255,.2)');
@@ -1850,12 +1896,22 @@ function gameLoop(timestamp){
       }
     }
 
+    // DRAW BOSS
     if(boss){
       const b = boss;
-      circle(b.x, b.y, b.r, b.cfg.color);
-      circle(b.x, b.y, b.r * 0.6, b.cfg.coreColor);
-      circle(b.x, b.y, b.r * 0.3, b.cfg.accentColor);
+      const img = IMAGES['boss_' + b.cfg.id];
 
+      if (img && img.complete && img.naturalHeight !== 0) {
+        // DRAW BOSS IMAGE
+        ctx.drawImage(img, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+      } else {
+        // FALLBACK: DRAW GEOMETRIC BOSS
+        circle(b.x, b.y, b.r, b.cfg.color);
+        circle(b.x, b.y, b.r * 0.6, b.cfg.coreColor);
+        circle(b.x, b.y, b.r * 0.3, b.cfg.accentColor);
+      }
+
+      // Draw Boss HP bar
       const hpPct = b.hp / b.maxHp;
       rect(b.x - 40, b.y - b.r - 10, 80, 6, 'rgba(255,255,255,.2)');
       rect(b.x - 40, b.y - b.r - 10, 80 * hpPct, 6, COLORS.lime);
@@ -1881,6 +1937,19 @@ function gameLoop(timestamp){
         ctx.beginPath();
         ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
         ctx.fill();
+      } else if(eff.type === 'overdrive' && player && player.overdrive > 0){
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(elapsed * 5);
+        ctx.strokeStyle = 'rgba(255,118,213,.72)';
+        ctx.lineWidth = 2;
+        for(let j = 0; j < 4; j++){
+          ctx.rotate(Math.PI / 2);
+          ctx.beginPath();
+          ctx.arc(0, 0, 43, -0.5, 0.5);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
     }
   }
