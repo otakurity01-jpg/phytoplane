@@ -1169,7 +1169,8 @@ function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
     speed: (d.speed + wave * 15) * speedMult,
     points: d.points, color: d.color,
     age: 0, phase: Math.random() * 6.28,
-    shoot: 1.1 + Math.random() * 1.8, dead: false
+    shoot: 1.1 + Math.random() * 1.8, dead: false,
+    angle: 0 // Added for tracking
   };
   e.baseX = e.x;
   enemies.push(e);
@@ -1241,7 +1242,13 @@ function updateWaves(dt){
 function updateEnemies(dt){
   for(const e of enemies){
     e.age += dt; e.shoot -= dt;
-    if(e.type === 'bacteria'){ e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 4 + e.phase) * 18; }
+    if(e.type === 'bacteria'){ 
+      // CUTE BACTERIA NOW TRACKS THE PLAYER
+      const angle = Math.atan2(player.y - e.y, player.x - e.x);
+      e.angle = angle; // Save for rendering
+      e.x += Math.cos(angle) * (e.speed * 0.8) * dt + Math.sin(e.age * 8) * 1.5;
+      e.y += Math.sin(angle) * (e.speed * 0.8) * dt + Math.abs(Math.cos(e.age * 8)) * 1.5;
+    }
     if(e.type === 'fungus'){ e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 2.2 + e.phase) * 74; }
     if(e.type === 'virus'){
       e.y += e.speed * dt; e.x = e.baseX + Math.sin(e.age * 1.8 + e.phase) * 95;
@@ -1876,18 +1883,37 @@ function gameLoop(timestamp){
         ctx.translate(e.x, e.y);
         
         if (e.type === 'bacteria') {
-          // Rigid Rod shape (Bacillus)
-          ctx.rotate(Math.sin(e.age*3)*0.2 + e.phase);
+          // Cute Tracking Pill shape with Wiggly Flagella and Eyes
+          const rot = e.angle !== undefined ? e.angle - Math.PI/2 : (Math.sin(e.age*3)*0.2 + e.phase);
+          ctx.rotate(rot);
+          
+          // Wiggly Flagella (Tails)
+          ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          const wiggle = Math.sin(e.age * 15) * 5;
+          ctx.moveTo(-e.r*0.4, -e.r*0.5); 
+          ctx.quadraticCurveTo(-e.r - wiggle, -e.r*1.5, -e.r*0.2 + wiggle, -e.r*2);
+          ctx.moveTo(e.r*0.4, -e.r*0.5); 
+          ctx.quadraticCurveTo(e.r + wiggle, -e.r*1.5, e.r*0.2 - wiggle, -e.r*2);
+          ctx.stroke();
+
+          // Cute Pill Body
           ctx.fillStyle = e.color;
           ctx.beginPath();
-          ctx.arc(0, -e.r*0.6, e.r*0.4, Math.PI, 0);
-          ctx.lineTo(e.r*0.4, e.r*0.6);
-          ctx.arc(0, e.r*0.6, e.r*0.4, 0, Math.PI);
+          ctx.arc(0, -e.r*0.5, e.r*0.6, Math.PI, 0);
+          ctx.lineTo(e.r*0.6, e.r*0.5);
+          ctx.arc(0, e.r*0.5, e.r*0.6, 0, Math.PI);
           ctx.closePath();
           ctx.fill();
-          ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-          ctx.lineWidth = 2;
-          ctx.stroke();
+          
+          // Cute Eyes!
+          ctx.fillStyle = '#111';
+          circle(-e.r*0.25, e.r*0.3, e.r*0.15);
+          circle(e.r*0.25, e.r*0.3, e.r*0.15);
+          ctx.fillStyle = '#fff';
+          circle(-e.r*0.25 + 1, e.r*0.3 - 1, e.r*0.05);
+          circle(e.r*0.25 + 1, e.r*0.3 - 1, e.r*0.05);
         } 
         else if (e.type === 'virus') {
           // Segmented rod/bullet shape based on references
@@ -2086,6 +2112,7 @@ function gameLoop(timestamp){
 
     drawPlayer(player);
 
+    // UPGRADED ORDNANCE BOMB EFFECTS
     for(const eff of activeBombEffects){
       if(eff.type === 'boss_flash'){
         const pct = eff.life / 0.5;
@@ -2099,19 +2126,41 @@ function gameLoop(timestamp){
         eff.beams.forEach(bm => {
           ctx.save();
           ctx.translate(bm.x, 0);
-          ctx.fillStyle = 'rgba(74,247,255,.35)';
-          ctx.fillRect(-bm.width/2, 0, bm.width, H);
+          
+          // Pure white core beam
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(-bm.width*0.2, 0, bm.width*0.4, H);
+          
+          // Bright cyan inner glow
+          ctx.fillStyle = 'rgba(74,247,255,0.8)';
+          ctx.fillRect(-bm.width*0.5, 0, bm.width, H);
+          
+          // Wide pulsing outer aura
+          const pulse = Math.sin(elapsed * 30) * 10;
+          ctx.fillStyle = 'rgba(74,247,255,0.3)';
+          ctx.fillRect(-bm.width + pulse, 0, bm.width*2 - pulse*2, H);
+          
           ctx.restore();
         });
       } else if(eff.type === 'nuke'){
-        const grad = ctx.createRadialGradient(eff.x, eff.y, 0, eff.x, eff.y, eff.radius);
-        grad.addColorStop(0, 'rgba(255,232,94,.9)');
-        grad.addColorStop(0.4, 'rgba(255,157,53,.6)');
+        // Concussive shockwave expanding ring
+        ctx.strokeStyle = `rgba(255, 232, 94, ${Math.max(0, 1 - eff.radius/800)})`;
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Multi-stop thermonuclear core blast
+        const grad = ctx.createRadialGradient(eff.x, eff.y, 0, eff.x, eff.y, eff.radius * 0.8);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(0.2, 'rgba(255,232,94,0.9)');
+        grad.addColorStop(0.6, 'rgba(255,78,98,0.5)');
         grad.addColorStop(1, 'rgba(255,78,98,0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(eff.x, eff.y, eff.radius, 0, Math.PI * 2);
+        ctx.arc(eff.x, eff.y, eff.radius * 0.8, 0, Math.PI * 2);
         ctx.fill();
+        
       } else if(eff.type === 'overdrive' && player && player.overdrive > 0){
         ctx.save();
         ctx.translate(player.x, player.y);
