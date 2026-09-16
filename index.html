@@ -192,7 +192,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
             </button>
           </div>
           <div id="bombDesc">5 sweeping orbital laser beams slice across the battlefield for 2.5s, obliterating bullets and pathogens.</div>
-          <div class="bombTip">⚡ BOMB: DOUBLE-TAP (TOUCH) OR PRESS [K] / [SPACE]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
+          <div class="bombTip">⚡ BOMB: DOUBLE-CLICK / PRESS [K] / [SPACE]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
         </div>
       </div>
 
@@ -231,7 +231,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   <div id="controlsBar">
     <div class="controlInstructions">
       <span id="controlHelp">🖱️ MOUSE / FINGER MOVES</span>
-      <span>💥 [K] / [SPACE] BOMB · [P] / [ESC] PAUSE</span>
+      <span>💥 DBL-CLICK / [SPACE] BOMB · [P] PAUSE</span>
     </div>
     <div class="controlSwitches">
       <button class="miniToggle" id="inputModeToggle" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
@@ -276,7 +276,7 @@ const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbwSJkA07nl2L8to
 
 /* 🖼️ IMAGE ASSET CONFIGURATION 🖼️ */
 /* The game will load these images. If the file is missing or broken, it 
-   will automatically fall back to drawing the original geometric shapes! */
+   will automatically fall back to drawing the complex geometric pathogen shapes! */
 const IMAGES = {
   // Player Ships
   blaster: new Image(),
@@ -856,6 +856,13 @@ function startGame(){
   resetGame();
   beep(400, .1, 'square');
 }
+
+/* NATIVE DOUBLE CLICK EVENT FOR TRACKPAD / MOUSE */
+canvas.addEventListener('dblclick', (e) => {
+  if (state === STATE.PLAY) {
+    triggerBomb();
+  }
+});
 
 /* POINTER & DOUBLE-TAP DETECTION (TOUCH ONLY) */
 function eventToCanvasXY(e){
@@ -1860,32 +1867,75 @@ function gameLoop(timestamp){
         // DRAW THE ENEMY IMAGE
         ctx.drawImage(img, e.x - e.r, e.y - e.r, e.r * 2, e.r * 2);
       } else {
-        // FALLBACK: DRAW GEOMETRIC ENEMY
-        if(e.type === 'bacteria'){
-          circle(e.x, e.y, e.r, e.color);
-          circle(e.x - 4, e.y - 3, 3, '#a9ff60');
-          circle(e.x + 4, e.y - 3, 3, '#a9ff60');
-        } else if(e.type === 'nematode'){
-          ctx.save();
-          ctx.translate(e.x, e.y);
-          ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4);
-          rect(-12, -4, 24, 8, e.color);
-          ctx.restore();
-        } else if(e.type === 'flagellate'){
-          ctx.save();
-          ctx.translate(e.x, e.y);
-          ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
-          rect(-8, -5, 16, 10, e.color);
-          ctx.strokeStyle = '#ff5fa2';
-          ctx.lineWidth = 2;
+        // COMPLEX PATHOGEN SHAPES FALLBACK
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        
+        if (e.type === 'bacteria') {
+          ctx.rotate(e.age * 2);
+          ctx.fillStyle = e.color;
+          ctx.beginPath(); ctx.ellipse(0, 0, e.r, e.r/1.8, 0, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#111';
+          circle(-e.r/2, 0, 2); circle(e.r/2, 0, 2);
+        } 
+        else if (e.type === 'virus') {
+          ctx.rotate(e.age * -1.5);
+          ctx.strokeStyle = e.color; ctx.lineWidth = 2;
+          for (let j=0; j<6; j++) {
+            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -e.r); ctx.stroke();
+            circle(0, -e.r, 3, '#fff');
+            ctx.rotate(Math.PI/3);
+          }
+          circle(0, 0, e.r*0.6, e.color);
+        } 
+        else if (e.type === 'fungus') {
+          ctx.rotate(e.age * 0.5);
+          ctx.fillStyle = e.color;
           ctx.beginPath();
-          ctx.moveTo(8, 0);
-          ctx.quadraticCurveTo(18, -8, 24, -12);
-          ctx.stroke();
-          ctx.restore();
+          for (let j=0; j<8; j++) {
+            let a = (j/8)*Math.PI*2;
+            ctx.arc(Math.cos(a)*e.r*0.5, Math.sin(a)*e.r*0.5, e.r*0.5, 0, Math.PI*2);
+          }
+          ctx.fill();
+          circle(-e.r*0.2, -e.r*0.2, e.r*0.15, '#fff');
+        } 
+        else if (e.type === 'nematode') {
+          ctx.rotate(Math.sin(e.age * 3 + e.phase) * 0.4 + Math.PI/2);
+          ctx.fillStyle = e.color;
+          for (let j=-2; j<=2; j++) {
+             circle(0, j * (e.r*0.5), e.r*0.8 - Math.abs(j)*2);
+          }
+        } 
+        else if (e.type === 'flagellate') {
+          ctx.rotate(Math.sin(e.age * 2.5 + e.phase) * 0.3);
+          ctx.fillStyle = e.color;
+          ctx.beginPath(); ctx.ellipse(0, -e.r*0.2, e.r*0.6, e.r*0.8, 0, 0, Math.PI*2); ctx.fill();
+          ctx.strokeStyle = '#ff5fa2'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(0, e.r*0.6); ctx.quadraticCurveTo(e.r, e.r+6, 0, e.r+14); ctx.stroke();
+        } 
+        else if (e.type === 'pest') {
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          const flap = Math.sin(e.age*30)*0.3;
+          ctx.beginPath(); ctx.ellipse(-e.r*0.7, 0, e.r*0.8, e.r*0.4, Math.PI/6 + flap, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.ellipse(e.r*0.7, 0, e.r*0.8, e.r*0.4, -Math.PI/6 - flap, 0, Math.PI*2); ctx.fill();
+          circle(0, 0, e.r*0.6, e.color);
+          circle(0, -e.r*0.5, e.r*0.3, '#111');
+        } 
+        else if (e.type === 'pod') {
+          ctx.fillStyle = e.color;
+          ctx.beginPath(); ctx.moveTo(0, -e.r); ctx.quadraticCurveTo(e.r, 0, 0, e.r); ctx.quadraticCurveTo(-e.r, 0, 0, -e.r); ctx.fill();
+          circle(0, e.r*0.3, e.r*0.2, 'rgba(0,0,0,0.3)'); 
+          circle(0, -e.r*0.3, e.r*0.2, 'rgba(0,0,0,0.3)');
+        } 
+        else if (e.type === 'basipetal') {
+          ctx.fillStyle = e.color;
+          circle(0, -e.r*0.5, e.r*0.8);
+          circle(0, e.r*0.3, e.r*0.6);
+          circle(0, e.r*0.9, e.r*0.4);
         } else {
-          circle(e.x, e.y, e.r, e.color);
+          circle(0, 0, e.r, e.color);
         }
+        ctx.restore();
       }
 
       // Draw Enemy HP bar
@@ -1905,10 +1955,47 @@ function gameLoop(timestamp){
         // DRAW BOSS IMAGE
         ctx.drawImage(img, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
       } else {
-        // FALLBACK: DRAW GEOMETRIC BOSS
-        circle(b.x, b.y, b.r, b.cfg.color);
-        circle(b.x, b.y, b.r * 0.6, b.cfg.coreColor);
-        circle(b.x, b.y, b.r * 0.3, b.cfg.accentColor);
+        // COMPLEX BOSS SHAPES FALLBACK
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(Math.sin(b.age)*0.1);
+        
+        ctx.globalAlpha = 0.3 + Math.sin(b.age*5)*0.1;
+        circle(0, 0, b.r*1.1, b.cfg.accentColor);
+        ctx.globalAlpha = 1.0;
+
+        if (b.cfg.id === 'pop_ringspot') {
+           ctx.strokeStyle = b.cfg.color; ctx.lineWidth = 6;
+           for (let j=0; j<12; j++) {
+             ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -b.r); ctx.stroke();
+             circle(0, -b.r, 8, b.cfg.accentColor);
+             ctx.rotate(Math.PI/6);
+           }
+           circle(0,0, b.r*0.7, b.cfg.coreColor);
+           ctx.strokeStyle = b.cfg.accentColor; ctx.lineWidth = 4;
+           ctx.beginPath(); ctx.arc(0,0, b.r*0.4, 0, Math.PI*2); ctx.stroke();
+        } 
+        else if (b.cfg.id === 'fusarium' || b.cfg.id === 'colletotrichum' || b.cfg.id === 'puccinia') {
+           ctx.fillStyle = b.cfg.color;
+           ctx.beginPath();
+           for (let j=0; j<16; j++) {
+             let a = (j/16)*Math.PI*2 + b.age*0.5;
+             let dist = b.r*0.7 + Math.sin(j*3 + b.age*4)*15;
+             ctx.arc(Math.cos(a)*dist, Math.sin(a)*dist, b.r*0.35, 0, Math.PI*2);
+           }
+           ctx.fill();
+           circle(0,0, b.r*0.5, b.cfg.coreColor);
+           circle(-b.r*0.15, -b.r*0.15, b.r*0.1, '#fff');
+        } 
+        else {
+           ctx.fillStyle = b.cfg.color;
+           ctx.beginPath(); ctx.ellipse(0, 0, b.r, b.r/1.8, 0, 0, Math.PI*2); ctx.fill();
+           ctx.fillStyle = b.cfg.coreColor;
+           ctx.beginPath(); ctx.ellipse(0, 0, b.r*0.7, b.r/2.5, 0, 0, Math.PI*2); ctx.fill();
+           circle(-b.r*0.4, 0, b.r*0.1, b.cfg.accentColor); 
+           circle(b.r*0.4, 0, b.r*0.1, b.cfg.accentColor);
+        }
+        ctx.restore();
       }
 
       // Draw Boss HP bar
@@ -1974,8 +2061,9 @@ function gameLoop(timestamp){
     rect(barX, barY, barW * (player.hp / player.maxHp), barH, COLORS.lime);
     text('HP', barX - 22, barY + barH/2, 12, COLORS.white, 'right');
 
+    // SHIFTED DOWN TO PREVENT OVERLAP
     for(let i = 0; i < player.lives; i++){
-      drawHeart(W - 24 - i * 22, hudY, 16, true, COLORS.red);
+      drawHeart(W - 20 - i * 22, hudY + 24, 16, true, COLORS.red);
     }
 
     text('💣 ' + player.bombs, W/2, hudY + 22, 14, COLORS.yellow, 'center');
