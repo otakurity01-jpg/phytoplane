@@ -8,7 +8,7 @@
 :root{color-scheme:dark}*{box-sizing:border-box}
 
 html,body{margin:0;width:100%;min-height:100%;background:#060e18;font-family:'Courier New',Courier,monospace;overflow-x:hidden;color:#e8fdf5;overscroll-behavior-y:none;}
-#page{max-width:980px;margin:0 auto;padding:12px 14px 28px}
+#page{max-width:980px;margin:0 auto;padding:12px 14px 28px;position:relative;height:100dvh;}
 
 /* HEADER */
 header{display:flex;justify-content:space-between;align-items:center;padding:6px 0 12px;border-bottom:1px solid rgba(74,247,255,.25)}
@@ -80,8 +80,9 @@ canvas{
 #bombDesc{font-size:11px;color:#d5f3e7;line-height:1.35;min-height:30px}
 .bombTip{font-size:10px;color:#ffe85e;margin-top:10px;padding:6px;background:rgba(255,232,94,.08);border-left:3px solid #ffe85e}
 
-/* LAUNCH BUTTON */
-#launchBtn{margin-top:12px;padding:11px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s}
+/* LAUNCH BUTTON & HANGAR SETTINGS */
+.hangarSettings{display:flex;gap:12px;justify-content:center;margin-top:14px;margin-bottom:12px;width:100%}
+#launchBtn{padding:11px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s;width:100%;max-width:400px}
 #launchBtn:hover{background:#ffe85e;border-color:#ffe85e;transform:scale(1.03);box-shadow:0 0 22px rgba(255,232,94,.7)}
 
 /* TACTICAL PAUSE MENU */
@@ -95,8 +96,6 @@ canvas{
 .btnSecondary:hover{background:#4af7ff;color:#07111d}
 .btnHangar{background:rgba(255,157,53,.18);border:1px solid #ff9d35;color:#ff9d35}
 .btnHangar:hover{background:#ff9d35;color:#07111d}
-#submitScoreBtn:disabled{opacity:.7;cursor:default}
-.overlayPanel.active{overflow:auto}
 
 /* GAME OVER OVERLAY */
 #gameOverBox{display:flex;flex-direction:column;align-items:center;width:min(350px,92%);background:rgba(3,18,34,.96);border:2px solid #ff4e62;border-radius:6px;padding:18px;text-align:center;gap:8px}
@@ -113,7 +112,7 @@ canvas{
 #controlsBar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;font-size:10px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
 .controlInstructions{display:flex;align-items:center;gap:10px;min-width:0;text-align:left}
 .controlSwitches{display:flex;align-items:center;gap:5px;white-space:nowrap;margin-left:auto}
-.miniToggle{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 9px 'Courier New',Courier,monospace;cursor:pointer}
+.miniToggle{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 10px 'Courier New',Courier,monospace;cursor:pointer}
 .miniToggle::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff4e62;box-shadow:0 0 4px #ff4e62}
 .miniToggle[aria-pressed="true"]{border-color:#30ee83;color:#b8ff56;background:rgba(48,238,131,.12)}
 .miniToggle[aria-pressed="true"]::before{background:#30ee83;box-shadow:0 0 5px #30ee83}
@@ -139,50 +138,58 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 .scoreNum{color:#4af7ff;font-weight:bold;font-size:13px}
 #scoresStatus{text-align:center;padding:18px;font-size:12px;color:rgba(220,255,240,.6)}
 
-/* SMARTPHONE MEDIA QUERY */
+/* SMARTPHONE MEDIA QUERY - EDGE TO EDGE FULLSCREEN */
 @media (max-width: 850px), (max-height: 500px) {
-  html, body { overflow: hidden; } 
-  #page{ max-width: none; padding: 4px 0 12px; display: flex; flex-direction: column; height: 100dvh; }
-  header{ padding: 4px 8px 6px; flex-shrink: 0; }
+  html, body { overflow: hidden; position: fixed; inset: 0; } 
+  #page { max-width: none; padding: 0; display: block; width: 100vw; height: 100dvh; position: relative; }
+  
+  /* Overlays float above game so canvas can take 100% of height */
+  header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; padding: 8px 10px; background: linear-gradient(rgba(0,0,0,0.85), transparent); border: none; pointer-events: none; }
   header h1{ font-size: 14px; }
   .headerTag{ display: none; }
   
   #gameWrap{
     width: 100vw;
+    height: 100dvh;
     margin: 0;
-    max-height: calc(100dvh - 85px); 
+    max-height: none; 
     border-radius: 0;
     box-shadow: none;
-    flex-grow: 1;
+    position: absolute;
+    inset: 0;
   }
   canvas {
     outline: none;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto; /* ALLOWS CANVAS TO STRETCH VERTICALLY TO FILL SCREEN */
+    object-fit: fill; 
   }
   
-  #controlsBar, #leaderboardSection{ width: 100vw; margin-left: 0; margin-right: 0; }
-  #controlsBar{ padding: 4px 5px; font-size: 8px; gap: 3px; flex-wrap: wrap; justify-content: center; text-align: center; flex-shrink: 0; }
+  #controlsBar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,0.85)); border: none; padding: 12px 6px 8px; width: 100vw; margin: 0; flex-wrap: nowrap; align-items: flex-end; }
   #leaderboardSection { display: none; } 
   
-  .controlInstructions{ order: 0; gap: 5px; flex: 1; flex-wrap: wrap; }
+  .controlInstructions{ order: 0; gap: 5px; flex: 1; flex-wrap: wrap; text-shadow: 0 0 4px #000; }
   .controlSwitches{ order: 1; margin-left: auto; }
-  .miniToggle{ font-size: 8px; padding: 3px 5px; }
+  .miniToggle{ font-size: 8px; padding: 4px 6px; }
   
-  .overlayPanel.active{ position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 999; overflow-y: auto; padding: 14px 10px; }
-  #hangarGrid{ grid-template-columns: 1fr; gap: 6px; padding: 7px; max-height: 70vh; overflow-y: auto; }
-  #hangarTitle{ font-size: 15px; }
-  #hangarSubtitle{ font-size: 8px; margin-bottom: 5px; }
-  .sectionTitle{ font-size: 9px; }
-  .statRow{ font-size: 8px; margin-bottom: 3px; }
+  .overlayPanel.active{ position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 999; overflow-y: auto; padding: 14px 10px; background: rgba(4,12,22,0.95); }
+  #hangarGrid{ grid-template-columns: 1fr; gap: 6px; padding: 7px; max-height: none; }
+  #hangarTitle{ font-size: 16px; margin-top: 10px; }
+  #hangarSubtitle{ font-size: 9px; margin-bottom: 5px; }
+  .sectionTitle{ font-size: 10px; }
+  .statRow{ font-size: 9px; margin-bottom: 3px; }
   .statLabel{ width: 46px; }
   .statBarBg{ height: 5px; }
-  #shipDesc, #bombDesc{ font-size: 8px; line-height: 1.2; min-height: 0; }
+  #shipDesc, #bombDesc{ font-size: 9px; line-height: 1.2; min-height: 0; }
   .bombTip{ display: none; }
-  .navArrow{ padding: 3px 8px; font-size: 14px; }
-  #currentShipName{ font-size: 10px; }
-  #currentShipTag{ font-size: 7px; }
-  .bombBtn{ padding: 4px 2px; font-size: 8px; }
-  .bombBtn .icon{ font-size: 12px; }
-  #launchBtn{ margin-top: 7px; padding: 8px 14px; font-size: 11px; flex-shrink: 0; }
+  .navArrow{ padding: 4px 10px; font-size: 14px; }
+  #currentShipName{ font-size: 11px; }
+  #currentShipTag{ font-size: 8px; }
+  .bombBtn{ padding: 6px 2px; font-size: 9px; }
+  .bombBtn .icon{ font-size: 14px; }
+  
+  #launchBtn{ margin-top: 4px; padding: 12px 14px; font-size: 13px; flex-shrink: 0; }
 }
 </style>
 </head>
@@ -197,7 +204,7 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
   </header>
 
   <div id="gameWrap">
-    <canvas id="game" width="960" height="540" aria-label="PhytoPlane Defender arcade game"></canvas>
+    <canvas id="game" aria-label="PhytoPlane Defender arcade game"></canvas>
     
     <!-- HANGAR (START / SHIP SELECTION SCREEN OVERLAY) -->
     <div id="hangarOverlay" class="overlayPanel active">
@@ -245,6 +252,13 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
         </div>
       </div>
 
+      <!-- HANGAR TOGGLES SO THEY APPEAR BEFORE THE GAME STARTS -->
+      <div class="hangarSettings">
+        <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
+        <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
+        <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
+      </div>
+
       <button id="launchBtn" type="button">LAUNCH MISSION [TAP / SPACE]</button>
     </div>
 
@@ -276,16 +290,16 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
     </div>
   </div>
 
-  <!-- IN-GAME CONTROLS BAR WITH NEW ROTATE TOGGLE -->
+  <!-- IN-GAME CONTROLS BAR -->
   <div id="controlsBar">
     <div class="controlInstructions">
       <span id="controlHelp">🖱️ TOUCH / DRAG MOVES</span>
       <span>💥 DBL-TAP BOMB · [P] PAUSE</span>
     </div>
     <div class="controlSwitches">
-      <button class="miniToggle" id="rotateToggle" type="button" aria-pressed="false" title="Toggle Screen Orientation">ROTATE</button>
-      <button class="miniToggle" id="inputModeToggle" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
-      <button class="miniToggle" id="soundToggle" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
+      <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">ROTATE</button>
+      <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
+      <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
     </div>
   </div>
 
@@ -324,208 +338,96 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
 /* CONSTANTS — CONNECTED DIRECTLY TO YOUR GOOGLE APPS SCRIPT WEB APP */
 const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbwSJkA07nl2L8toZ4fBgLciJS2qnwtZ1z2xSmLqn_kinRNxYOzHO4ADahvmj-jD_uwM7g/exec";
 
+/* DYNAMIC RESOLUTION ENGINE */
+let W = 960;
+let H = 540;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+/* RESIZE EVENT: Expands the internal Y-axis when playing on vertical phone screens */
+function resizeEngine() {
+  const isMobile = window.innerWidth <= 850;
+  if (isMobile) {
+    // Matches game proportions perfectly to the exact dimensions of the phone screen
+    H = Math.floor(W * (window.innerHeight / window.innerWidth));
+  } else {
+    // Locks to 16:9 widescreen for desktop
+    H = 540; 
+  }
+  canvas.width = W;
+  canvas.height = H;
+  
+  if (player && player.y > H - 37) {
+    player.y = H - 37;
+  }
+}
+window.addEventListener('resize', resizeEngine);
+resizeEngine(); // Call immediately on load
+
 /* 🖼️ IMAGE ASSET CONFIGURATION 🖼️ */
-/* The game will load these images. If the file is missing or broken, it 
-   will automatically fall back to drawing the complex geometric pathogen shapes! */
 const IMAGES = {
   blaster: new Image(), destroyer: new Image(), nighthawk: new Image(), supernematicide: new Image(), rocket: new Image(),
   bacteria: new Image(), fungus: new Image(), virus: new Image(), pest: new Image(), pod: new Image(), basipetal: new Image(), nematode: new Image(), flagellate: new Image(),
   boss_xoo: new Image(), boss_fusarium: new Image(), boss_colletotrichum: new Image(), boss_puccinia: new Image(), boss_pop_ringspot: new Image()
 };
 
-/* --> ADD YOUR IMAGE PATHS OR URLS HERE <-- */
-IMAGES.blaster.src = ""; 
-IMAGES.destroyer.src = "";
-IMAGES.nighthawk.src = "";
-IMAGES.supernematicide.src = "";
-IMAGES.rocket.src = "";
-
-IMAGES.bacteria.src = "";
-IMAGES.fungus.src = "";
-IMAGES.virus.src = "";
-IMAGES.pest.src = "";
-IMAGES.pod.src = "";
-IMAGES.basipetal.src = "";
-IMAGES.nematode.src = "";
-IMAGES.flagellate.src = "";
-
-IMAGES.boss_xoo.src = "";
-IMAGES.boss_fusarium.src = "";
-IMAGES.boss_colletotrichum.src = "";
-IMAGES.boss_puccinia.src = "";
-IMAGES.boss_pop_ringspot.src = "";
-/* ------------------------------------------- */
+IMAGES.blaster.src = ""; IMAGES.destroyer.src = ""; IMAGES.nighthawk.src = ""; IMAGES.supernematicide.src = ""; IMAGES.rocket.src = "";
+IMAGES.bacteria.src = ""; IMAGES.fungus.src = ""; IMAGES.virus.src = ""; IMAGES.pest.src = ""; IMAGES.pod.src = ""; IMAGES.basipetal.src = ""; IMAGES.nematode.src = ""; IMAGES.flagellate.src = "";
+IMAGES.boss_xoo.src = ""; IMAGES.boss_fusarium.src = ""; IMAGES.boss_colletotrichum.src = ""; IMAGES.boss_puccinia.src = ""; IMAGES.boss_pop_ringspot.src = "";
 
 
 /* SHIPS SPECIFICATIONS */
 const SHIPS = [
   {
-    id: 'blaster',
-    name: 'Bactericidal Blaster',
-    tag: 'RAPID STERILIZER INTERCEPTOR',
-    color: '#30ee83',
-    secColor: '#4af7ff',
-    speed: 360,
-    hp: 100,
-    fireDelay: 0.11,
-    rapidDelay: 0.06,
-    stats: { speed: 95, fireRate: 98, power: 72, armor: 65 },
-    desc: 'High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched rate of fire.'
+    id: 'blaster', name: 'Bactericidal Blaster', tag: 'RAPID STERILIZER INTERCEPTOR',
+    color: '#30ee83', secColor: '#4af7ff', speed: 360, hp: 100, fireDelay: 0.11, rapidDelay: 0.06,
+    stats: { speed: 95, fireRate: 98, power: 72, armor: 65 }, desc: 'High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched rate of fire.'
   },
   {
-    id: 'destroyer',
-    name: 'Fungicidal Destroyer',
-    tag: 'HEAVY 3-WAY SPORE BUSTER',
-    color: '#ff9d35',
-    secColor: '#ff4e62',
-    speed: 280,
-    hp: 130,
-    fireDelay: 0.25,
-    rapidDelay: 0.14,
-    stats: { speed: 65, fireRate: 65, power: 96, armor: 95 },
-    desc: 'Heavily armored assault vessel firing a 3-way spread cannon to obliterate widespread fungal spores.'
+    id: 'destroyer', name: 'Fungicidal Destroyer', tag: 'HEAVY 3-WAY SPORE BUSTER',
+    color: '#ff9d35', secColor: '#ff4e62', speed: 280, hp: 130, fireDelay: 0.25, rapidDelay: 0.14,
+    stats: { speed: 65, fireRate: 65, power: 96, armor: 95 }, desc: 'Heavily armored assault vessel firing a 3-way spread cannon to obliterate widespread fungal spores.'
   },
   {
-    id: 'nighthawk',
-    name: 'IPM Nighthawk',
-    tag: 'PIERCING LANCE STEALTH JET',
-    color: '#4af7ff',
-    secColor: '#b8ff56',
-    speed: 335,
-    hp: 100,
-    fireDelay: 0.17,
-    rapidDelay: 0.09,
-    stats: { speed: 85, fireRate: 80, power: 88, armor: 70 },
-    desc: 'Twin rail lances that pierce clean through multiple pathogens, dealing continuous line damage.'
+    id: 'nighthawk', name: 'IPM Nighthawk', tag: 'PIERCING LANCE STEALTH JET',
+    color: '#4af7ff', secColor: '#b8ff56', speed: 335, hp: 100, fireDelay: 0.17, rapidDelay: 0.09,
+    stats: { speed: 85, fireRate: 80, power: 88, armor: 70 }, desc: 'Twin rail lances that pierce clean through multiple pathogens, dealing continuous line damage.'
   },
   {
-    id: 'supernematicide',
-    name: 'Supernematicide',
-    tag: 'EXPLOSIVE DRILL TORPEDO CRAFT',
-    color: '#ff76d5',
-    secColor: '#ffe85e',
-    speed: 310,
-    hp: 110,
-    fireDelay: 0.22,
-    rapidDelay: 0.12,
-    stats: { speed: 75, fireRate: 70, power: 92, armor: 80 },
-    desc: 'Fires spiraling drill torpedoes that burst into an acidic chemical shockwave on contact.'
+    id: 'supernematicide', name: 'Supernematicide', tag: 'EXPLOSIVE DRILL TORPEDO CRAFT',
+    color: '#ff76d5', secColor: '#ffe85e', speed: 310, hp: 110, fireDelay: 0.22, rapidDelay: 0.12,
+    stats: { speed: 75, fireRate: 70, power: 92, armor: 80 }, desc: 'Fires spiraling drill torpedoes that burst into an acidic chemical shockwave on contact.'
   },
   {
-    id: 'rocket',
-    name: 'Insecticide Rocket',
-    tag: 'HOMING MICRO-MISSILE BATTERY',
-    color: '#ffe85e',
-    secColor: '#ff4e62',
-    speed: 320,
-    hp: 100,
-    fireDelay: 0.11,
-    rapidDelay: 0.055,
-    stats: { speed: 80, fireRate: 96, power: 58, armor: 75 },
-    desc: 'Rapid-launch homing rockets: much faster firing, but each missile carries lower explosive power.'
+    id: 'rocket', name: 'Insecticide Rocket', tag: 'HOMING MICRO-MISSILE BATTERY',
+    color: '#ffe85e', secColor: '#ff4e62', speed: 320, hp: 100, fireDelay: 0.11, rapidDelay: 0.055,
+    stats: { speed: 80, fireRate: 96, power: 58, armor: 75 }, desc: 'Rapid-launch homing rockets: much faster firing, but each missile carries lower explosive power.'
   }
 ];
 
 /* BOMB SPECIFICATIONS */
 const BOMBS = {
-  laser: {
-    id: 'laser',
-    name: 'Orbital Laser Bomb',
-    icon: '⚡',
-    color: '#4af7ff',
-    desc: '5 sweeping orbital death beams sweep the screen for 2.5s, vaporizing bullets and slicing pathogens.'
-  },
-  nuke: {
-    id: 'nuke',
-    name: 'Bio-Thermal Nuke',
-    icon: '☢️',
-    color: '#ffe85e',
-    desc: 'Thermonuclear shockwave that cleanses the entire airspace with screen-wide apocalyptic devastation.'
-  },
-  bio: {
-    id: 'bio',
-    name: 'Biosecurity Overdrive',
-    icon: '⚡',
-    color: '#ff76d5',
-    desc: '5-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.'
-  }
+  laser: { id: 'laser', name: 'Orbital Laser Bomb', icon: '⚡', color: '#4af7ff', desc: '5 sweeping orbital death beams sweep the screen for 2.5s, vaporizing bullets and slicing pathogens.' },
+  nuke: { id: 'nuke', name: 'Bio-Thermal Nuke', icon: '☢️', color: '#ffe85e', desc: 'Thermonuclear shockwave that cleanses the entire airspace with screen-wide apocalyptic devastation.' },
+  bio: { id: 'bio', name: 'Biosecurity Overdrive', icon: '⚡', color: '#ff76d5', desc: '5-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.' }
 };
 
 /* 5 REAL-LIFE PLANT PATHOLOGY BOSSES */
 const BOSS_TYPES = [
-  {
-    id: 'xoo',
-    name: 'XOO Blight Spreader',
-    sub: 'Xanthomonas Bacterial Xylem Spreader',
-    realLife: 'Infects rice hydathodes, invades xylem vessels, and exudes bacterial ooze droplets that spread leaf blight.',
-    color: '#ffe85e',
-    coreColor: '#30ee83',
-    accentColor: '#a9ff60',
-    hpMult: 1.0,
-    pattern: 'xoo_ooze',
-    superName: 'SYSTEMIC XYLEM BLIGHT SURGE'
-  },
-  {
-    id: 'fusarium',
-    name: 'Fusarium wilter',
-    sub: 'Vascular Wilt Subsoil Invader',
-    realLife: 'Soil fungus that enters roots, plugs water-conducting vascular bundles with fusaric toxins, causing total wilt.',
-    color: '#b8784e',
-    coreColor: '#bf55ec',
-    accentColor: '#ff76d5',
-    hpMult: 1.25,
-    pattern: 'fusarium_wilt',
-    superName: 'VASCULAR WILT COLLAPSE'
-  },
-  {
-    id: 'colletotrichum',
-    name: 'Colletotrichum bucket',
-    sub: 'Anthracnose Acervular Splash Hopper',
-    realLife: 'Forms sunken bucket-shaped acervuli lesions; spores disperse via rain-splashes and breach cuticle with appressoria.',
-    color: '#ff9d35',
-    coreColor: '#ff6f61',
-    accentColor: '#7f4932',
-    hpMult: 1.2,
-    pattern: 'acervulus_splash',
-    superName: 'ACERVULAR RAIN-SPLASH DELUGE'
-  },
-  {
-    id: 'puccinia',
-    name: 'Puccinia ship rust',
-    sub: 'Uredinial Rust Ironclad Cruiser',
-    realLife: 'Macrocyclic rust fungus erupting through plant epidermis in pustules, generating continental airborne spore clouds.',
-    color: '#ff4e62',
-    coreColor: '#d35400',
-    accentColor: '#f39c12',
-    hpMult: 1.15,
-    pattern: 'rust_storm',
-    superName: 'CONTINENTAL RUST STORM'
-  },
-  {
-    id: 'pop_ringspot',
-    name: 'Pop Ringspot',
-    sub: 'Papaya Ringspot Viral Halo Drone',
-    realLife: 'Potyvirus transmitted by aphid stylets, generating diagnostic concentric chlorotic rings and leaf distortion.',
-    color: '#ff3399',
-    coreColor: '#4af7ff',
-    accentColor: '#ffffff',
-    hpMult: 1.1,
-    pattern: 'concentric_ringspot',
-    superName: 'CONCENTRIC RINGSPOT CATASTROPHE'
-  }
+  { id: 'xoo', name: 'XOO Blight Spreader', sub: 'Xanthomonas Bacterial Xylem Spreader', hpMult: 1.0, color: '#ffe85e', coreColor: '#30ee83', accentColor: '#a9ff60', superName: 'SYSTEMIC XYLEM BLIGHT SURGE' },
+  { id: 'fusarium', name: 'Fusarium wilter', sub: 'Vascular Wilt Subsoil Invader', hpMult: 1.25, color: '#b8784e', coreColor: '#bf55ec', accentColor: '#ff76d5', superName: 'VASCULAR WILT COLLAPSE' },
+  { id: 'colletotrichum', name: 'Colletotrichum bucket', sub: 'Anthracnose Acervular Splash Hopper', hpMult: 1.2, color: '#ff9d35', coreColor: '#ff6f61', accentColor: '#7f4932', superName: 'ACERVULAR RAIN-SPLASH DELUGE' },
+  { id: 'puccinia', name: 'Puccinia ship rust', sub: 'Uredinial Rust Ironclad Cruiser', hpMult: 1.15, color: '#ff4e62', coreColor: '#d35400', accentColor: '#f39c12', superName: 'CONTINENTAL RUST STORM' },
+  { id: 'pop_ringspot', name: 'Pop Ringspot', sub: 'Papaya Ringspot Viral Halo Drone', hpMult: 1.1, color: '#ff3399', coreColor: '#4af7ff', accentColor: '#ffffff', superName: 'CONCENTRIC RINGSPOT CATASTROPHE' }
 ];
 
 let selectedShipIdx = 0;
 let selectedBombId = 'laser';
 
-/* CANVAS & ENGINE SETUP */
-const W=960, H=540;
 const STATE = { START:'START', PLAY:'PLAY', PAUSE:'PAUSE', GAME_OVER:'GAME_OVER' };
 const COLORS = { cyan:'#4af7ff', green:'#30ee83', lime:'#b8ff56', yellow:'#ffe85e', orange:'#ff9d35', red:'#ff4e62', pink:'#ff76d5', white:'#f5fff9', navy:'#07111d', soil:'#7f4932' };
-
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
 
 /* DOM ELEMENTS */
 const hangarOverlay = document.getElementById('hangarOverlay');
@@ -553,9 +455,11 @@ const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 const scoreTableBody = document.getElementById('scoreTableBody');
 const scoresStatus = document.getElementById('scoresStatus');
 const refreshScoresBtn = document.getElementById('refreshScoresBtn');
-const inputModeToggle = document.getElementById('inputModeToggle');
-const soundToggle = document.getElementById('soundToggle');
-const rotateToggle = document.getElementById('rotateToggle');
+
+// ALL SHARED CLASS TOGGLES
+const inputModeToggles = document.querySelectorAll('.toggleMouse');
+const soundToggles = document.querySelectorAll('.toggleSound');
+const rotateToggles = document.querySelectorAll('.toggleRotate');
 const controlHelp = document.getElementById('controlHelp');
 
 /* RUNTIME GAME STATE */
@@ -568,8 +472,10 @@ let boss = null, bossSpawned = false;
 let player, enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [];
 let activeBombEffects = [];
 let leaderboard = [], submitted = false, shake = 0;
-let stars = Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,s:1+Math.random()*2,a:.15+Math.random()*.6}));
-const pointerTarget = {x:W/2, y:H-72, active:false};
+
+/* STARS GENERATED UP TO 2500 VERTICAL PIXELS SO THEY COVER TALL PHONES INSTANTLY */
+let stars = Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*2500,s:1+Math.random()*2,a:.15+Math.random()*.6}));
+const pointerTarget = {x:W/2, y:540-72, active:false};
 let pointerDown = false;
 let lastTapTime = 0;
 let inputMode = localStorage.getItem('phytoplaneInputMode') || 'mouse';
@@ -578,55 +484,60 @@ let isLandscapeLocked = false;
 
 function updateControlToggles(){
   const usingMouse = inputMode === 'mouse';
-  if(inputModeToggle){
-    inputModeToggle.textContent = usingMouse ? 'MOUSE' : 'KEYS';
-    inputModeToggle.setAttribute('aria-pressed', String(usingMouse));
-  }
+  inputModeToggles.forEach(t => {
+    t.textContent = usingMouse ? 'MOUSE' : 'KEYS';
+    t.setAttribute('aria-pressed', String(usingMouse));
+  });
   if(controlHelp) controlHelp.textContent = usingMouse ? '🖱️ TOUCH / DRAG MOVES' : '⌨️ ARROWS / WASD MOVE';
-  if(soundToggle){
-    soundToggle.textContent = soundEnabled ? 'SOUND' : 'MUTED';
-    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-  }
+  
+  soundToggles.forEach(t => {
+    t.textContent = soundEnabled ? 'SOUND' : 'MUTED';
+    t.setAttribute('aria-pressed', String(soundEnabled));
+  });
+  
+  rotateToggles.forEach(t => {
+    t.setAttribute('aria-pressed', String(isLandscapeLocked));
+  });
 }
 
-if(inputModeToggle) inputModeToggle.addEventListener('click', () => {
+inputModeToggles.forEach(btn => btn.addEventListener('click', () => {
   inputMode = inputMode === 'mouse' ? 'keyboard' : 'mouse';
   localStorage.setItem('phytoplaneInputMode', inputMode);
   keys = Object.create(null);
   updateControlToggles();
   if(soundEnabled) beep(420, .05, 'sine');
-});
-if(soundToggle) soundToggle.addEventListener('click', () => {
+}));
+
+soundToggles.forEach(btn => btn.addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   localStorage.setItem('phytoplaneSoundEnabled', String(soundEnabled));
   updateControlToggles();
   if(soundEnabled) beep(660, .07, 'sine');
-});
+}));
 
 /* MANUAL ORIENTATION TOGGLE FOR MOBILE */
-if(rotateToggle) {
-  rotateToggle.addEventListener('click', async () => {
-    try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen().catch(e=>{});
-      }
-      if (screen.orientation && screen.orientation.lock) {
-        if (isLandscapeLocked) {
-          await screen.orientation.unlock();
-          isLandscapeLocked = false;
-          rotateToggle.setAttribute('aria-pressed', 'false');
-        } else {
-          await screen.orientation.lock('landscape');
-          isLandscapeLocked = true;
-          rotateToggle.setAttribute('aria-pressed', 'true');
-        }
+async function toggleRotation() {
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen().catch(e=>{});
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      if (isLandscapeLocked) {
+        await screen.orientation.unlock();
+        isLandscapeLocked = false;
       } else {
-        alert("Auto-rotation lock not supported on this device. Please physically rotate your phone.");
+        await screen.orientation.lock('landscape');
+        isLandscapeLocked = true;
       }
-    } catch(e) { console.warn("Orientation lock denied or unsupported", e); }
-    beep(500, .05, 'sine');
-  });
+      updateControlToggles();
+    } else {
+      alert("Auto-rotation lock not supported on this device. Please physically rotate your phone.");
+    }
+  } catch(e) { console.warn("Orientation lock denied or unsupported", e); }
+  beep(500, .05, 'sine');
 }
+
+rotateToggles.forEach(btn => btn.addEventListener('click', toggleRotation));
 updateControlToggles();
 
 /* UI SELECTOR BINDINGS */
@@ -669,7 +580,7 @@ document.querySelectorAll('.bombBtn').forEach(btn => {
   });
 });
 
-/* JUST REQUESTS FULLSCREEN, DOES NOT FORCE ROTATION ANYMORE */
+/* REQUESTS FULLSCREEN ONLY */
 async function requestMobileFullscreen() {
   if (window.innerWidth <= 850 || window.innerHeight <= 500) {
     try {
@@ -961,9 +872,8 @@ canvas.addEventListener('pointerdown', e => {
   pointerDown = true;
   try {
     canvas.setPointerCapture(e.pointerId);
-  } catch (err) {
-    console.warn('Pointer capture failed:', err);
-  }
+  } catch (err) {}
+  
   const p = eventToCanvasXY(e);
   pointerTarget.x = p.x; pointerTarget.y = p.y; pointerTarget.active = true;
 });
@@ -1043,8 +953,10 @@ function updatePlayer(dt){
     p.y += (pointerTarget.y - p.y) * followSpeed;
   }
 
+  // MASSIVE VERTICAL DRAG AREA FOR MOBILE: Players can drag up to 30% of the screen height
   p.x = Math.max(25, Math.min(W - 25, p.x));
-  p.y = Math.max(H - 170, Math.min(H - 37, p.y));
+  p.y = Math.max(H * 0.3, Math.min(H - 37, p.y));
+  
   const targetTilt = keyActive ? dx * 0.35 : (inputMode === 'mouse' ? (pointerTarget.x - p.x) * 0.012 : 0);
   p.tilt += (targetTilt - p.tilt) * Math.min(1, dt * 12);
 
@@ -1246,7 +1158,7 @@ function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
     points: d.points, color: d.color,
     age: 0, phase: Math.random() * 6.28,
     shoot: 1.1 + Math.random() * 1.8, dead: false,
-    angle: 0 // Added for tracking
+    angle: 0
   };
   e.baseX = e.x;
   enemies.push(e);
@@ -1319,9 +1231,8 @@ function updateEnemies(dt){
   for(const e of enemies){
     e.age += dt; e.shoot -= dt;
     if(e.type === 'bacteria'){ 
-      // CUTE BACTERIA NOW TRACKS THE PLAYER
       const angle = Math.atan2(player.y - e.y, player.x - e.x);
-      e.angle = angle; // Save for rendering
+      e.angle = angle; 
       e.x += Math.cos(angle) * (e.speed * 0.8) * dt + Math.sin(e.age * 8) * 1.5;
       e.y += Math.sin(angle) * (e.speed * 0.8) * dt + Math.abs(Math.cos(e.age * 8)) * 1.5;
     }
@@ -1342,7 +1253,6 @@ function updateEnemies(dt){
       if(e.shoot <= 0 && e.y > 40){ shootEnemy(e, (Math.random() - .5) * 0.4); e.shoot = 1.6 + Math.random(); }
     }
     if(e.type === 'nematode'){
-      // VERTICAL SEEKING MOVEMENT
       e.y += e.speed * 1.5 * dt; 
       const angle = Math.atan2(player.y - e.y, player.x - e.x);
       e.x += Math.cos(angle) * (30 + wave*2) * dt;
@@ -1407,7 +1317,6 @@ function updateBoss(dt){
     b.superTimer = 7.5 + Math.random() * 2.0;
     shake = 0.85;
     
-    // MASSIVE FLASH FOR BOSS SUPER
     activeBombEffects.push({ type: 'boss_flash', life: 0.5, x: b.x, y: b.y, color: b.cfg.color });
     
     floatingText.push({
