@@ -114,36 +114,77 @@ canvas {
 /* LEADERBOARD OVERLAY & MODAL */
 #leaderboardOverlay{z-index:50;}
 #leaderboardBox{
-  display:flex; flex-direction:column; width:min(620px, 96%); max-height:85vh;
+  display:flex; flex-direction:column; width:min(580px, 94%); max-height:84vh;
   background:rgba(2, 14, 26, 0.98); border:2px solid #ffe85e; border-radius:8px;
-  padding:16px; box-shadow:0 0 30px rgba(255,232,94,.28); text-align:center;
+  padding:14px; box-shadow:0 0 30px rgba(255,232,94,.28); text-align:center;
+  box-sizing:border-box;
 }
-.lbHeader{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(74,247,255,.3); padding-bottom:10px; margin-bottom:10px; gap:8px;}
-.lbTitle{font-size:18px; font-weight:bold; color:#ffe85e; letter-spacing:1.5px; display:flex; align-items:center; gap:6px;}
-.lbSub{font-size:10px; color:rgba(220,255,240,.75); margin-top:3px; text-align:left;}
-.lbActions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
-.lbBtn{background:rgba(74,247,255,.15); border:1px solid #4af7ff; color:#4af7ff; padding:7px 12px; border-radius:4px; font-family:inherit; font-size:11px; font-weight:bold; cursor:pointer; transition:all .15s;}
+.lbHeader{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  border-bottom:1px solid rgba(74,247,255,.3); padding-bottom:8px; margin-bottom:8px; flex-shrink:0; width:100%;
+}
+.lbTitle{
+  font-size:16px; font-weight:bold; color:#ffe85e; letter-spacing:1px;
+  display:flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap;
+}
+.lbSub{font-size:10px; color:rgba(220,255,240,.75); margin-top:1px; text-align:center;}
+.lbActions{display:flex; justify-content:center; align-items:center; gap:8px; width:100%; margin-top:4px;}
+.lbBtn{
+  flex:1; max-width:140px; background:rgba(74,247,255,.15); border:1px solid #4af7ff; color:#4af7ff;
+  padding:7px 12px; border-radius:4px; font-family:inherit; font-size:11px; font-weight:bold; cursor:pointer; transition:all .15s;
+}
 .lbBtn:hover{background:#4af7ff; color:#07111d;}
 .lbBtn.btnClose{border-color:#ff4e62; color:#ff4e62; background:rgba(255,78,98,.12);}
 .lbBtn.btnClose:hover{background:#ff4e62; color:#fff;}
 
-.lbTableWrap{flex:1; overflow-y:auto; margin:8px 0; border:1px solid rgba(74,247,255,.25); border-radius:4px; max-height:54vh; background:rgba(4,10,18,.8);}
-.scoreTable{width:100%; border-collapse:collapse; font-size:12px; text-align:left;}
-.scoreTable th{position:sticky; top:0; background:#071b2d; padding:9px 10px; color:#4af7ff; border-bottom:2px solid rgba(74,247,255,.4); font-size:11px; letter-spacing:1px; z-index:2;}
-.scoreTable td{padding:9px 10px; border-bottom:1px solid rgba(74,247,255,.12); color:#e8fdf5;}
+.lbTableWrap{
+  flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  margin:6px 0; border:1px solid rgba(74,247,255,.25); border-radius:4px; background:rgba(4,10,18,.8);
+}
+.scoreTable{width:100%; border-collapse:collapse; font-size:11px; text-align:left;}
+.scoreTable th{
+  position:sticky; top:0; background:#071b2d; padding:8px 6px; color:#4af7ff;
+  border-bottom:2px solid rgba(74,247,255,.4); font-size:10px; letter-spacing:.5px; z-index:2; white-space:nowrap;
+}
+.scoreTable td{padding:8px 6px; border-bottom:1px solid rgba(74,247,255,.12); color:#e8fdf5; white-space:nowrap;}
+.scoreTable th:nth-child(1), .scoreTable td:nth-child(1){width:18%; text-align:center;}
+.scoreTable th:nth-child(2), .scoreTable td:nth-child(2){width:34%; text-align:left; overflow:hidden; text-overflow:ellipsis; max-width:130px;}
+.scoreTable th:nth-child(3), .scoreTable td:nth-child(3){width:24%; text-align:right;}
+.scoreTable th:nth-child(4), .scoreTable td:nth-child(4){width:24%; text-align:right; font-size:10px; color:rgba(220,255,240,.65);}
+
 .scoreTable tr:nth-child(even) td{background:rgba(74,247,255,.03);}
 .scoreTable tr:hover td{background:rgba(74,247,255,.12);}
-.rankGold{color:#ffe85e; font-weight:bold; font-size:13px;}
-.rankSilver{color:#d5f3e7; font-weight:bold; font-size:12px;}
-.rankBronze{color:#ff9d35; font-weight:bold; font-size:12px;}
-.scoreNum{color:#b8ff56; font-weight:bold; font-size:13px; font-family:inherit;}
-#scoresStatus{text-align:center; padding:18px; font-size:12px; color:#4af7ff;}
+.rankGold{color:#ffe85e; font-weight:bold; font-size:12px;}
+.rankSilver{color:#d5f3e7; font-weight:bold; font-size:11px;}
+.rankBronze{color:#ff9d35; font-weight:bold; font-size:11px;}
+.scoreNum{color:#b8ff56; font-weight:bold; font-size:12px; font-family:inherit;}
+#scoresStatus{text-align:center; padding:16px; font-size:11px; color:#4af7ff;}
 
+
+.lbCloseBottom{
+  display:block !important; flex:0 0 auto !important; width:100% !important; height:auto !important;
+  min-height:42px !important; max-height:46px !important; padding:10px 18px !important; margin-top:10px !important;
+  font-family:inherit; font-size:13px !important; font-weight:bold !important; letter-spacing:1px !important;
+  background:#30ee83 !important; color:#07111d !important; border:none !important; border-radius:4px !important;
+  cursor:pointer !important; transition:all .15s !important;
+}
+.lbCloseBottom:hover{background:#b8ff56 !important;}
+
+#closeScoresBottomBtn{
+  flex:0 0 auto !important; height:auto !important; min-height:42px !important; max-height:46px !important;
+  padding:10px 18px !important; margin-top:10px !important; font-size:13px !important; font-weight:bold !important;
+  letter-spacing:1px !important; width:100% !important; background:#30ee83 !important; color:#07111d !important;
+  border:none !important; border-radius:4px !important; cursor:pointer !important; transition:all .15s !important;
+}
+#closeScoresBottomBtn:hover{background:#b8ff56 !important;}
 /* HANGAR BUTTON ROW */
 .hangarLaunchRow{display:flex; gap:10px; width:min(100%, 460px); margin-top:14px; margin-bottom:auto;}
 .hangarLaunchRow #launchBtn{margin:0; flex:1.6;}
 .hangarLaunchRow #openScoresHangarBtn{flex:1; padding:12px 10px; font-size:13px;}
 
+
+.miniToggle.toggleScale{border-color:#4af7ff; color:#4af7ff; background:rgba(74,247,255,.08);}
+.miniToggle.toggleScale::before{background:#4af7ff; box-shadow:0 0 5px #4af7ff;}
 /* CONTROLS TOGGLE HIGHSCORE */
 .miniToggle.toggleScores{border-color:#ffe85e; color:#ffe85e; background:rgba(255,232,94,.1);}
 .miniToggle.toggleScores::before{background:#ffe85e; box-shadow:0 0 5px #ffe85e;}
@@ -163,8 +204,8 @@ canvas {
   }
   .controlInstructions, .controlSwitches { pointer-events: auto; } /* Buttons are clickable */
   .controlInstructions{ order: 0; gap: 5px; flex: 1; justify-content: center; margin-bottom: 6px; font-size: 9px; text-shadow: 0 0 4px #000; }
-  .controlSwitches{ order: 1; margin-left: 0; justify-content: center; }
-  .miniToggle{ font-size: 9px; padding: 6px 8px; }
+  .controlSwitches{ order: 1; margin-left: 0; justify-content: center; flex-wrap: wrap; gap: 4px; }
+  .miniToggle{ font-size: 8.5px; padding: 5px 6px; }
   
   #hangarGrid{ grid-template-columns: 1fr; gap: 6px; padding: 7px; max-height: none; }
   #hangarTitle{ font-size: 16px; margin-top: 25px; }
@@ -272,10 +313,10 @@ canvas {
           <table class="scoreTable" id="scoreTable">
             <thead>
               <tr>
-                <th style="width:18%">RANK</th>
-                <th style="width:42%">PILOT CALL-SIGN</th>
-                <th style="width:22%">HIGH SCORE</th>
-                <th style="width:18%">DATE</th>
+                <th style="width:16%;text-align:center">RANK</th>
+                <th style="width:36%">PILOT</th>
+                <th style="width:24%;text-align:right">SCORE</th>
+                <th style="width:24%;text-align:right">DATE</th>
               </tr>
             </thead>
             <tbody id="scoreTableBody">
@@ -283,7 +324,7 @@ canvas {
           </table>
           <div id="scoresStatus">Loading flight records...</div>
         </div>
-        <button class="menuActionBtn btnPrimary" id="closeScoresBottomBtn" type="button" style="margin-top:12px;width:100%">◀ BACK TO MISSION</button>
+        <button class="btnPrimary lbCloseBottom" id="closeScoresBottomBtn" type="button">◀ BACK TO MISSION</button>
       </div>
     </div>
 
@@ -311,6 +352,7 @@ canvas {
       <span>💥 DBL-TAP BOMB · [P] PAUSE</span>
     </div>
     <div class="controlSwitches">
+      <button class="miniToggle toggleScale" type="button" title="Switch Display Scaling (Auto / Normal / Large)">🔍 AUTO</button>
       <button class="miniToggle toggleScores" type="button" title="View High Scores Leaderboard">🏆 SCORES</button>
       <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
       <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
@@ -338,38 +380,80 @@ function beep(f=440, d=.06, type='square', v=.035){
   }catch(e){}
 }
 
-/* DYNAMIC RESOLUTION ENGINE */
+/* MULTI-DEVICE ADAPTIVE RESOLUTION & SCALING ENGINE */
 let W = 960;
 let H = 540;
 let player = null; // Hoisted before resizeEngine to prevent TDZ ReferenceError
+let scaleMode = localStorage.getItem('phytoplaneScaleMode') || 'auto'; // 'auto', '1x', '1.3x', '1.6x'
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-/* RESIZE EVENT: Mathematically perfectly matches canvas internal resolution to the exact screen */
+/* DEVICE PROFILE DETECTOR */
+function getDeviceProfile() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const isPortrait = h > w;
+  const minDim = Math.min(w, h);
+  const isTouch = ('ontouchstart' in window) || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+
+  if (isTouch && minDim <= 520) {
+    return isPortrait ? 'PHONE_PORTRAIT' : 'PHONE_LANDSCAPE';
+  } else if (isTouch && minDim <= 920) {
+    return isPortrait ? 'TABLET_PORTRAIT' : 'TABLET_LANDSCAPE';
+  } else {
+    return 'DESKTOP';
+  }
+}
+
+/* ACTIVE ENTITY SCALE MULTIPLIER */
+function getActiveScaleMultiplier() {
+  if (scaleMode === '1x') return 1.0;
+  if (scaleMode === '1.3x') return 1.3;
+  if (scaleMode === '1.6x') return 1.6;
+  
+  // AUTO: Adaptive scaling customized per device
+  const profile = getDeviceProfile();
+  if (profile === 'PHONE_PORTRAIT') return 1.45; // Generous chunky sizing on Android/iPhone
+  if (profile === 'PHONE_LANDSCAPE') return 1.25;
+  if (profile === 'TABLET_PORTRAIT') return 1.2;
+  if (profile === 'TABLET_LANDSCAPE') return 1.1;
+  return 1.0; // Desktop/laptop native crisp proportions
+}
+
+/* RESIZE EVENT: Adapts resolution and coordinate bounds per device */
 function resizeEngine() {
   const wrap = document.getElementById('gameWrap');
   if (!wrap) return;
   const rect = wrap.getBoundingClientRect();
-  const isPortrait = (rect.height > rect.width) || (window.innerWidth <= 850 && window.innerHeight > window.innerWidth);
-  
-  if (isPortrait) {
-    // Portrait mode on smartphones: W = 480 creates punchy, arcade-sized ships and enemies
-    W = 480;
+  const profile = getDeviceProfile();
+
+  if (profile === 'PHONE_PORTRAIT') {
+    // Smartphone portrait: vertical arcade shmup (440px wide) gives 2.2x natural scale boost
+    W = 440;
     H = Math.floor(W * (rect.height / rect.width));
-  } else if (window.innerWidth <= 850 || window.innerHeight <= 500) {
-    // Landscape mode on smartphones
+  } else if (profile === 'PHONE_LANDSCAPE') {
+    // Smartphone landscape: wide horizontal mobile layout
+    H = 480;
+    W = Math.floor(H * (rect.width / rect.height));
+  } else if (profile === 'TABLET_PORTRAIT') {
+    // Tablet portrait
+    W = 600;
+    H = Math.floor(W * (rect.height / rect.width));
+  } else if (profile === 'TABLET_LANDSCAPE') {
+    // Tablet landscape
     H = 540;
     W = Math.floor(H * (rect.width / rect.height));
   } else {
-    // Desktop 16:9
+    // Desktop / Laptop (16:9 arcade cabinet aspect)
     W = 960;
     H = 540;
   }
   canvas.width = W;
   canvas.height = H;
-  
-  if (player && player.y > H - 37) player.y = H - 37;
+
+  if (player && player.y > H - 45) player.y = H - 45;
 }
 window.addEventListener('resize', resizeEngine);
 resizeEngine();
@@ -449,6 +533,7 @@ const refreshScoresBtn = document.getElementById('refreshScoresBtn');
 const inputModeToggle = document.querySelector('.toggleMouse');
 const soundToggle = document.querySelector('.toggleSound');
 const rotateToggle = document.querySelector('.toggleRotate');
+const scaleToggle = document.querySelector('.toggleScale');
 const controlHelp = document.getElementById('controlHelp');
 
 let state = STATE.START;
@@ -475,7 +560,23 @@ function updateControlToggles(){
   if (controlHelp) controlHelp.textContent = usingMouse ? '🖱️ TOUCH / DRAG MOVES' : '⌨️ ARROWS / WASD MOVE';
   if (soundToggle) { soundToggle.textContent = soundEnabled ? 'SOUND' : 'MUTED'; soundToggle.setAttribute('aria-pressed', String(soundEnabled)); }
   if (rotateToggle) rotateToggle.setAttribute('aria-pressed', String(isLandscapeLocked));
+  if (scaleToggle) {
+    const lbl = scaleMode === 'auto' ? 'SCALE:AUTO' : 'SCALE:' + scaleMode.toUpperCase();
+    scaleToggle.textContent = '🔍 ' + lbl;
+  }
 }
+
+function cycleScaleMode(){
+  if (scaleMode === 'auto') scaleMode = '1x';
+  else if (scaleMode === '1x') scaleMode = '1.3x';
+  else if (scaleMode === '1.3x') scaleMode = '1.6x';
+  else scaleMode = 'auto';
+  localStorage.setItem('phytoplaneScaleMode', scaleMode);
+  updateControlToggles();
+  resizeEngine();
+  beep(520, .05, 'sine');
+}
+if(scaleToggle) scaleToggle.addEventListener('click', cycleScaleMode);
 
 if(inputModeToggle) inputModeToggle.addEventListener('click', () => { inputMode = inputMode === 'mouse' ? 'keyboard' : 'mouse'; localStorage.setItem('phytoplaneInputMode', inputMode); keys = Object.create(null); updateControlToggles(); if(soundEnabled) beep(420, .05, 'sine'); });
 if(soundToggle) soundToggle.addEventListener('click', () => { soundEnabled = !soundEnabled; localStorage.setItem('phytoplaneSoundEnabled', String(soundEnabled)); updateControlToggles(); if(soundEnabled) beep(660, .07, 'sine'); });
@@ -590,10 +691,10 @@ function renderLeaderboardTable(){
     else if(idx === 2){ rankBadge = '🥉 #3'; rankClass = 'rankBronze'; }
 
     tr.innerHTML = `
-      <td class="${rankClass}">${rankBadge}</td>
-      <td style="font-weight:bold">${escapeHtml(r.name)}</td>
-      <td class="scoreNum">${r.score.toLocaleString()}</td>
-      <td style="color:rgba(220,255,240,.65);font-size:10px">${escapeHtml(r.date || '—')}</td>
+      <td class="${rankClass}" style="text-align:center;white-space:nowrap">${rankBadge}</td>
+      <td style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">${escapeHtml(r.name)}</td>
+      <td class="scoreNum" style="text-align:right;white-space:nowrap">${r.score.toLocaleString()}</td>
+      <td style="color:rgba(220,255,240,.75);font-size:10.5px;text-align:right;white-space:nowrap">${escapeHtml(r.date || '—')}</td>
     `;
     scoreTableBody.appendChild(tr);
   });
@@ -639,7 +740,7 @@ function resetGame(){
   enemies = []; bullets = []; enemyBullets = []; powerups = []; particles = []; floatingText = []; activeBombEffects = [];
   
   player = {
-    ship: shipCfg, bombType: selectedBombId, x: W/2, y: H-120, r: (W <= 550 ? 25 : 20),
+    ship: shipCfg, bombType: selectedBombId, x: W/2, y: H-120, r: Math.round(20 * getActiveScaleMultiplier()),
     hp: shipCfg.hp, maxHp: shipCfg.hp, lives: 3, maxLives: 5,
     fireDelay: 0, rapid: 0, shield: 0, multiplier: 0, overdrive: 0, bombs: 3, invincible: 0, tilt: 0, rocketSide: 0
   };
@@ -932,9 +1033,11 @@ function getRandomEnemyType() {
 
 function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   const d = TYPES[type], hp = d.hp + Math.floor((wave - 1) * 0.45);
+  const scale = getActiveScaleMultiplier();
+  const r = Math.round(d.r * (scale >= 1.3 ? 1.15 : 1.0));
   const e = {
-    type, x: x ?? (35 + Math.random() * (W - 70)), y: -45 - yOffset, baseX: 0,
-    r: d.r, hp, maxHp: hp, speed: (d.speed + wave * 15) * speedMult, points: d.points, color: d.color,
+    type, x: x ?? (r + 15 + Math.random() * (W - r * 2 - 30)), y: -45 - yOffset, baseX: 0,
+    r, hp, maxHp: hp, speed: (d.speed + wave * 15) * speedMult, points: d.points, color: d.color,
     age: 0, phase: Math.random() * 6.28, shoot: 1.1 + Math.random() * 1.8, dead: false, angle: 0
   };
   e.baseX = e.x;
@@ -1030,7 +1133,7 @@ function spawnRandomBoss(){
   enemies = enemies.filter(e => e.type !== 'pod');
   const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
   const hp = Math.floor((150 + wave * 55) * bossType.hpMult);
-  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, r: (W <= 550 ? 85 : 75), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
+  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, r: Math.round(75 * getActiveScaleMultiplier()), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
 
   floatingText.push({x:W/2, y:H*0.32, text:'⚠️ ' + bossType.name.toUpperCase() + ' ⚠️', color:bossType.color, life:3.0, vy:-10, big:true});
   floatingText.push({x:W/2, y:H*0.38, text:bossType.sub.toUpperCase(), color:COLORS.white, life:3.0, vy:-8, big:false});
@@ -1282,8 +1385,9 @@ function drawEngineFlame(x, y, scale) {
 
 function drawPlayer(p){
   ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.tilt);
-  const scale = (W <= 550 ? 1.35 : 1.15);
+  const scale = getActiveScaleMultiplier();
   ctx.scale(scale, scale);
+  p.r = Math.round(20 * scale);
 
   if(p.shield > 0){ circle(0, 0, 30 + Math.sin(elapsed * 8) * 2, 'rgba(74,247,255,.14)'); ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke(); }
   if(p.overdrive > 0){
