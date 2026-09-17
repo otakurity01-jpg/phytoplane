@@ -185,9 +185,7 @@ canvas {
 
 .miniToggle.toggleScale{border-color:#4af7ff; color:#4af7ff; background:rgba(74,247,255,.08);}
 .miniToggle.toggleScale::before{background:#4af7ff; box-shadow:0 0 5px #4af7ff;}
-/* CONTROLS TOGGLE HIGHSCORE */
-.miniToggle.toggleScores{border-color:#ffe85e; color:#ffe85e; background:rgba(255,232,94,.1);}
-.miniToggle.toggleScores::before{background:#ffe85e; box-shadow:0 0 5px #ffe85e;}
+
 
 
 /* SMARTPHONE SCALING MEDIA QUERY */
@@ -353,7 +351,6 @@ canvas {
     </div>
     <div class="controlSwitches">
       <button class="miniToggle toggleScale" type="button" title="Switch Display Scaling (Auto / Normal / Large)">🔍 AUTO</button>
-      <button class="miniToggle toggleScores" type="button" title="View High Scores Leaderboard">🏆 SCORES</button>
       <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
       <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
       <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
@@ -390,36 +387,33 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-/* DEVICE PROFILE DETECTOR */
+/* DEVICE PROFILE & MOBILE DETECTOR */
+function isMobileDevice() {
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
+  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+  const isTouch = (typeof window !== 'undefined' && ('ontouchstart' in window)) || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+  const isSmallScreen = (typeof window !== 'undefined') && (window.innerWidth <= 850 || window.innerHeight <= 500);
+  return mobileRegex.test(ua) || (isTouch && isSmallScreen);
+}
+
 function getDeviceProfile() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   const isPortrait = h > w;
-  const minDim = Math.min(w, h);
-  const isTouch = ('ontouchstart' in window) || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
-
-  if (isTouch && minDim <= 520) {
+  if (isMobileDevice()) {
     return isPortrait ? 'PHONE_PORTRAIT' : 'PHONE_LANDSCAPE';
-  } else if (isTouch && minDim <= 920) {
-    return isPortrait ? 'TABLET_PORTRAIT' : 'TABLET_LANDSCAPE';
-  } else {
-    return 'DESKTOP';
   }
+  return 'DESKTOP';
 }
 
-/* ACTIVE ENTITY SCALE MULTIPLIER */
+/* ACTIVE ENTITY SCALE MULTIPLIER (0.5x for PC/laptop, 1x for smartphones) */
 function getActiveScaleMultiplier() {
+  if (scaleMode === '0.5x') return 0.5;
   if (scaleMode === '1x') return 1.0;
-  if (scaleMode === '1.3x') return 1.3;
-  if (scaleMode === '1.6x') return 1.6;
+  if (scaleMode === '1.5x') return 1.5;
   
-  // AUTO: Adaptive scaling customized per device
-  const profile = getDeviceProfile();
-  if (profile === 'PHONE_PORTRAIT') return 1.45; // Generous chunky sizing on Android/iPhone
-  if (profile === 'PHONE_LANDSCAPE') return 1.25;
-  if (profile === 'TABLET_PORTRAIT') return 1.2;
-  if (profile === 'TABLET_LANDSCAPE') return 1.1;
-  return 1.0; // Desktop/laptop native crisp proportions
+  // AUTO: 0.5x for PC / laptop and 1.0x for smartphones
+  return isMobileDevice() ? 1.0 : 0.5;
 }
 
 /* RESIZE EVENT: Adapts resolution and coordinate bounds per device */
@@ -430,23 +424,15 @@ function resizeEngine() {
   const profile = getDeviceProfile();
 
   if (profile === 'PHONE_PORTRAIT') {
-    // Smartphone portrait: vertical arcade shmup (440px wide) gives 2.2x natural scale boost
+    // Smartphone portrait: vertical arcade shmup (440px wide) gives touch-friendly mobile scale
     W = 440;
     H = Math.floor(W * (rect.height / rect.width));
   } else if (profile === 'PHONE_LANDSCAPE') {
     // Smartphone landscape: wide horizontal mobile layout
     H = 480;
     W = Math.floor(H * (rect.width / rect.height));
-  } else if (profile === 'TABLET_PORTRAIT') {
-    // Tablet portrait
-    W = 600;
-    H = Math.floor(W * (rect.height / rect.width));
-  } else if (profile === 'TABLET_LANDSCAPE') {
-    // Tablet landscape
-    H = 540;
-    W = Math.floor(H * (rect.width / rect.height));
   } else {
-    // Desktop / Laptop (16:9 arcade cabinet aspect)
+    // PC / Laptop: Standard 16:9 arcade cabinet aspect (960 x 540)
     W = 960;
     H = 540;
   }
@@ -525,7 +511,6 @@ const scoresStatus = document.getElementById('scoresStatus');
 const openScoresHangarBtn = document.getElementById('openScoresHangarBtn');
 const scoresFromPauseBtn = document.getElementById('scoresFromPauseBtn');
 const scoresGameOverBtn = document.getElementById('scoresGameOverBtn');
-const toggleScoresBtn = document.querySelector('.toggleScores');
 const closeScoresBtn = document.getElementById('closeScoresBtn');
 const closeScoresBottomBtn = document.getElementById('closeScoresBottomBtn');
 const refreshScoresBtn = document.getElementById('refreshScoresBtn');
@@ -561,19 +546,27 @@ function updateControlToggles(){
   if (soundToggle) { soundToggle.textContent = soundEnabled ? 'SOUND' : 'MUTED'; soundToggle.setAttribute('aria-pressed', String(soundEnabled)); }
   if (rotateToggle) rotateToggle.setAttribute('aria-pressed', String(isLandscapeLocked));
   if (scaleToggle) {
-    const lbl = scaleMode === 'auto' ? 'SCALE:AUTO' : 'SCALE:' + scaleMode.toUpperCase();
-    scaleToggle.textContent = '🔍 ' + lbl;
+    const isMob = isMobileDevice();
+    const effective = getActiveScaleMultiplier();
+    if (scaleMode === 'auto') {
+      scaleToggle.textContent = `🔍 AUTO (${effective}X)`;
+    } else {
+      scaleToggle.textContent = `🔍 SCALE: ${scaleMode.toUpperCase()}`;
+    }
   }
 }
 
 function cycleScaleMode(){
-  if (scaleMode === 'auto') scaleMode = '1x';
-  else if (scaleMode === '1x') scaleMode = '1.3x';
-  else if (scaleMode === '1.3x') scaleMode = '1.6x';
+  // Cycle: AUTO (0.5x PC / 1x Phone) -> 0.5X -> 1.0X -> 1.5X -> AUTO
+  if (scaleMode === 'auto') scaleMode = '0.5x';
+  else if (scaleMode === '0.5x') scaleMode = '1x';
+  else if (scaleMode === '1x') scaleMode = '1.5x';
   else scaleMode = 'auto';
+  
   localStorage.setItem('phytoplaneScaleMode', scaleMode);
   updateControlToggles();
   resizeEngine();
+  if (player) player.r = Math.round(20 * getActiveScaleMultiplier());
   beep(520, .05, 'sine');
 }
 if(scaleToggle) scaleToggle.addEventListener('click', cycleScaleMode);
@@ -618,7 +611,6 @@ launchBtn.addEventListener('click', () => { requestMobileFullscreen(); startGame
 if(openScoresHangarBtn) openScoresHangarBtn.addEventListener('click', openScoresOverlay);
 if(scoresFromPauseBtn) scoresFromPauseBtn.addEventListener('click', openScoresOverlay);
 if(scoresGameOverBtn) scoresGameOverBtn.addEventListener('click', openScoresOverlay);
-if(toggleScoresBtn) toggleScoresBtn.addEventListener('click', openScoresOverlay);
 if(closeScoresBtn) closeScoresBtn.addEventListener('click', closeScoresOverlay);
 if(closeScoresBottomBtn) closeScoresBottomBtn.addEventListener('click', closeScoresOverlay);
 if(refreshScoresBtn) refreshScoresBtn.addEventListener('click', () => { fetchLeaderboard(); beep(550, .05, 'sine'); });
@@ -1125,7 +1117,8 @@ function updateEnemies(dt){
 function shootEnemy(e, spread){
   const a = Math.atan2(player.y - e.y, player.x - e.x) + spread;
   const dripColor = e.type === 'virus' ? COLORS.pink : e.type === 'basipetal' ? '#c48a3d' : e.type === 'flagellate' ? '#ff79b9' : COLORS.orange;
-  enemyBullets.push({ x: e.x, y: e.y + e.r * 0.5, vx: Math.cos(a) * 190, vy: Math.sin(a) * 190, r: 5, c: dripColor });
+  const bRad = Math.max(3, Math.round(5 * getActiveScaleMultiplier()));
+  enemyBullets.push({ x: e.x, y: e.y + e.r * 0.5, vx: Math.cos(a) * 190, vy: Math.sin(a) * 190, r: bRad, c: dripColor });
   beep(180, .04, 'sawtooth', .012);
 }
 
@@ -1432,37 +1425,38 @@ function gameLoop(timestamp){
   if(state === STATE.PLAY){
     // DISTINCT POWERUP BONUS CRATES: Glowing floating diamond supply crates with clear icons & labels
     for(const p of powerups){
+      const scale = getActiveScaleMultiplier();
       ctx.save();
       ctx.translate(p.x, p.y);
-      const bob = Math.sin(p.age * 4) * 3;
+      const bob = Math.sin(p.age * 4) * 3 * scale;
       ctx.translate(0, bob);
       
       // 1. Large pulsating glowing beacon aura
       const pulse = 1 + Math.sin(p.age * 6) * 0.15;
       ctx.fillStyle = p.type === 'bomb' ? 'rgba(255, 232, 94, 0.28)' : 'rgba(74, 247, 255, 0.28)';
       ctx.beginPath();
-      ctx.arc(0, 0, 22 * pulse, 0, Math.PI * 2);
+      ctx.arc(0, 0, 22 * scale * pulse, 0, Math.PI * 2);
       ctx.fill();
 
       // 2. Rotating dotted beacon ring (clearly marks it as a pickup)
       ctx.save();
       ctx.rotate(p.age * 2.5);
       ctx.strokeStyle = p.color;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = Math.max(1, 2 * scale);
+      ctx.setLineDash([Math.round(4 * scale), Math.round(4 * scale)]);
       ctx.beginPath();
-      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.arc(0, 0, 18 * scale, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
 
       // 3. Diamond capsule container
-      const boxR = 14;
+      const boxR = Math.round(14 * scale);
       ctx.save();
       ctx.rotate(Math.PI / 4);
       ctx.fillStyle = 'rgba(7, 24, 42, 0.95)';
       ctx.fillRect(-boxR, -boxR, boxR * 2, boxR * 2);
       ctx.strokeStyle = p.color;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = Math.max(1.5, 2.5 * scale);
       ctx.strokeRect(-boxR, -boxR, boxR * 2, boxR * 2);
       ctx.restore();
 
@@ -1474,18 +1468,18 @@ function gameLoop(timestamp){
       else if (p.type === 'fertility') icon = '❤️';
       else if (p.type === 'scan') icon = '2X';
       
-      ctx.font = 'bold 15px sans-serif';
+      ctx.font = `bold ${Math.round(15 * scale)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(icon, 0, 0);
 
       // 5. Bright floating label tag under capsule
-      ctx.font = 'bold 9px "Courier New", monospace';
+      ctx.font = `bold ${Math.round(9 * scale)}px "Courier New", monospace`;
       ctx.fillStyle = p.color;
       ctx.shadowBlur = 4;
       ctx.shadowColor = p.color;
       const tag = p.type === 'bomb' ? 'BOMB' : p.type === 'rapid' ? 'RAPID' : p.type === 'shield' ? 'SHIELD' : p.type === 'fertility' ? '+HEAL' : '2X';
-      ctx.fillText(tag, 0, 23);
+      ctx.fillText(tag, 0, Math.round(23 * scale));
       ctx.shadowBlur = 0;
 
       ctx.restore();
