@@ -110,8 +110,44 @@ canvas {
 .miniToggle[aria-pressed="true"]::before{background:#30ee83;box-shadow:0 0 5px #30ee83}
 .miniToggle:hover{background:rgba(74,247,255,.22)}
 
-/* LEADERBOARD HIDDEN IN THIS VERSION */
-#leaderboardSection{display:none;}
+
+/* LEADERBOARD OVERLAY & MODAL */
+#leaderboardOverlay{z-index:50;}
+#leaderboardBox{
+  display:flex; flex-direction:column; width:min(620px, 96%); max-height:85vh;
+  background:rgba(2, 14, 26, 0.98); border:2px solid #ffe85e; border-radius:8px;
+  padding:16px; box-shadow:0 0 30px rgba(255,232,94,.28); text-align:center;
+}
+.lbHeader{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(74,247,255,.3); padding-bottom:10px; margin-bottom:10px; gap:8px;}
+.lbTitle{font-size:18px; font-weight:bold; color:#ffe85e; letter-spacing:1.5px; display:flex; align-items:center; gap:6px;}
+.lbSub{font-size:10px; color:rgba(220,255,240,.75); margin-top:3px; text-align:left;}
+.lbActions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+.lbBtn{background:rgba(74,247,255,.15); border:1px solid #4af7ff; color:#4af7ff; padding:7px 12px; border-radius:4px; font-family:inherit; font-size:11px; font-weight:bold; cursor:pointer; transition:all .15s;}
+.lbBtn:hover{background:#4af7ff; color:#07111d;}
+.lbBtn.btnClose{border-color:#ff4e62; color:#ff4e62; background:rgba(255,78,98,.12);}
+.lbBtn.btnClose:hover{background:#ff4e62; color:#fff;}
+
+.lbTableWrap{flex:1; overflow-y:auto; margin:8px 0; border:1px solid rgba(74,247,255,.25); border-radius:4px; max-height:54vh; background:rgba(4,10,18,.8);}
+.scoreTable{width:100%; border-collapse:collapse; font-size:12px; text-align:left;}
+.scoreTable th{position:sticky; top:0; background:#071b2d; padding:9px 10px; color:#4af7ff; border-bottom:2px solid rgba(74,247,255,.4); font-size:11px; letter-spacing:1px; z-index:2;}
+.scoreTable td{padding:9px 10px; border-bottom:1px solid rgba(74,247,255,.12); color:#e8fdf5;}
+.scoreTable tr:nth-child(even) td{background:rgba(74,247,255,.03);}
+.scoreTable tr:hover td{background:rgba(74,247,255,.12);}
+.rankGold{color:#ffe85e; font-weight:bold; font-size:13px;}
+.rankSilver{color:#d5f3e7; font-weight:bold; font-size:12px;}
+.rankBronze{color:#ff9d35; font-weight:bold; font-size:12px;}
+.scoreNum{color:#b8ff56; font-weight:bold; font-size:13px; font-family:inherit;}
+#scoresStatus{text-align:center; padding:18px; font-size:12px; color:#4af7ff;}
+
+/* HANGAR BUTTON ROW */
+.hangarLaunchRow{display:flex; gap:10px; width:min(100%, 460px); margin-top:14px; margin-bottom:auto;}
+.hangarLaunchRow #launchBtn{margin:0; flex:1.6;}
+.hangarLaunchRow #openScoresHangarBtn{flex:1; padding:12px 10px; font-size:13px;}
+
+/* CONTROLS TOGGLE HIGHSCORE */
+.miniToggle.toggleScores{border-color:#ffe85e; color:#ffe85e; background:rgba(255,232,94,.1);}
+.miniToggle.toggleScores::before{background:#ffe85e; box-shadow:0 0 5px #ffe85e;}
+
 
 /* SMARTPHONE SCALING MEDIA QUERY */
 @media (max-width: 850px), (max-height: 500px) {
@@ -199,7 +235,10 @@ canvas {
           <div class="bombTip">⚡ BOMB: DOUBLE-TAP / PRESS [K] / [SPACE]<br>🎁 BOMBS REFILL AFTER BOSS DEFEAT!</div>
         </div>
       </div>
-      <button id="launchBtn" type="button">LAUNCH MISSION [TAP / SPACE]</button>
+      <div class="hangarLaunchRow">
+        <button id="launchBtn" type="button">🚀 LAUNCH MISSION [TAP / SPACE]</button>
+        <button id="openScoresHangarBtn" class="menuActionBtn btnSecondary" type="button">🏆 HIGH SCORES</button>
+      </div>
     </div>
 
     <!-- TACTICAL PAUSE MENU -->
@@ -208,9 +247,43 @@ canvas {
         <div id="pauseTitle">PAUSED</div>
         <div class="pauseActions">
           <button class="menuActionBtn btnPrimary" id="resumeBtn" type="button">▶ RESUME</button>
+          <button class="menuActionBtn btnSecondary" id="scoresFromPauseBtn" type="button">🏆 SCORES</button>
           <button class="menuActionBtn btnSecondary" id="restartFromPauseBtn" type="button">↻ RESTART</button>
           <button class="menuActionBtn btnHangar" id="hangarFromPauseBtn" type="button">⌂ HANGAR</button>
         </div>
+      </div>
+    </div>
+
+
+    <!-- LEADERBOARD OVERLAY -->
+    <div id="leaderboardOverlay" class="overlayPanel">
+      <div id="leaderboardBox">
+        <div class="lbHeader">
+          <div>
+            <div class="lbTitle">🏆 HIGH SCORES LEADERBOARD</div>
+            <div class="lbSub">TOP BIO-AVIATION SQUADRON FLIGHT RECORDS</div>
+          </div>
+          <div class="lbActions">
+            <button class="lbBtn" id="refreshScoresBtn" type="button">🔄 REFRESH</button>
+            <button class="lbBtn btnClose" id="closeScoresBtn" type="button">✖ CLOSE</button>
+          </div>
+        </div>
+        <div class="lbTableWrap">
+          <table class="scoreTable" id="scoreTable">
+            <thead>
+              <tr>
+                <th style="width:18%">RANK</th>
+                <th style="width:42%">PILOT CALL-SIGN</th>
+                <th style="width:22%">HIGH SCORE</th>
+                <th style="width:18%">DATE</th>
+              </tr>
+            </thead>
+            <tbody id="scoreTableBody">
+            </tbody>
+          </table>
+          <div id="scoresStatus">Loading flight records...</div>
+        </div>
+        <button class="menuActionBtn btnPrimary" id="closeScoresBottomBtn" type="button" style="margin-top:12px;width:100%">◀ BACK TO MISSION</button>
       </div>
     </div>
 
@@ -223,7 +296,8 @@ canvas {
         <input id="nameInput" maxlength="20" value="Anonymous" placeholder="Pilot Call-Sign" autocomplete="off">
         <button id="submitScoreBtn" type="button">SUBMIT SCORE TO LEADERBOARD</button>
         <div class="gameOverBtnsRow">
-          <button class="menuActionBtn btnSecondary" id="restartGameOverBtn" type="button">🔄 RESTART MISSION</button>
+          <button class="menuActionBtn btnSecondary" id="scoresGameOverBtn" type="button">🏆 HIGH SCORES</button>
+          <button class="menuActionBtn btnSecondary" id="restartGameOverBtn" type="button">🔄 RESTART</button>
           <button class="menuActionBtn btnHangar" id="hangarGameOverBtn" type="button">🚀 HANGAR</button>
         </div>
       </div>
@@ -237,6 +311,7 @@ canvas {
       <span>💥 DBL-TAP BOMB · [P] PAUSE</span>
     </div>
     <div class="controlSwitches">
+      <button class="miniToggle toggleScores" type="button" title="View High Scores Leaderboard">🏆 SCORES</button>
       <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
       <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
       <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
@@ -276,11 +351,18 @@ function resizeEngine() {
   const wrap = document.getElementById('gameWrap');
   if (!wrap) return;
   const rect = wrap.getBoundingClientRect();
+  const isPortrait = (rect.height > rect.width) || (window.innerWidth <= 850 && window.innerHeight > window.innerWidth);
   
-  if (window.innerWidth <= 850 || window.innerHeight <= 500) {
-    W = 960;
+  if (isPortrait) {
+    // Portrait mode on smartphones: W = 480 creates punchy, arcade-sized ships and enemies
+    W = 480;
     H = Math.floor(W * (rect.height / rect.width));
+  } else if (window.innerWidth <= 850 || window.innerHeight <= 500) {
+    // Landscape mode on smartphones
+    H = 540;
+    W = Math.floor(H * (rect.width / rect.height));
   } else {
+    // Desktop 16:9
     W = 960;
     H = 540;
   }
@@ -353,6 +435,16 @@ const hangarGameOverBtn = document.getElementById('hangarGameOverBtn');
 const nameInput = document.getElementById('nameInput');
 const submitScoreBtn = document.getElementById('submitScoreBtn');
 const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+const leaderboardOverlay = document.getElementById('leaderboardOverlay');
+const scoreTableBody = document.getElementById('scoreTableBody');
+const scoresStatus = document.getElementById('scoresStatus');
+const openScoresHangarBtn = document.getElementById('openScoresHangarBtn');
+const scoresFromPauseBtn = document.getElementById('scoresFromPauseBtn');
+const scoresGameOverBtn = document.getElementById('scoresGameOverBtn');
+const toggleScoresBtn = document.querySelector('.toggleScores');
+const closeScoresBtn = document.getElementById('closeScoresBtn');
+const closeScoresBottomBtn = document.getElementById('closeScoresBottomBtn');
+const refreshScoresBtn = document.getElementById('refreshScoresBtn');
 
 const inputModeToggle = document.querySelector('.toggleMouse');
 const soundToggle = document.querySelector('.toggleSound');
@@ -422,6 +514,13 @@ async function requestMobileFullscreen() {
 }
 
 launchBtn.addEventListener('click', () => { requestMobileFullscreen(); startGame(); });
+if(openScoresHangarBtn) openScoresHangarBtn.addEventListener('click', openScoresOverlay);
+if(scoresFromPauseBtn) scoresFromPauseBtn.addEventListener('click', openScoresOverlay);
+if(scoresGameOverBtn) scoresGameOverBtn.addEventListener('click', openScoresOverlay);
+if(toggleScoresBtn) toggleScoresBtn.addEventListener('click', openScoresOverlay);
+if(closeScoresBtn) closeScoresBtn.addEventListener('click', closeScoresOverlay);
+if(closeScoresBottomBtn) closeScoresBottomBtn.addEventListener('click', closeScoresOverlay);
+if(refreshScoresBtn) refreshScoresBtn.addEventListener('click', () => { fetchLeaderboard(); beep(550, .05, 'sine'); });
 updateHangarUI();
 
 function openHangar(){ state = STATE.START; pauseMenuOverlay.classList.remove('active'); gameOverOverlay.classList.remove('active'); hangarOverlay.classList.add('active'); updateHangarUI(); beep(300, .08, 'sine'); }
@@ -473,17 +572,65 @@ async function submitScore(name, finalScore){
   }
 }
 
+function renderLeaderboardTable(){
+  if(!scoreTableBody) return;
+  scoreTableBody.innerHTML = '';
+  const list = leaderboard && leaderboard.length > 0 ? leaderboard : normalizeEntries(loadLocalScores());
+  if(!list || list.length === 0){
+    if(scoresStatus){ scoresStatus.style.display = 'block'; scoresStatus.textContent = 'No flight records yet — launch a mission and log a score!'; }
+    return;
+  }
+  if(scoresStatus) scoresStatus.style.display = 'none';
+  list.slice(0, 25).forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    let rankBadge = '#' + (idx + 1);
+    let rankClass = '';
+    if(idx === 0){ rankBadge = '🥇 #1'; rankClass = 'rankGold'; }
+    else if(idx === 1){ rankBadge = '🥈 #2'; rankClass = 'rankSilver'; }
+    else if(idx === 2){ rankBadge = '🥉 #3'; rankClass = 'rankBronze'; }
+
+    tr.innerHTML = `
+      <td class="${rankClass}">${rankBadge}</td>
+      <td style="font-weight:bold">${escapeHtml(r.name)}</td>
+      <td class="scoreNum">${r.score.toLocaleString()}</td>
+      <td style="color:rgba(220,255,240,.65);font-size:10px">${escapeHtml(r.date || '—')}</td>
+    `;
+    scoreTableBody.appendChild(tr);
+  });
+}
+
+let stateBeforeScores = STATE.START;
+
+function openScoresOverlay(){
+  stateBeforeScores = state;
+  if(state === STATE.PLAY) state = STATE.PAUSE;
+  leaderboardOverlay.classList.add('active');
+  renderLeaderboardTable();
+  fetchLeaderboard();
+  beep(480, .06, 'sine');
+}
+
+function closeScoresOverlay(){
+  leaderboardOverlay.classList.remove('active');
+  state = stateBeforeScores;
+  beep(350, .06, 'sine');
+}
+
 async function fetchLeaderboard(){
   try{
+    if(scoresStatus){ scoresStatus.style.display = 'block'; scoresStatus.textContent = 'Synchronizing with flight database...'; }
     const response = await fetch(LEADERBOARD_URL, {method:'GET', cache:'no-store'});
     const data = await response.json();
     if(data && (data.status === 'ok' || Array.isArray(data.leaderboard))){
       const rawList = Array.isArray(data.leaderboard) ? data.leaderboard : (Array.isArray(data) ? data : []);
-      leaderboard = normalizeEntries(rawList);
+      const merged = mergeScores(normalizeEntries(rawList), normalizeEntries(loadLocalScores()));
+      leaderboard = merged;
+      saveLocalScores(leaderboard);
     }
   } catch(e) {
     leaderboard = normalizeEntries(loadLocalScores());
   }
+  renderLeaderboardTable();
 }
 
 function resetGame(){
@@ -492,7 +639,7 @@ function resetGame(){
   enemies = []; bullets = []; enemyBullets = []; powerups = []; particles = []; floatingText = []; activeBombEffects = [];
   
   player = {
-    ship: shipCfg, bombType: selectedBombId, x: W/2, y: H-120, r: 19,
+    ship: shipCfg, bombType: selectedBombId, x: W/2, y: H-120, r: (W <= 550 ? 25 : 20),
     hp: shipCfg.hp, maxHp: shipCfg.hp, lives: 3, maxLives: 5,
     fireDelay: 0, rapid: 0, shield: 0, multiplier: 0, overdrive: 0, bombs: 3, invincible: 0, tilt: 0, rocketSide: 0
   };
@@ -772,10 +919,10 @@ function updateBombEffects(dt){
 
 /* ENEMIES & DYNAMIC MULTI-ENEMY SWARMS */
 const TYPES = {
-  bacteria: {hp:1, speed:135, points:70, r:12, color:'#a9ff60'}, fungus: {hp:3, speed:85, points:180, r:18, color:'#ffb45b'},
-  virus: {hp:7, speed:65, points:360, r:20, color:'#ff66b3'}, pest: {hp:4, speed:115, points:230, r:17, color:'#8caaff'},
-  pod: {hp:22, speed:46, points:950, r:32, color:'#b8784e'}, basipetal: {hp:9, speed:78, points:410, r:19, color:'#b8784e'},
-  nematode: {hp:6, speed:96, points:280, r:9, color:'#d7e4a1'}, flagellate: {hp:8, speed:82, points:340, r:12, color:'#ff5fa2'}
+  bacteria: {hp:1, speed:135, points:70, r:18, color:'#a9ff60'}, fungus: {hp:3, speed:85, points:180, r:24, color:'#ffb45b'},
+  virus: {hp:7, speed:65, points:360, r:26, color:'#ff66b3'}, pest: {hp:4, speed:115, points:230, r:24, color:'#8caaff'},
+  pod: {hp:22, speed:46, points:950, r:40, color:'#b8784e'}, basipetal: {hp:9, speed:78, points:410, r:25, color:'#b8784e'},
+  nematode: {hp:6, speed:96, points:280, r:18, color:'#d7e4a1'}, flagellate: {hp:8, speed:82, points:340, r:22, color:'#ff5fa2'}
 };
 
 function getRandomEnemyType() {
@@ -883,7 +1030,7 @@ function spawnRandomBoss(){
   enemies = enemies.filter(e => e.type !== 'pod');
   const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
   const hp = Math.floor((150 + wave * 55) * bossType.hpMult);
-  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, r: 75, hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
+  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, r: (W <= 550 ? 85 : 75), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
 
   floatingText.push({x:W/2, y:H*0.32, text:'⚠️ ' + bossType.name.toUpperCase() + ' ⚠️', color:bossType.color, life:3.0, vy:-10, big:true});
   floatingText.push({x:W/2, y:H*0.38, text:bossType.sub.toUpperCase(), color:COLORS.white, life:3.0, vy:-8, big:false});
@@ -1135,6 +1282,8 @@ function drawEngineFlame(x, y, scale) {
 
 function drawPlayer(p){
   ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.tilt);
+  const scale = (W <= 550 ? 1.35 : 1.15);
+  ctx.scale(scale, scale);
 
   if(p.shield > 0){ circle(0, 0, 30 + Math.sin(elapsed * 8) * 2, 'rgba(74,247,255,.14)'); ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke(); }
   if(p.overdrive > 0){
@@ -1177,9 +1326,106 @@ function gameLoop(timestamp){
   renderBackground();
 
   if(state === STATE.PLAY){
-    for(const p of powerups){ circle(p.x, p.y, 10, 'rgba(255,232,94,.15)'); circle(p.x, p.y, 8, p.color); text(p.label, p.x, p.y, 10, '#07111d', 'center'); }
+    // DISTINCT POWERUP BONUS CRATES: Glowing floating diamond supply crates with clear icons & labels
+    for(const p of powerups){
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      const bob = Math.sin(p.age * 4) * 3;
+      ctx.translate(0, bob);
+      
+      // 1. Large pulsating glowing beacon aura
+      const pulse = 1 + Math.sin(p.age * 6) * 0.15;
+      ctx.fillStyle = p.type === 'bomb' ? 'rgba(255, 232, 94, 0.28)' : 'rgba(74, 247, 255, 0.28)';
+      ctx.beginPath();
+      ctx.arc(0, 0, 22 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Rotating dotted beacon ring (clearly marks it as a pickup)
+      ctx.save();
+      ctx.rotate(p.age * 2.5);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Diamond capsule container
+      const boxR = 14;
+      ctx.save();
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = 'rgba(7, 24, 42, 0.95)';
+      ctx.fillRect(-boxR, -boxR, boxR * 2, boxR * 2);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(-boxR, -boxR, boxR * 2, boxR * 2);
+      ctx.restore();
+
+      // 4. Large crisp icon inside
+      let icon = '⭐';
+      if (p.type === 'bomb') icon = '💣';
+      else if (p.type === 'rapid') icon = '⚡';
+      else if (p.type === 'shield') icon = '🛡️';
+      else if (p.type === 'fertility') icon = '❤️';
+      else if (p.type === 'scan') icon = '2X';
+      
+      ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(icon, 0, 0);
+
+      // 5. Bright floating label tag under capsule
+      ctx.font = 'bold 9px "Courier New", monospace';
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = p.color;
+      const tag = p.type === 'bomb' ? 'BOMB' : p.type === 'rapid' ? 'RAPID' : p.type === 'shield' ? 'SHIELD' : p.type === 'fertility' ? '+HEAL' : '2X';
+      ctx.fillText(tag, 0, 23);
+      ctx.shadowBlur = 0;
+
+      ctx.restore();
+    }
+
+    // PLAYER WEAPON BULLETS
     for(const b of bullets) circle(b.x, b.y, b.r, b.color || COLORS.yellow);
-    for(const eb of enemyBullets) circle(eb.x, eb.y, eb.r, eb.c);
+
+    // DISTINCT ENEMY BULLETS: Fiery bio-hazard energy needles with crimson warning aura & white core
+    for(const eb of enemyBullets) {
+      ctx.save();
+      ctx.translate(eb.x, eb.y);
+      const bAngle = Math.atan2(eb.vy, eb.vx) + Math.PI / 2;
+      ctx.rotate(bAngle);
+      
+      // Outer danger hazard glow
+      ctx.fillStyle = 'rgba(255, 30, 45, 0.45)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, eb.r * 1.5, eb.r * 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sharp hazard plasma needle
+      ctx.fillStyle = eb.c || '#ff3344';
+      ctx.beginPath();
+      ctx.moveTo(0, -eb.r * 1.8);
+      ctx.lineTo(eb.r, eb.r * 0.8);
+      ctx.lineTo(0, eb.r * 0.3);
+      ctx.lineTo(-eb.r, eb.r * 0.8);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sharp crimson danger outline
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // White-hot laser center
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, -eb.r * 0.3, eb.r * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
 
     // DRAW ENEMIES
     for(const e of enemies){
@@ -1342,4 +1588,3 @@ fetchLeaderboard();
 </script>
 </body>
 </html>
-
