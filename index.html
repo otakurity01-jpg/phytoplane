@@ -7,52 +7,45 @@
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}
 
-html,body{margin:0;width:100%;min-height:100%;background:#060e18;font-family:'Courier New',Courier,monospace;overflow-x:hidden;color:#e8fdf5;overscroll-behavior-y:none;}
-#page{max-width:980px;margin:0 auto;padding:12px 14px 28px;position:relative;height:100dvh;}
+/* SAFE MOBILE LAYOUT LOCK */
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  background: #060e18; color: #e8fdf5;
+  font-family: 'Courier New', Courier, monospace;
+  overflow: hidden; touch-action: none; overscroll-behavior: none;
+}
 
-/* HEADER */
-header{display:flex;justify-content:space-between;align-items:center;padding:6px 0 12px;border-bottom:1px solid rgba(74,247,255,.25)}
+/* FLEXBOX STACK TO PREVENT UI OVERLAPS */
+#page {
+  display: flex; flex-direction: column; width: 100%; height: 100dvh; max-width: 980px; margin: 0 auto; position: relative;
+}
+
+header {
+  display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; flex-shrink: 0;
+  border-bottom: 1px solid rgba(74,247,255,.25); background: #060e18; z-index: 10;
+}
 header h1{margin:0;font-size:19px;letter-spacing:1px;color:#b8ff56}
 header .sub{font-size:11px;color:rgba(220,255,240,.65);margin-top:2px}
 .headerTag{font-size:11px;color:#4af7ff;border:1px solid rgba(74,247,255,.4);padding:4px 8px;border-radius:4px;background:rgba(74,247,255,.08)}
 
-/* DYNAMIC SCALING CONTAINER */
-#gameWrap{
-  width:100%;
-  aspect-ratio:16/9;
-  max-height:calc(100dvh - 90px);
-  margin:14px auto 0;
-  position:relative;
-  background:#040a12;
-  touch-action:none;
-  user-select:none;
-  -webkit-user-select:none;
-  cursor:crosshair;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  box-shadow:0 0 25px rgba(45,240,165,.15);
+/* GAME CONTAINER GROWS TO FILL EXACT REMAINING SPACE */
+#gameWrap {
+  flex-grow: 1; width: 100%; position: relative; background: #040a12;
+  display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
-canvas{
-  display:block;
-  width:100%;
-  height:auto;
-  max-width:100%;
-  max-height:100%;
-  aspect-ratio:16/9;
-  image-rendering:pixelated;
-  image-rendering:crisp-edges;
-  background:#07111d;
-  outline:2px solid #2df0a5;
-  outline-offset:-2px;
+
+canvas {
+  display: block; width: 100%; height: 100%; object-fit: fill;
+  background: #07111d; touch-action: none; cursor: crosshair;
+  image-rendering: pixelated; image-rendering: crisp-edges;
 }
 
 /* OVERLAYS */
-.overlayPanel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,12,22,.88);backdrop-filter:blur(4px);padding:16px;z-index:20}
+.overlayPanel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,12,22,.92);backdrop-filter:blur(4px);padding:16px;z-index:20;overflow-y:auto;}
 .overlayPanel.active{display:flex}
 
 /* HANGAR (START SCREEN OVERLAY) */
-#hangarTitle{font-size:24px;font-weight:bold;letter-spacing:2px;color:#b8ff56;text-shadow:0 0 12px rgba(184,255,86,.6);margin-bottom:2px;text-align:center}
+#hangarTitle{font-size:24px;font-weight:bold;letter-spacing:2px;color:#b8ff56;text-shadow:0 0 12px rgba(184,255,86,.6);margin-bottom:2px;text-align:center;margin-top:auto;}
 #hangarSubtitle{font-size:12px;color:#4af7ff;letter-spacing:1px;margin-bottom:12px;text-align:center}
 #hangarGrid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;width:100%;max-width:780px;background:rgba(2,18,32,.85);border:1px solid rgba(74,247,255,.35);border-radius:6px;padding:14px}
 
@@ -80,9 +73,8 @@ canvas{
 #bombDesc{font-size:11px;color:#d5f3e7;line-height:1.35;min-height:30px}
 .bombTip{font-size:10px;color:#ffe85e;margin-top:10px;padding:6px;background:rgba(255,232,94,.08);border-left:3px solid #ffe85e}
 
-/* LAUNCH BUTTON & HANGAR SETTINGS */
-.hangarSettings{display:flex;gap:12px;justify-content:center;margin-top:14px;margin-bottom:12px;width:100%}
-#launchBtn{padding:11px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s;width:100%;max-width:400px}
+/* LAUNCH BUTTON */
+#launchBtn{margin-top:14px;margin-bottom:auto;padding:12px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s;width:min(100%, 400px)}
 #launchBtn:hover{background:#ffe85e;border-color:#ffe85e;transform:scale(1.03);box-shadow:0 0 22px rgba(255,232,94,.7)}
 
 /* TACTICAL PAUSE MENU */
@@ -109,9 +101,9 @@ canvas{
 .gameOverBtnsRow button{flex:1;padding:9px 4px;font-size:12px;font-weight:bold}
 
 /* CONTROLS BAR */
-#controlsBar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;font-size:10px;color:rgba(220,255,240,.7);background:rgba(7,17,29,.6);border:1px solid rgba(74,247,255,.2);border-top:none;border-radius:0 0 4px 4px}
+#controlsBar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font-size:10px;color:rgba(220,255,240,.7);background:#060e18;border-top:1px solid rgba(74,247,255,.2);flex-shrink:0;z-index:10;}
 .controlInstructions{display:flex;align-items:center;gap:10px;min-width:0;text-align:left}
-.controlSwitches{display:flex;align-items:center;gap:5px;white-space:nowrap;margin-left:auto}
+.controlSwitches{display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:auto}
 .miniToggle{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 10px 'Courier New',Courier,monospace;cursor:pointer}
 .miniToggle::before{content:'';width:7px;height:7px;border-radius:50%;background:#ff4e62;box-shadow:0 0 4px #ff4e62}
 .miniToggle[aria-pressed="true"]{border-color:#30ee83;color:#b8ff56;background:rgba(48,238,131,.12)}
@@ -119,77 +111,38 @@ canvas{
 .miniToggle:hover{background:rgba(74,247,255,.22)}
 
 /* NATIVE LEADERBOARD TABLE */
-#leaderboardSection{width:100%;margin-top:18px;border:2px solid rgba(74,247,255,.4);border-radius:6px;overflow:hidden;background:#050d17}
-.lbHeader{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(74,247,255,.08);border-bottom:1px solid rgba(74,247,255,.3);flex-wrap:wrap;gap:8px}
-.lbTitle{font-size:14px;font-weight:bold;color:#b8ff56;display:flex;align-items:center;gap:6px}
-.lbSub{font-size:11px;color:rgba(220,255,240,.65);width:100%;margin-top:2px}
-.lbActions{display:flex;align-items:center;gap:10px}
-.lbBtn{background:rgba(48,238,131,.15);border:1px solid #30ee83;color:#b8ff56;padding:5px 14px;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer;transition:all .15s}
-.lbBtn:hover{background:#30ee83;color:#07111d}
+#leaderboardSection{display:none;} /* Hidden entirely in this full-screen optimized version */
 
-.lbTableWrap{padding:10px 14px 16px;overflow-x:auto}
-table.scoreTable{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
-table.scoreTable th{padding:8px 10px;background:rgba(7,24,42,.8);color:#ffe85e;border-bottom:2px solid rgba(74,247,255,.3);font-size:11px;letter-spacing:.5px}
-table.scoreTable td{padding:9px 10px;border-bottom:1px solid rgba(74,247,255,.12);color:#e8fdf5}
-table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
-.rankGold{color:#ffe85e;font-weight:bold}
-.rankSilver{color:#e8fdf5;font-weight:bold}
-.rankBronze{color:#ff9d35;font-weight:bold}
-.scoreNum{color:#4af7ff;font-weight:bold;font-size:13px}
-#scoresStatus{text-align:center;padding:18px;font-size:12px;color:rgba(220,255,240,.6)}
-
-/* SMARTPHONE MEDIA QUERY - EDGE TO EDGE FULLSCREEN */
+/* SMARTPHONE SCALING MEDIA QUERY */
 @media (max-width: 850px), (max-height: 500px) {
-  html, body { overflow: hidden; position: fixed; inset: 0; } 
-  #page { max-width: none; padding: 0; display: block; width: 100vw; height: 100dvh; position: relative; }
-  
-  /* Overlays float above game so canvas can take 100% of height */
-  header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; padding: 8px 10px; background: linear-gradient(rgba(0,0,0,0.85), transparent); border: none; pointer-events: none; }
-  header h1{ font-size: 14px; }
+  header h1{ font-size: 15px; }
   .headerTag{ display: none; }
   
-  #gameWrap{
-    width: 100vw;
-    height: 100dvh;
-    margin: 0;
-    max-height: none; 
-    border-radius: 0;
-    box-shadow: none;
-    position: absolute;
-    inset: 0;
-  }
-  canvas {
-    outline: none;
-    width: 100%;
-    height: 100%;
-    aspect-ratio: auto; /* ALLOWS CANVAS TO STRETCH VERTICALLY TO FILL SCREEN */
-    object-fit: fill; 
-  }
+  #controlsBar{ padding: 8px 6px; flex-wrap: wrap; justify-content: center; text-align: center; }
+  .controlInstructions{ order: 0; gap: 5px; flex: 1; justify-content: center; margin-bottom: 6px; }
+  .controlSwitches{ order: 1; margin-left: 0; justify-content: center; }
+  .miniToggle{ font-size: 9px; padding: 6px 8px; }
   
-  #controlsBar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,0.85)); border: none; padding: 12px 6px 8px; width: 100vw; margin: 0; flex-wrap: nowrap; align-items: flex-end; }
-  #leaderboardSection { display: none; } 
-  
-  .controlInstructions{ order: 0; gap: 5px; flex: 1; flex-wrap: wrap; text-shadow: 0 0 4px #000; }
-  .controlSwitches{ order: 1; margin-left: auto; }
-  .miniToggle{ font-size: 8px; padding: 4px 6px; }
-  
-  .overlayPanel.active{ position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 999; overflow-y: auto; padding: 14px 10px; background: rgba(4,12,22,0.95); }
-  #hangarGrid{ grid-template-columns: 1fr; gap: 6px; padding: 7px; max-height: none; }
-  #hangarTitle{ font-size: 16px; margin-top: 10px; }
-  #hangarSubtitle{ font-size: 9px; margin-bottom: 5px; }
+  #hangarGrid{ grid-template-columns: 1fr; padding: 8px; max-height: none; gap: 8px; }
+  #hangarTitle{ font-size: 18px; margin-top: 10px;}
+  #hangarSubtitle{ font-size: 9px; margin-bottom: 6px; }
   .sectionTitle{ font-size: 10px; }
   .statRow{ font-size: 9px; margin-bottom: 3px; }
   .statLabel{ width: 46px; }
   .statBarBg{ height: 5px; }
   #shipDesc, #bombDesc{ font-size: 9px; line-height: 1.2; min-height: 0; }
   .bombTip{ display: none; }
-  .navArrow{ padding: 4px 10px; font-size: 14px; }
-  #currentShipName{ font-size: 11px; }
+  .navArrow{ padding: 4px 12px; font-size: 15px; }
+  #currentShipName{ font-size: 12px; }
   #currentShipTag{ font-size: 8px; }
   .bombBtn{ padding: 6px 2px; font-size: 9px; }
   .bombBtn .icon{ font-size: 14px; }
-  
-  #launchBtn{ margin-top: 4px; padding: 12px 14px; font-size: 13px; flex-shrink: 0; }
+  #launchBtn{ margin-top: 8px; padding: 12px 14px; font-size: 13px; }
+}
+
+/* Hide Rotate Button on PC Monitors */
+@media (min-width: 851px) {
+  .toggleRotate { display: none !important; }
 }
 </style>
 </head>
@@ -252,13 +205,6 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
         </div>
       </div>
 
-      <!-- HANGAR TOGGLES SO THEY APPEAR BEFORE THE GAME STARTS -->
-      <div class="hangarSettings">
-        <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
-        <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
-        <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
-      </div>
-
       <button id="launchBtn" type="button">LAUNCH MISSION [TAP / SPACE]</button>
     </div>
 
@@ -290,47 +236,19 @@ table.scoreTable tr:hover td{background:rgba(74,247,255,.06)}
     </div>
   </div>
 
-  <!-- IN-GAME CONTROLS BAR -->
+  <!-- IN-GAME CONTROLS BAR (ONLY ONE SET OF TOGGLES NOW!) -->
   <div id="controlsBar">
     <div class="controlInstructions">
       <span id="controlHelp">🖱️ TOUCH / DRAG MOVES</span>
       <span>💥 DBL-TAP BOMB · [P] PAUSE</span>
     </div>
     <div class="controlSwitches">
-      <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">ROTATE</button>
+      <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
       <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
       <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
     </div>
   </div>
 
-  <!-- NATIVE LEADERBOARD TABLE -->
-  <div id="leaderboardSection">
-    <div class="lbHeader">
-      <div>
-        <div class="lbTitle">🏆 High Scores Leaderboard</div>
-        <div class="lbSub">Scores save on this device, then sync to database when reachable.</div>
-      </div>
-      <div class="lbActions">
-        <button class="lbBtn" id="refreshScoresBtn" type="button">🔄 Refresh Scores</button>
-      </div>
-    </div>
-    <div class="lbTableWrap">
-      <table class="scoreTable" id="scoreTable">
-        <thead>
-          <tr>
-            <th style="width:12%">Rank</th>
-            <th style="width:45%">Player Call-Sign</th>
-            <th style="width:23%">High Score</th>
-            <th style="width:20%">Date</th>
-          </tr>
-        </thead>
-        <tbody id="scoreTableBody">
-          <!-- Dynamically populated from Google Apps Script -->
-        </tbody>
-      </table>
-      <div id="scoresStatus">Loading field records...</div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -346,25 +264,30 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-/* RESIZE EVENT: Expands the internal Y-axis when playing on vertical phone screens */
+/* RESIZE EVENT: Mathematically perfectly matches canvas internal resolution to the flex container */
 function resizeEngine() {
-  const isMobile = window.innerWidth <= 850;
-  if (isMobile) {
-    // Matches game proportions perfectly to the exact dimensions of the phone screen
-    H = Math.floor(W * (window.innerHeight / window.innerWidth));
+  const wrap = document.getElementById('gameWrap');
+  if (!wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  
+  if (window.innerWidth <= 850 || window.innerHeight <= 500) {
+    W = 960;
+    H = Math.floor(W * (rect.height / rect.width));
   } else {
-    // Locks to 16:9 widescreen for desktop
-    H = 540; 
+    W = 960;
+    H = 540;
   }
+  
   canvas.width = W;
   canvas.height = H;
   
+  // Keep player inside the newly calculated bounds
   if (player && player.y > H - 37) {
     player.y = H - 37;
   }
 }
 window.addEventListener('resize', resizeEngine);
-resizeEngine(); // Call immediately on load
+resizeEngine();
 
 /* 🖼️ IMAGE ASSET CONFIGURATION 🖼️ */
 const IMAGES = {
@@ -376,7 +299,6 @@ const IMAGES = {
 IMAGES.blaster.src = ""; IMAGES.destroyer.src = ""; IMAGES.nighthawk.src = ""; IMAGES.supernematicide.src = ""; IMAGES.rocket.src = "";
 IMAGES.bacteria.src = ""; IMAGES.fungus.src = ""; IMAGES.virus.src = ""; IMAGES.pest.src = ""; IMAGES.pod.src = ""; IMAGES.basipetal.src = ""; IMAGES.nematode.src = ""; IMAGES.flagellate.src = "";
 IMAGES.boss_xoo.src = ""; IMAGES.boss_fusarium.src = ""; IMAGES.boss_colletotrichum.src = ""; IMAGES.boss_puccinia.src = ""; IMAGES.boss_pop_ringspot.src = "";
-
 
 /* SHIPS SPECIFICATIONS */
 const SHIPS = [
@@ -452,14 +374,10 @@ const hangarGameOverBtn = document.getElementById('hangarGameOverBtn');
 const nameInput = document.getElementById('nameInput');
 const submitScoreBtn = document.getElementById('submitScoreBtn');
 const finalScoreDisplay = document.getElementById('finalScoreDisplay');
-const scoreTableBody = document.getElementById('scoreTableBody');
-const scoresStatus = document.getElementById('scoresStatus');
-const refreshScoresBtn = document.getElementById('refreshScoresBtn');
 
-// ALL SHARED CLASS TOGGLES
-const inputModeToggles = document.querySelectorAll('.toggleMouse');
-const soundToggles = document.querySelectorAll('.toggleSound');
-const rotateToggles = document.querySelectorAll('.toggleRotate');
+const inputModeToggle = document.querySelector('.toggleMouse');
+const soundToggle = document.querySelector('.toggleSound');
+const rotateToggle = document.querySelector('.toggleRotate');
 const controlHelp = document.getElementById('controlHelp');
 
 /* RUNTIME GAME STATE */
@@ -473,8 +391,7 @@ let player, enemies = [], bullets = [], enemyBullets = [], powerups = [], partic
 let activeBombEffects = [];
 let leaderboard = [], submitted = false, shake = 0;
 
-/* STARS GENERATED UP TO 2500 VERTICAL PIXELS SO THEY COVER TALL PHONES INSTANTLY */
-let stars = Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*2500,s:1+Math.random()*2,a:.15+Math.random()*.6}));
+let stars = Array.from({length:100},()=>({x:Math.random()*2000,y:Math.random()*2500,s:1+Math.random()*2,a:.15+Math.random()*.6}));
 const pointerTarget = {x:W/2, y:540-72, active:false};
 let pointerDown = false;
 let lastTapTime = 0;
@@ -484,36 +401,35 @@ let isLandscapeLocked = false;
 
 function updateControlToggles(){
   const usingMouse = inputMode === 'mouse';
-  inputModeToggles.forEach(t => {
-    t.textContent = usingMouse ? 'MOUSE' : 'KEYS';
-    t.setAttribute('aria-pressed', String(usingMouse));
-  });
+  if (inputModeToggle) {
+    inputModeToggle.textContent = usingMouse ? 'MOUSE' : 'KEYS';
+    inputModeToggle.setAttribute('aria-pressed', String(usingMouse));
+  }
   if(controlHelp) controlHelp.textContent = usingMouse ? '🖱️ TOUCH / DRAG MOVES' : '⌨️ ARROWS / WASD MOVE';
   
-  soundToggles.forEach(t => {
-    t.textContent = soundEnabled ? 'SOUND' : 'MUTED';
-    t.setAttribute('aria-pressed', String(soundEnabled));
-  });
-  
-  rotateToggles.forEach(t => {
-    t.setAttribute('aria-pressed', String(isLandscapeLocked));
-  });
+  if (soundToggle) {
+    soundToggle.textContent = soundEnabled ? 'SOUND' : 'MUTED';
+    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  }
+  if (rotateToggle) {
+    rotateToggle.setAttribute('aria-pressed', String(isLandscapeLocked));
+  }
 }
 
-inputModeToggles.forEach(btn => btn.addEventListener('click', () => {
+if(inputModeToggle) inputModeToggle.addEventListener('click', () => {
   inputMode = inputMode === 'mouse' ? 'keyboard' : 'mouse';
   localStorage.setItem('phytoplaneInputMode', inputMode);
   keys = Object.create(null);
   updateControlToggles();
   if(soundEnabled) beep(420, .05, 'sine');
-}));
+});
 
-soundToggles.forEach(btn => btn.addEventListener('click', () => {
+if(soundToggle) soundToggle.addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   localStorage.setItem('phytoplaneSoundEnabled', String(soundEnabled));
   updateControlToggles();
   if(soundEnabled) beep(660, .07, 'sine');
-}));
+});
 
 /* MANUAL ORIENTATION TOGGLE FOR MOBILE */
 async function toggleRotation() {
@@ -536,8 +452,7 @@ async function toggleRotation() {
   } catch(e) { console.warn("Orientation lock denied or unsupported", e); }
   beep(500, .05, 'sine');
 }
-
-rotateToggles.forEach(btn => btn.addEventListener('click', toggleRotation));
+if(rotateToggle) rotateToggle.addEventListener('click', toggleRotation);
 updateControlToggles();
 
 /* UI SELECTOR BINDINGS */
@@ -580,7 +495,6 @@ document.querySelectorAll('.bombBtn').forEach(btn => {
   });
 });
 
-/* REQUESTS FULLSCREEN ONLY */
 async function requestMobileFullscreen() {
   if (window.innerWidth <= 850 || window.innerHeight <= 500) {
     try {
@@ -639,157 +553,6 @@ if(hangarFromPauseBtn) hangarFromPauseBtn.addEventListener('click', () => openHa
 if(restartGameOverBtn) restartGameOverBtn.addEventListener('click', () => restartMission());
 if(hangarGameOverBtn) hangarGameOverBtn.addEventListener('click', () => openHangar());
 
-/* LEADERBOARD — local archive always works; Google Sheet syncs when reachable. */
-const LOCAL_SCORES_KEY = 'phytoplaneLeaderboard';
-const PLAYER_NAME_KEY = 'phytoplanePlayerName';
-
-function loadLocalScores(){
-  try { const saved = JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY) || '[]'); return Array.isArray(saved) ? saved : []; }
-  catch(e) { return []; }
-}
-function saveLocalScores(records){ localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(records.slice(0, 50))); }
-function getSavedPlayerName(){ return localStorage.getItem(PLAYER_NAME_KEY) || 'Anonymous'; }
-function setSavedPlayerName(name){ if(name) localStorage.setItem(PLAYER_NAME_KEY, name); }
-
-function scoreNumber(value){
-  const first = String(Array.isArray(value) ? value[0] : value ?? '').match(/\d[\d,]*/);
-  const numeric = first ? Number(first[0].replace(/,/g, '')) : 0;
-  return numeric > 0 && numeric < 10000000 ? numeric : 0;
-}
-function dateOnly(value){
-  const raw = String(Array.isArray(value) ? value[value.length - 1] : value || '');
-  const cleaned = raw.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Z][a-z]{2}\s+\d{1,2}\s+\d{4}/)?.[0] || raw;
-  const parsed = new Date(cleaned);
-  return !Number.isNaN(parsed.getTime())
-    ? parsed.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'2-digit'})
-    : '—';
-}
-function normalizeEntries(rows){
-  if(!Array.isArray(rows)) return [];
-  return rows.map(row => {
-    const values = Array.isArray(row)
-      ? row
-      : [row.name || row.player || row.callSign, row.score ?? row.points ?? row.highScore, row.date || row.time || row.created];
-    return { name: String(values[0] || 'Anonymous').slice(0, 20), score: scoreNumber(values[1]), date: dateOnly(values[2]) };
-  }).filter(row => row.score > 0);
-}
-function mergeScores(...lists){
-  const unique = new Map();
-  lists.flat().forEach(row => {
-    const key = row.name + '|' + row.score + '|' + row.date;
-    if(!unique.has(key)) unique.set(key, row);
-  });
-  return [...unique.values()].sort((x, y) => y.score - x.score);
-}
-function remoteRows(data){
-  if(Array.isArray(data)) return data;
-  return (data && (data.leaderboard || data.scores || data.data || data.values || data.rows)) || [];
-}
-function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function recordLocalRun(finalScore){
-  if(!(finalScore > 0)) return;
-  const entry = { name: getSavedPlayerName(), score: Math.floor(finalScore), date: dateOnly(new Date().toString()) };
-  const merged = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
-  saveLocalScores(merged);
-  leaderboard = mergeScores(merged, leaderboard);
-  if(entry.score > bestScore){
-    bestScore = entry.score;
-    localStorage.setItem('pathowingBest', bestScore);
-  }
-  renderLeaderboardTable();
-}
-
-function renderLeaderboardTable(){
-  scoreTableBody.innerHTML = '';
-  if(!leaderboard.length){
-    scoresStatus.style.display = 'block';
-    scoresStatus.textContent = 'No records yet — be the first to log a score.';
-    return;
-  }
-  leaderboard.slice(0, 15).forEach((r, idx) => {
-    const tr = document.createElement('tr');
-    const badge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : '#' + (idx + 1);
-    const rankClass = idx === 0 ? 'rankGold' : idx === 1 ? 'rankSilver' : idx === 2 ? 'rankBronze' : '';
-    tr.innerHTML = `<td class="${rankClass}">${badge}</td><td style="font-weight:bold">${escapeHtml(r.name)}</td><td class="scoreNum">${r.score.toLocaleString()}</td><td style="color:rgba(220,255,240,.65)">${escapeHtml(r.date)}</td>`;
-    scoreTableBody.appendChild(tr);
-  });
-}
-
-async function fetchLeaderboard(){
-  const local = normalizeEntries(loadLocalScores());
-  leaderboard = mergeScores(local, bestScore > 0 ? [{name:getSavedPlayerName(), score:bestScore, date:'—'}] : []);
-  renderLeaderboardTable();
-  scoresStatus.style.display = 'block';
-  scoresStatus.textContent = 'Checking Google Sheet...';
-
-  if(!LEADERBOARD_URL || !/^https:\/\/script\.google\.com\/.+\/exec$/.test(LEADERBOARD_URL)){
-    scoresStatus.textContent = local.length
-      ? 'Showing local scores (no valid Apps Script URL configured).'
-      : 'No valid Apps Script URL configured yet.';
-    return;
-  }
-
-  try {
-    const joiner = LEADERBOARD_URL.includes('?') ? '&' : '?';
-    const response = await fetch(LEADERBOARD_URL + joiner + 'action=list&t=' + Date.now(), {
-      method: 'GET', cache: 'no-store', redirect: 'follow'
-    });
-    if(!response.ok) throw new Error('Sheet returned HTTP ' + response.status);
-
-    const raw = await response.text();
-    let data;
-    try { data = JSON.parse(raw); }
-    catch(parseErr){ throw new Error('Sheet did not return JSON (check Apps Script deployment access is "Anyone")'); }
-
-    const remote = normalizeEntries(remoteRows(data));
-    leaderboard = mergeScores(local, remote);
-    renderLeaderboardTable();
-    scoresStatus.style.display = 'block';
-    scoresStatus.textContent = remote.length
-      ? 'Synced with Google Sheets · ' + leaderboard.length + ' records'
-      : 'Sheet reachable but returned 0 valid rows.';
-  } catch(e) {
-    console.warn('Leaderboard fetch failed:', e);
-    renderLeaderboardTable();
-    scoresStatus.style.display = 'block';
-    scoresStatus.textContent = 'Local only — Sheet sync failed: ' + e.message;
-  }
-}
-
-refreshScoresBtn.addEventListener('click', () => { beep(480, .05, 'sine'); fetchLeaderboard(); });
-
-async function submitScore(name, finalScore){
-  const entry = {
-    name: String(name || 'Anonymous').trim().slice(0, 20) || 'Anonymous',
-    score: Math.floor(finalScore),
-    date: dateOnly(new Date().toString())
-  };
-  setSavedPlayerName(entry.name);
-  const local = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
-  saveLocalScores(local);
-  leaderboard = mergeScores(local, leaderboard);
-  renderLeaderboardTable();
-  if(entry.score > bestScore){
-    bestScore = entry.score;
-    localStorage.setItem('pathowingBest', bestScore);
-  }
-
-  if(!LEADERBOARD_URL || !/^https:\/\/script\.google\.com\/.+\/exec$/.test(LEADERBOARD_URL)){
-    return { status: 'local', error: 'No valid Apps Script URL configured' };
-  }
-
-  try {
-    const params = new URLSearchParams({ action: 'submit', name: entry.name, score: String(entry.score), date: entry.date });
-    const response = await fetch(LEADERBOARD_URL + '?' + params.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
-    if(!response.ok) throw new Error('HTTP ' + response.status);
-    return { status: 'ok' };
-  } catch(e) {
-    console.warn('Leaderboard submit failed:', e);
-    return { status: 'local', error: e.message };
-  }
-}
-
 /* RESET & START */
 function resetGame(){
   const shipCfg = SHIPS[selectedShipIdx];
@@ -832,6 +595,7 @@ function announceWave(w){
 }
 
 function startGame(){
+  resizeEngine();
   state = STATE.PLAY;
   hangarOverlay.classList.remove('active');
   pauseMenuOverlay.classList.remove('active');
@@ -849,10 +613,13 @@ canvas.addEventListener('dblclick', (e) => {
 
 /* POINTER & DOUBLE-TAP DETECTION (TOUCH ONLY) */
 function eventToCanvasXY(e){
-  const rect = canvas.getBoundingClientRect();
+  const wrap = document.getElementById('gameWrap');
+  const rect = wrap.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
   return {
-    x: (e.clientX - rect.left) * (W / rect.width),
-    y: (e.clientY - rect.top) * (H / rect.height)
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
   };
 }
 
@@ -870,9 +637,7 @@ canvas.addEventListener('pointerdown', e => {
   }
 
   pointerDown = true;
-  try {
-    canvas.setPointerCapture(e.pointerId);
-  } catch (err) {}
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   
   const p = eventToCanvasXY(e);
   pointerTarget.x = p.x; pointerTarget.y = p.y; pointerTarget.active = true;
@@ -912,7 +677,6 @@ window.addEventListener('keydown', e => {
   }
   if(state !== STATE.PLAY) return;
   keys[c] = true;
-  // Trigger bomb on K or Space (non-repeat)
   if((c === 'KeyK' || c === 'Space') && !e.repeat) triggerBomb();
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
@@ -2151,20 +1915,20 @@ function gameLoop(timestamp){
   ctx.restore();
 
   if(state === STATE.PLAY){
-    const hudY = 16;
-    text('SCORE: ' + score.toLocaleString(), 12, hudY, 14, COLORS.yellow, 'left');
-    text('WAVE: ' + wave, W - 12, hudY, 14, COLORS.lime, 'right');
+    const hudY = 24;
+    text('SCORE: ' + score.toLocaleString(), 18, hudY, 16, COLORS.yellow, 'left');
+    text('WAVE: ' + wave, W - 18, hudY, 16, COLORS.lime, 'right');
 
-    const barW = 110, barH = 8, barX = 12, barY = 38;
+    const barW = 110, barH = 8, barX = 18, barY = 46;
     rect(barX, barY, barW, barH, 'rgba(255,255,255,.15)');
     rect(barX, barY, barW * (player.hp / player.maxHp), barH, COLORS.lime);
     text('HP', barX - 22, barY + barH/2, 12, COLORS.white, 'right');
 
     for(let i = 0; i < player.lives; i++){
-      drawHeart(W - 20 - i * 22, hudY + 28, 16, true, COLORS.red);
+      drawHeart(W - 24 - i * 22, hudY + 28, 16, true, COLORS.red);
     }
 
-    text('💣 ' + player.bombs, W/2, hudY + 22, 14, COLORS.yellow, 'center');
+    text('💣 ' + player.bombs, W/2, hudY + 22, 18, COLORS.yellow, 'center');
   }
 
   requestAnimationFrame(gameLoop);
