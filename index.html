@@ -100,8 +100,10 @@ canvas {
 /* CONTROLS BAR */
 #controlsBar{
   display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 14px;
-  background: #060e18; border-top: 1px solid rgba(74,247,255,.2); z-index: 30; flex-shrink: 0;
+  background: #060e18; border-bottom: 1px solid rgba(74,247,255,.2); z-index: 30; flex-shrink: 0;
 }
+.miniToggle.togglePause{border-color:#ffe85e; color:#ffe85e; background:rgba(255,232,94,.08);}
+.miniToggle.togglePause::before{background:#ffe85e; box-shadow:0 0 4px #ffe85e;}
 .controlInstructions{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;font-size:10px;color:rgba(220,255,240,.7);}
 .controlSwitches{display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:auto}
 .miniToggle{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid rgba(74,247,255,.55);border-radius:10px;background:rgba(74,247,255,.08);color:#dffeff;font:700 10px 'Courier New',Courier,monospace;cursor:pointer}
@@ -190,20 +192,19 @@ canvas {
 
 /* SMARTPHONE SCALING MEDIA QUERY */
 @media (max-width: 850px), (max-height: 500px) {
-  header { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(rgba(0,0,0,0.85), transparent); border: none; pointer-events: none; }
-  header h1{ font-size: 14px; }
-  .headerTag{ display: none; }
+  header { display: none !important; } /* Hidden on mobile so title NEVER blocks score or gameplay */
+  .desktopOnly { display: none !important; }
   
   canvas { object-fit: fill; width: 100%; height: 100%; }
 
   #controlsBar { 
-    position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.95)); 
-    border: none; padding: 24px 6px 10px; flex-wrap: wrap; justify-content: center; pointer-events: none; 
+    position: absolute; top: 0; left: 0; right: 0; bottom: auto; background: linear-gradient(rgba(4,10,18,0.96) 65%, transparent); 
+    border: none; padding: 8px 8px 14px; flex-wrap: nowrap; justify-content: space-between; pointer-events: none; z-index: 35;
   }
-  .controlInstructions, .controlSwitches { pointer-events: auto; } /* Buttons are clickable */
-  .controlInstructions{ order: 0; gap: 5px; flex: 1; justify-content: center; margin-bottom: 6px; font-size: 9px; text-shadow: 0 0 4px #000; }
-  .controlSwitches{ order: 1; margin-left: 0; justify-content: center; flex-wrap: wrap; gap: 4px; }
-  .miniToggle{ font-size: 8.5px; padding: 5px 6px; }
+  .controlInstructions, .controlSwitches { pointer-events: auto; }
+  .controlInstructions{ order: 0; gap: 4px; margin-bottom: 0; }
+  .controlSwitches{ order: 1; margin-left: auto; justify-content: flex-end; flex-wrap: nowrap; gap: 3px; }
+  .miniToggle{ font-size: 8px; padding: 4px 6px; }
   
   #hangarGrid{ grid-template-columns: 1fr; gap: 6px; padding: 7px; max-height: none; }
   #hangarTitle{ font-size: 16px; margin-top: 25px; }
@@ -236,6 +237,20 @@ canvas {
     </div>
     <div class="headerTag">AGRI-BIOSECURITY DIVISION</div>
   </header>
+
+  <!-- TOP CONTROLS & TOGGLES BAR -->
+  <div id="controlsBar">
+    <div class="controlInstructions">
+      <button class="miniToggle togglePause" type="button" title="Pause Game [P]">⏸ PAUSE</button>
+      <span id="controlHelp" class="desktopOnly">🖱️ TOUCH / DRAG MOVES · 💥 DBL-TAP BOMB</span>
+    </div>
+    <div class="controlSwitches">
+      <button class="miniToggle toggleScale" type="button" title="Switch Display Scaling (Auto / 0.5x / 1x / 1.5x)">🔍 AUTO</button>
+      <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
+      <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
+      <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
+    </div>
+  </div>
 
   <div id="gameWrap">
     <canvas id="game" aria-label="PhytoPlane Defender arcade game"></canvas>
@@ -344,18 +359,7 @@ canvas {
   </div>
 
   <!-- SINGLE BOTTOM CONTROLS BAR -->
-  <div id="controlsBar">
-    <div class="controlInstructions">
-      <span id="controlHelp">🖱️ TOUCH / DRAG MOVES</span>
-      <span>💥 DBL-TAP BOMB · [P] PAUSE</span>
-    </div>
-    <div class="controlSwitches">
-      <button class="miniToggle toggleScale" type="button" title="Switch Display Scaling (Auto / Normal / Large)">🔍 AUTO</button>
-      <button class="miniToggle toggleRotate" type="button" aria-pressed="false" title="Toggle Screen Orientation">🔄 ROTATE</button>
-      <button class="miniToggle toggleMouse" type="button" aria-pressed="true" title="Switch between mouse/touch and keyboard movement">MOUSE</button>
-      <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
-    </div>
-  </div>
+  
 </div>
 
 <script>
@@ -527,6 +531,8 @@ const inputModeToggle = document.querySelector('.toggleMouse');
 const soundToggle = document.querySelector('.toggleSound');
 const rotateToggle = document.querySelector('.toggleRotate');
 const scaleToggle = document.querySelector('.toggleScale');
+const pauseToggle = document.querySelector('.togglePause');
+if(pauseToggle) pauseToggle.addEventListener('click', togglePauseMenu);
 const controlHelp = document.getElementById('controlHelp');
 
 let state = STATE.START;
@@ -535,7 +541,8 @@ let lastTime = 0, elapsed = 0, scroll = 0, score = 0;
 let bestScore = Number(localStorage.getItem('pathowingBest') || 0);
 let wave = 1, waveTimer = 0, swarmTimer = 0;
 let boss = null, bossSpawned = false;
-let enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [];
+let enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [], shockwaves = [];
+let damageVignette = 0;
 let activeBombEffects = [];
 let leaderboard = [], submitted = false, shake = 0;
 
@@ -945,6 +952,29 @@ function fireShipWeapon(){
   }
 }
 
+
+/* VISUAL HIT FX: EYE-FRIENDLY IMPACT SPARKS & SOFT SHOCKWAVES */
+function createHitSpark(x, y, color, type = 'pulse'){
+  const scale = getActiveScaleMultiplier();
+  const maxR = type === 'heavy' ? 22 * scale : (type === 'drill' ? 24 * scale : 15 * scale);
+  shockwaves.push({
+    x, y, r: 2 * scale, maxR, color: color || '#4af7ff', life: 0.18, maxLife: 0.18, lw: 1.8
+  });
+
+  const pCount = type === 'heavy' ? 6 : (type === 'drill' ? 7 : 4);
+  for(let i = 0; i < pCount; i++){
+    const a = (Math.random() * Math.PI) + Math.PI * 0.5;
+    const s = (60 + Math.random() * 140) * scale;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      r: (1.2 + Math.random() * 1.6) * scale,
+      c: color || '#4af7ff',
+      life: 0.16 + Math.random() * 0.18
+    });
+  }
+}
+
 /* BOMB EXECUTION */
 function triggerBomb(){
   if(player.bombs <= 0){
@@ -1096,6 +1126,7 @@ function updateEnemies(dt){
   const curScale = getActiveScaleMultiplier();
   for(const e of enemies){
     if(e.baseR) e.r = Math.max(6, Math.round(e.baseR * curScale));
+    if(e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
     e.age += dt; e.shoot -= dt;
     if(e.type === 'bacteria'){ 
       const angle = Math.atan2(player.y - e.y, player.x - e.x); e.angle = angle; 
@@ -1153,6 +1184,7 @@ function updateBoss(dt){
   if(!boss) return;
   const b = boss;
   if(b.baseR) b.r = Math.max(25, Math.round(b.baseR * getActiveScaleMultiplier()));
+  if(b.hitFlash > 0) b.hitFlash = Math.max(0, b.hitFlash - dt);
   b.age += dt; b.x = W/2 + Math.sin(b.age * 0.55) * 240; if(b.y < b.targetY) b.y += 65 * dt;
   b.shoot -= dt; b.spawn -= dt; b.superTimer = (b.superTimer || 7.0) - dt;
 
@@ -1249,12 +1281,22 @@ function updateBullets(dt){
 
   for(const b of bullets){
     if(boss && distance(b.x, b.y, boss.x, boss.y) < b.r + boss.r){
-      boss.hp -= b.dmg; if(!b.pierce) b.dead = true; burst(b.x, b.y, COLORS.yellow, 2); if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6); continue;
+      boss.hp -= b.dmg;
+      boss.hitFlash = 0.14;
+      createHitSpark(b.x, b.y, b.color || COLORS.yellow, b.type);
+      if(!b.pierce) b.dead = true;
+      if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6);
+      continue;
     }
     for(const e of enemies){
       if(!e.dead && distance(b.x, b.y, e.x, e.y) < b.r + e.r){
-        e.hp -= b.dmg; if(b.pierce){ b.pierce--; if(b.pierce <= 0) b.dead = true; } else { b.dead = true; }
-        burst(b.x, b.y, b.color || COLORS.yellow, 3); if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6); if(e.hp <= 0) killEnemy(e); break;
+        e.hp -= b.dmg;
+        e.hitFlash = 0.12;
+        createHitSpark(b.x, b.y, b.color || e.color || COLORS.yellow, b.type);
+        if(b.pierce){ b.pierce--; if(b.pierce <= 0) b.dead = true; } else { b.dead = true; }
+        if(b.splash) triggerSplash(b.x, b.y, b.splash, b.dmg * 0.6);
+        if(e.hp <= 0) killEnemy(e);
+        break;
       }
     }
   }
@@ -1274,19 +1316,71 @@ function triggerSplash(x, y, radius, dmg){
 }
 
 function killEnemy(e){
-  e.dead = true; addScore(e.points); burst(e.x, e.y, e.color, 10 + Math.floor(e.r / 3));
-  if(Math.random() < .08) spawnPowerup(e.x, e.y); beep(220 + Math.random() * 140, .08, 'square', .025);
+  e.dead = true;
+  addScore(e.points);
+  const scale = getActiveScaleMultiplier();
+
+  // Expanding destruction shockwave
+  shockwaves.push({ x: e.x, y: e.y, r: 4 * scale, maxR: Math.round(e.r * 2.6), color: e.color, life: 0.28, maxLife: 0.28, lw: 3 });
+  shockwaves.push({ x: e.x, y: e.y, r: 2 * scale, maxR: Math.round(e.r * 1.6), color: '#ffffff', life: 0.18, maxLife: 0.18, lw: 2 });
+
+  // Explosion shrapnel
+  const pCount = Math.min(24, 10 + Math.floor(e.r / 2));
+  for(let i = 0; i < pCount; i++){
+    const a = Math.random() * Math.PI * 2;
+    const s = (60 + Math.random() * 200) * scale;
+    particles.push({
+      x: e.x, y: e.y,
+      vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      r: (1.5 + Math.random() * 2.5) * scale,
+      c: (i % 3 === 0) ? '#ffffff' : e.color,
+      life: 0.25 + Math.random() * 0.35
+    });
+  }
+
+  // Floating combat score popup directly at enemy position
+  floatingText.push({ x: e.x, y: e.y - 10, text: '+' + e.points, color: COLORS.lime, life: 0.9, vy: -32, big: false });
+  shake = Math.max(shake, 0.15);
+
+  if(Math.random() < .08) spawnPowerup(e.x, e.y);
+  beep(220 + Math.random() * 140, .08, 'square', .025);
 }
 
 function damagePlayer(a){
   if(player.invincible > 0) return;
-  if(player.shield > 0){ burst(player.x, player.y, COLORS.cyan, 7); beep(470, .06, 'sine', .025); return; }
-  player.hp -= a; player.invincible = .7; if(boss) boss.noDamage = false; shake = .22;
-  burst(player.x, player.y, COLORS.red, 14); beep(80, .16, 'sawtooth', .055);
+  const scale = getActiveScaleMultiplier();
+
+  if(player.shield > 0){
+    // COOL SHIELD DEFLECTION BARRIER FX
+    shockwaves.push({ x: player.x, y: player.y, r: 10 * scale, maxR: 48 * scale, color: COLORS.cyan, life: 0.24, maxLife: 0.24, lw: 4 });
+    burst(player.x, player.y, COLORS.cyan, 16);
+    floatingText.push({ x: player.x, y: player.y - 28, text: 'SHIELD BLOCKED!', color: COLORS.cyan, life: 0.8, vy: -25, big: false });
+    beep(580, .06, 'triangle', .03);
+    return;
+  }
+
+  player.hp -= a;
+  player.invincible = 0.7;
+  if(boss) boss.noDamage = false;
+  
+  // Dramatic Screen Danger Flash
+  damageVignette = 0.45;
+  shake = 0.18;
+
+  // Hull Breach Electrical Shockwave & Sparks
+  shockwaves.push({ x: player.x, y: player.y, r: 6 * scale, maxR: 50 * scale, color: '#ff2244', life: 0.32, maxLife: 0.32, lw: 3 });
+  burst(player.x, player.y, '#ff4e62', 22);
+  floatingText.push({ x: player.x, y: player.y - 32, text: '-' + a + ' HP', color: COLORS.red, life: 1.1, vy: -28, big: true });
+  beep(75, .2, 'sawtooth', .07);
 
   if(player.hp <= 0){
-    player.lives--; player.hp = player.maxHp; player.invincible = 2.2;
-    floatingText.push({x:player.x, y:player.y-34, text:'LIFE LOST! ❤️ -1', color:COLORS.red, life:1.6, vy:-20, big:true});
+    player.lives--;
+    player.hp = player.maxHp;
+    player.invincible = 2.2;
+    damageVignette = 0.75;
+    shake = 0.22;
+    shockwaves.push({ x: player.x, y: player.y, r: 10 * scale, maxR: 90 * scale, color: COLORS.red, life: 0.5, maxLife: 0.5, lw: 5 });
+    floatingText.push({ x: player.x, y: player.y - 40, text: 'CRITICAL DAMAGE! ❤️ -1 LIFE', color: COLORS.red, life: 1.8, vy: -22, big: true });
     if(player.lives <= 0) endGame();
   }
 }
@@ -1453,7 +1547,7 @@ function gameLoop(timestamp){
   if(!lastTime) lastTime = timestamp; const dt = Math.min(0.05, (timestamp - lastTime) / 1000); lastTime = timestamp;
   update(dt);
   ctx.save();
-  if(shake > 0){ const sx = (Math.random() - 0.5) * shake * 12; const sy = (Math.random() - 0.5) * shake * 12; ctx.translate(sx, sy); }
+  if(shake > 0){ const sx = (Math.random() - 0.5) * Math.min(0.22, shake) * 6; const sy = (Math.random() - 0.5) * Math.min(0.22, shake) * 6; ctx.translate(sx, sy); }
   renderBackground();
 
   if(state === STATE.PLAY){
@@ -1563,6 +1657,12 @@ function gameLoop(timestamp){
       const img = IMAGES[e.type];
       if (img && img.complete && img.naturalHeight !== 0) {
         ctx.drawImage(img, e.x - e.r, e.y - e.r, e.r * 2, e.r * 2);
+        if(e.hitFlash > 0){
+          ctx.save();
+          ctx.globalAlpha = Math.min(1.0, e.hitFlash / 0.12);
+          ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(e.x, e.y, e.r * 1.15, null, false);
+          ctx.restore();
+        }
       } else {
         ctx.save(); ctx.translate(e.x, e.y);
         if (e.type === 'bacteria') {
@@ -1607,7 +1707,13 @@ function gameLoop(timestamp){
         else if (e.type === 'basipetal') {
           ctx.fillStyle = e.color; circle(0, -e.r*0.6, e.r*0.45); circle(0, 0, e.r*0.35); circle(0, e.r*0.5, e.r*0.25); circle(0, e.r*0.8, e.r*0.15);
         } else { circle(0, 0, e.r, e.color); }
-        ctx.restore();
+        if(e.hitFlash > 0){
+            ctx.save();
+            ctx.globalAlpha = Math.min(1.0, e.hitFlash / 0.12);
+            ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(0, 0, e.r * 1.15, null, false);
+            ctx.restore();
+          }
+          ctx.restore();
       }
 
       const hpPct = e.hp / e.maxHp;
@@ -1619,6 +1725,12 @@ function gameLoop(timestamp){
       const b = boss; const img = IMAGES['boss_' + b.cfg.id];
       if (img && img.complete && img.naturalHeight !== 0) {
         ctx.drawImage(img, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+        if(b.hitFlash > 0){
+          ctx.save();
+          ctx.globalAlpha = Math.min(1.0, b.hitFlash / 0.14);
+          ctx.strokeStyle = 'rgba(255,232,94,0.7)'; ctx.lineWidth = 2.5; circle(b.x, b.y, b.r * 1.15, null, false);
+          ctx.restore();
+        }
       } else {
         ctx.save(); ctx.translate(b.x, b.y);
         if (b.superTimer < 1.5 && b.superTimer > 0) {
@@ -1675,6 +1787,26 @@ function gameLoop(timestamp){
     }
   }
 
+  // DRAW EXPANDING SHOCKWAVE RINGS
+  for(let i = shockwaves.length - 1; i >= 0; i--){
+    const sw = shockwaves[i];
+    sw.life -= dt;
+    const progress = 1 - (sw.life / sw.maxLife);
+    const curR = sw.r + (sw.maxR - sw.r) * progress;
+    const alpha = Math.max(0, sw.life / sw.maxLife);
+    
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = sw.color;
+    ctx.lineWidth = Math.max(1, (sw.lw || 2) * alpha);
+    ctx.beginPath();
+    ctx.arc(sw.x, sw.y, curR, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    if(sw.life <= 0) shockwaves.splice(i, 1);
+  }
+
   for(let i = 0; i < particles.length; i++){
     const pt = particles[i];
     ctx.fillStyle = pt.c;
@@ -1682,22 +1814,59 @@ function gameLoop(timestamp){
   }
   for(const ft of floatingText) text(ft.text, ft.x, ft.y, ft.big ? 18 : 12, ft.color, 'center');
 
+  // GENTLE, EYE-SAFE DAMAGE VIGNETTE (SOFT WINE RED, NO HARSH STROBING)
+  if(damageVignette > 0){
+    damageVignette = Math.max(0, damageVignette - dt * 2.0);
+    const vAlpha = Math.min(0.25, damageVignette * 0.6);
+    const vGrad = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*0.45, W/2, H/2, Math.max(W, H)*0.75);
+    vGrad.addColorStop(0, 'rgba(180, 20, 35, 0)');
+    vGrad.addColorStop(1, `rgba(180, 20, 35, ${vAlpha})`);
+    ctx.fillStyle = vGrad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
   ctx.restore();
 
   if(state === STATE.PLAY){
-    const hudY = 24;
-    text('SCORE: ' + score.toLocaleString(), 18, hudY, 16, COLORS.yellow, 'left');
-    text('WAVE: ' + wave, W - 18, hudY, 16, COLORS.lime, 'right');
+    const isMobile = (typeof isMobileDevice === 'function' && isMobileDevice()) || W <= 600;
+    // Generous top clearance on mobile so HUD is completely below the top bar
+    const hudY = isMobile ? 66 : 28;
 
-    const barW = 110, barH = 8, barX = 18, barY = 46;
-    rect(barX, barY, barW, barH, 'rgba(255,255,255,.15)');
-    rect(barX, barY, barW * (player.hp / player.maxHp), barH, COLORS.lime);
-    text('HP', barX - 22, barY + barH/2, 12, COLORS.white, 'right');
+    // HIGH-CONTRAST TRANSLUCENT HUD BACKDROP CHIPS
+    ctx.save();
+    ctx.fillStyle = 'rgba(2, 10, 20, 0.88)';
+    ctx.strokeStyle = 'rgba(74, 247, 255, 0.5)';
+    ctx.lineWidth = 1.2;
 
-    for(let i = 0; i < player.lives; i++){ drawHeart(W - 24 - i * 22, hudY + 28, 16, true, COLORS.red); }
-    text('💣 ' + player.bombs, W/2, hudY + 22, 18, COLORS.yellow, 'center');
+    // Left: Score & HP chip
+    ctx.fillRect(8, hudY - 14, 146, 46);
+    ctx.strokeRect(8, hudY - 14, 146, 46);
+
+    // Right: Wave & Lives chip
+    ctx.fillRect(W - 134, hudY - 14, 126, 46);
+    ctx.strokeRect(W - 134, hudY - 14, 126, 46);
+
+    // Center: Bomb chip
+    ctx.fillRect(W/2 - 38, hudY - 14, 76, 30);
+    ctx.strokeRect(W/2 - 38, hudY - 14, 76, 30);
+    ctx.restore();
+
+    // 100% VISIBLE, UNCLUTTERED HUD TEXT
+    text('SCORE: ' + score.toLocaleString(), 16, hudY, 13, COLORS.yellow, 'left');
+    text('WAVE ' + wave, W - 16, hudY, 13, COLORS.lime, 'right');
+
+    const barW = 96, barH = 7, barX = 16, barY = hudY + 18;
+    rect(barX, barY, barW, barH, 'rgba(255,255,255,.2)');
+    const hpRatio = Math.max(0, Math.min(1, player.hp / player.maxHp));
+    const hpColor = hpRatio > 0.5 ? COLORS.lime : (hpRatio > 0.25 ? COLORS.yellow : COLORS.red);
+    rect(barX, barY, barW * hpRatio, barH, hpColor);
+    text('HP', barX + barW + 5, barY + barH/2, 9, COLORS.white, 'left');
+
+    for(let i = 0; i < player.lives; i++){ 
+      drawHeart(W - 22 - i * 18, hudY + 18, 13, true, COLORS.red); 
+    }
+    text('💣 ' + player.bombs, W/2, hudY + 2, 14, COLORS.yellow, 'center');
   }
-
   requestAnimationFrame(gameLoop);
 }
 
