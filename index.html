@@ -377,6 +377,14 @@ function beep(f=440, d=.06, type='square', v=.035){
   }catch(e){}
 }
 
+let lastGunBeep = 0;
+function gunBeep(f, d, type, v){
+  const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  if(now - lastGunBeep < 65) return;
+  lastGunBeep = now;
+  beep(f, d, type, v);
+}
+
 /* MULTI-DEVICE ADAPTIVE RESOLUTION & SCALING ENGINE */
 let W = 960;
 let H = 540;
@@ -566,7 +574,10 @@ function cycleScaleMode(){
   localStorage.setItem('phytoplaneScaleMode', scaleMode);
   updateControlToggles();
   resizeEngine();
-  if (player) player.r = Math.round(20 * getActiveScaleMultiplier());
+  const curScale = getActiveScaleMultiplier();
+  if (player) player.r = Math.round(20 * curScale);
+  for (const e of enemies) { if (e.baseR) e.r = Math.max(6, Math.round(e.baseR * curScale)); }
+  if (boss && boss.baseR) boss.r = Math.max(25, Math.round(boss.baseR * curScale));
   beep(520, .05, 'sine');
 }
 if(scaleToggle) scaleToggle.addEventListener('click', cycleScaleMode);
@@ -855,7 +866,7 @@ function updatePlayer(dt){
     p.x += dx * s.speed * dt;
     p.y += dy * s.speed * 0.7 * dt;
   } else if(inputMode === 'mouse') {
-    const followSpeed = Math.min(1, dt * 16);
+    const followSpeed = (typeof isMobileDevice === 'function' && isMobileDevice()) ? Math.min(1, dt * 42) : Math.min(1, dt * 26);
     p.x += (pointerTarget.x - p.x) * followSpeed;
     p.y += (pointerTarget.y - p.y) * followSpeed;
   }
@@ -888,7 +899,7 @@ function fireShipWeapon(){
       bullets.push({x:p.x-16, y:p.y-10, vx:-60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
       bullets.push({x:p.x+16, y:p.y-10, vx:60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
     }
-    beep(isRapid?700:540, .03, 'square', .02);
+    gunBeep(isRapid?700:540, .03, 'square', .02);
   }
   else if(s.id === 'destroyer'){
     bullets.push({x:p.x, y:p.y-22, vx:0, vy:-530, r:6, dmg:2.4, color:s.color, type:'heavy'});
@@ -898,7 +909,7 @@ function fireShipWeapon(){
       bullets.push({x:p.x-22, y:p.y-10, vx:-210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
       bullets.push({x:p.x+22, y:p.y-10, vx:210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
     }
-    beep(260, .05, 'sawtooth', .03);
+    gunBeep(260, .05, 'sawtooth', .03);
   }
   else if(s.id === 'nighthawk'){
     bullets.push({x:p.x-7, y:p.y-22, vx:0, vy:-720, r:4, dmg:1.6, pierce:3, color:s.color, type:'lance'});
@@ -906,7 +917,7 @@ function fireShipWeapon(){
     if(isRapid){
       bullets.push({x:p.x, y:p.y-28, vx:0, vy:-780, r:5, dmg:2.2, pierce:5, color:s.secColor, type:'lance'});
     }
-    beep(640, .04, 'sine', .025);
+    gunBeep(640, .04, 'sine', .025);
   }
   else if(s.id === 'supernematicide'){
     bullets.push({x:p.x-10, y:p.y-18, vx:-25, vy:-560, r:5, dmg:2.0, splash:42, color:s.color, type:'drill'});
@@ -914,7 +925,7 @@ function fireShipWeapon(){
     if(isRapid){
       bullets.push({x:p.x-24, y:p.y-24, vx:0, vy:-590, r:6, dmg:2.8, splash:55, color:s.secColor, type:'drill'});
     }
-    beep(340, .05, 'triangle', .03);
+    gunBeep(340, .05, 'triangle', .03);
   }
   else if(s.id === 'rocket'){
     p.rocketSide = 1 - p.rocketSide;
@@ -926,7 +937,7 @@ function fireShipWeapon(){
     if(isOverdrive){
       bullets.push({x:p.x + (p.rocketSide ? 19 : -19), y:p.y-14, vx:(p.rocketSide ? 115 : -115), vy:-610, r:4, dmg:.55, homing:true, color:'#ff76d5', type:'rocket', age:0});
     }
-    beep(520, .035, 'square', .022);
+    gunBeep(520, .035, 'square', .022);
   }
 
   if(isOverdrive && s.id !== 'rocket'){
@@ -1026,10 +1037,11 @@ function getRandomEnemyType() {
 function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   const d = TYPES[type], hp = d.hp + Math.floor((wave - 1) * 0.45);
   const scale = getActiveScaleMultiplier();
-  const r = Math.round(d.r * (scale >= 1.3 ? 1.15 : 1.0));
+  const baseR = d.r;
+  const r = Math.max(6, Math.round(baseR * scale));
   const e = {
     type, x: x ?? (r + 15 + Math.random() * (W - r * 2 - 30)), y: -45 - yOffset, baseX: 0,
-    r, hp, maxHp: hp, speed: (d.speed + wave * 15) * speedMult, points: d.points, color: d.color,
+    r, baseR, hp, maxHp: hp, speed: (d.speed + wave * 15) * speedMult, points: d.points, color: d.color,
     age: 0, phase: Math.random() * 6.28, shoot: 1.1 + Math.random() * 1.8, dead: false, angle: 0
   };
   e.baseX = e.x;
@@ -1081,7 +1093,9 @@ function updateWaves(dt){
 }
 
 function updateEnemies(dt){
+  const curScale = getActiveScaleMultiplier();
   for(const e of enemies){
+    if(e.baseR) e.r = Math.max(6, Math.round(e.baseR * curScale));
     e.age += dt; e.shoot -= dt;
     if(e.type === 'bacteria'){ 
       const angle = Math.atan2(player.y - e.y, player.x - e.x); e.angle = angle; 
@@ -1126,7 +1140,9 @@ function spawnRandomBoss(){
   enemies = enemies.filter(e => e.type !== 'pod');
   const bossType = BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
   const hp = Math.floor((150 + wave * 55) * bossType.hpMult);
-  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, r: Math.round(75 * getActiveScaleMultiplier()), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
+  const baseR = 80;
+  const scale = getActiveScaleMultiplier();
+  boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, baseR, r: Math.max(25, Math.round(baseR * scale)), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
 
   floatingText.push({x:W/2, y:H*0.32, text:'⚠️ ' + bossType.name.toUpperCase() + ' ⚠️', color:bossType.color, life:3.0, vy:-10, big:true});
   floatingText.push({x:W/2, y:H*0.38, text:bossType.sub.toUpperCase(), color:COLORS.white, life:3.0, vy:-8, big:false});
@@ -1136,6 +1152,7 @@ function spawnRandomBoss(){
 function updateBoss(dt){
   if(!boss) return;
   const b = boss;
+  if(b.baseR) b.r = Math.max(25, Math.round(b.baseR * getActiveScaleMultiplier()));
   b.age += dt; b.x = W/2 + Math.sin(b.age * 0.55) * 240; if(b.y < b.targetY) b.y += 65 * dt;
   b.shoot -= dt; b.spawn -= dt; b.superTimer = (b.superTimer || 7.0) - dt;
 
@@ -1306,6 +1323,7 @@ function collectPowerup(p){
 function burst(x, y, c, n){ for(let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 180; particles.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:1+Math.random()*3, c, life:.3+Math.random()*.55}); } }
 
 function updateParticles(dt){
+  if(particles.length > 75) particles.splice(0, particles.length - 75);
   particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .95; p.vy *= .95; p.life -= dt; }); particles = particles.filter(p => p.life > 0);
   floatingText.forEach(t => { t.y += t.vy * dt; t.life -= dt; }); floatingText = floatingText.filter(t => t.life > 0);
 }
@@ -1338,7 +1356,13 @@ function poly(p, c, st = null){
 
 function renderBackground(){
   rect(0, 0, W, H, '#07111d');
-  for(const s of stars) circle(s.x, s.y, s.s, `rgba(125,255,210,${s.a})`);
+  ctx.fillStyle = '#7fffd4';
+  for(let i = 0; i < stars.length; i++){
+    const s = stars[i];
+    ctx.globalAlpha = s.a;
+    ctx.fillRect(s.x, s.y, s.s, s.s);
+  }
+  ctx.globalAlpha = 1.0;
   const b = Math.floor(wave / 2) % 4;
   if(b === 0) drawRice(); else if(b === 1) drawGreenhouse(); else if(b === 2) drawSoil(); else drawForest();
   rect(0, 0, W, H, 'rgba(3,13,25,.20)');
@@ -1347,8 +1371,18 @@ function renderBackground(){
 function drawRice(){
   for(let y = -50; y < H + 60; y += 58){
     let yy = y + (scroll * 0.55) % 58 - 58; rect(0, yy, W, 2, 'rgba(48,238,131,.38)');
-    for(let x = y % 2 ? 18 : 0; x < W; x += 40) line(x, yy + 2, x + 19, yy + 55, 'rgba(69,215,113,.20)');
   }
+  ctx.strokeStyle = 'rgba(69,215,113,.20)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let y = -50; y < H + 60; y += 58){
+    let yy = y + (scroll * 0.55) % 58 - 58;
+    for(let x = y % 2 ? 18 : 0; x < W; x += 40){
+      ctx.moveTo(x, yy + 2);
+      ctx.lineTo(x + 19, yy + 55);
+    }
+  }
+  ctx.stroke();
   rect(0, H - 55, W, 55, 'rgba(66,107,46,.38)');
 }
 function drawGreenhouse(){
@@ -1384,9 +1418,9 @@ function drawPlayer(p){
 
   if(p.shield > 0){ circle(0, 0, 30 + Math.sin(elapsed * 8) * 2, 'rgba(74,247,255,.14)'); ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke(); }
   if(p.overdrive > 0){
-    const pulse = 35 + Math.sin(elapsed * 15) * 5; ctx.shadowBlur = 15; ctx.shadowColor = '#ff76d5'; ctx.strokeStyle = '#ff76d5'; ctx.lineWidth = 3;
+    const pulse = 35 + Math.sin(elapsed * 15) * 5;  ctx.strokeStyle = '#ff76d5'; ctx.lineWidth = 3;
     poly([[0, -pulse], [pulse*0.8, -pulse*0.4], [pulse*0.8, pulse*0.4], [0, pulse], [-pulse*0.8, pulse*0.4], [-pulse*0.8, -pulse*0.4]], null, '#ff76d5');
-    ctx.shadowBlur = 0; circle(0, 0, pulse*0.6, 'rgba(255,118,213,0.3)');
+     circle(0, 0, pulse*0.6, 'rgba(255,118,213,0.3)');
   }
   if(p.invincible > 0 && Math.floor(elapsed * 14) % 2 === 0){ ctx.restore(); return; }
 
@@ -1395,7 +1429,7 @@ function drawPlayer(p){
   if (img && img.complete && img.naturalHeight !== 0) {
     ctx.drawImage(img, -30, -30, 60, 60);
   } else {
-    ctx.shadowBlur = 0; 
+     
     if(s.id === 'blaster'){
       poly([[0,-30], [-10,15], [-30,25], [-15,30], [0,20], [15,30], [30,25], [10,15]], '#0d2217', s.color); poly([[0,-15], [-5,10], [0,15], [5,10]], '#d6ffea'); drawEngineFlame(-10, 20, 1.2); drawEngineFlame(10, 20, 1.2);
     }
@@ -1476,11 +1510,10 @@ function gameLoop(timestamp){
       // 5. Bright floating label tag under capsule
       ctx.font = `bold ${Math.round(9 * scale)}px "Courier New", monospace`;
       ctx.fillStyle = p.color;
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = p.color;
+      
       const tag = p.type === 'bomb' ? 'BOMB' : p.type === 'rapid' ? 'RAPID' : p.type === 'shield' ? 'SHIELD' : p.type === 'fertility' ? '+HEAL' : '2X';
       ctx.fillText(tag, 0, Math.round(23 * scale));
-      ctx.shadowBlur = 0;
+      
 
       ctx.restore();
     }
@@ -1635,14 +1668,18 @@ function gameLoop(timestamp){
         grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.2, 'rgba(255,232,94,0.9)'); grad.addColorStop(0.6, 'rgba(255,78,98,0.5)'); grad.addColorStop(1, 'rgba(255,78,98,0)');
         ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(eff.x, eff.y, eff.radius * 0.8, 0, Math.PI * 2); ctx.fill();
       } else if(eff.type === 'overdrive' && player && player.overdrive > 0){
-        ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(elapsed * 8); ctx.strokeStyle = 'rgba(74,247,255,0.9)'; ctx.lineWidth = 4; ctx.shadowBlur = 10; ctx.shadowColor = '#4af7ff';
+        ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(elapsed * 8); ctx.strokeStyle = 'rgba(74,247,255,0.9)'; ctx.lineWidth = 4; 
         for(let j = 0; j < 4; j++){ ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.moveTo(40, 0); ctx.lineTo(90, 20); ctx.lineTo(140, 0); ctx.stroke(); }
         ctx.restore();
       }
     }
   }
 
-  for(const pt of particles) circle(pt.x, pt.y, pt.r, pt.c);
+  for(let i = 0; i < particles.length; i++){
+    const pt = particles[i];
+    ctx.fillStyle = pt.c;
+    ctx.fillRect(pt.x - pt.r, pt.y - pt.r, pt.r * 2, pt.r * 2);
+  }
   for(const ft of floatingText) text(ft.text, ft.x, ft.y, ft.big ? 18 : 12, ft.color, 'center');
 
   ctx.restore();
