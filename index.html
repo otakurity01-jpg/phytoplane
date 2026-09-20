@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,6 +6,7 @@
 <title>PhytoPlane Defender — Plant Pathology Sky Defense</title>
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}
+
 
 /* SAFE LAYOUT LOCK */
 html, body {
@@ -15,10 +16,12 @@ html, body {
   overflow: hidden; touch-action: none; overscroll-behavior: none;
 }
 
+
 /* FLEXBOX STACK TO PREVENT UI OVERLAPS */
 #page {
   display: flex; flex-direction: column; width: 100%; height: 100%; position: relative;
 }
+
 
 /* HEADER */
 header {
@@ -29,20 +32,24 @@ header h1{margin:0;font-size:19px;letter-spacing:1px;color:#b8ff56}
 header .sub{font-size:11px;color:rgba(220,255,240,.65);margin-top:2px}
 .headerTag{font-size:11px;color:#4af7ff;border:1px solid rgba(74,247,255,.4);padding:4px 8px;border-radius:4px;background:rgba(74,247,255,.08)}
 
+
 /* GAME CONTAINER */
 #gameWrap {
   flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; 
   background: #040a12; overflow: hidden; width: 100%;
 }
 
+
 canvas {
   display: block; max-width: 100%; max-height: 100%; object-fit: contain;
   background: #07111d; cursor: crosshair; image-rendering: pixelated; image-rendering: crisp-edges;
 }
 
+
 /* OVERLAYS */
 .overlayPanel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(4,12,22,.92);backdrop-filter:blur(4px);padding:16px;z-index:20;overflow-y:auto;}
 .overlayPanel.active{display:flex}
+
 
 /* HANGAR - allow clicks to pass through to canvas */
 #hangarOverlay{pointer-events:none}
@@ -50,6 +57,7 @@ canvas {
 #hangarTitle{font-size:24px;font-weight:bold;letter-spacing:2px;color:#b8ff56;text-shadow:0 0 12px rgba(184,255,86,.6);margin-bottom:2px;text-align:center;margin-top:auto;}
 #hangarSubtitle{font-size:12px;color:#4af7ff;letter-spacing:1px;margin-bottom:12px;text-align:center}
 #hangarGrid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;width:100%;max-width:780px;background:rgba(2,18,32,.85);border:1px solid rgba(74,247,255,.35);border-radius:6px;padding:14px}
+
 
 .sectionTitle{font-size:12px;font-weight:bold;color:#ffe85e;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .shipCarousel{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -59,11 +67,13 @@ canvas {
 #currentShipName{font-size:15px;font-weight:bold;color:#b8ff56}
 #currentShipTag{font-size:10px;color:rgba(220,255,240,.75);margin-top:2px}
 
+
 .statRow{display:flex;align-items:center;margin-bottom:5px;font-size:11px}
 .statLabel{width:75px;color:rgba(220,255,240,.7)}
 .statBarBg{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
 .statBarFill{height:100%;width:50%;background:#30ee83;transition:width .25s,background .25s}
 #shipDesc{font-size:11px;color:#d5f3e7;line-height:1.35;margin-top:8px;min-height:32px}
+
 
 .bombGroup{display:flex;gap:6px;margin-bottom:10px}
 .bombBtn{flex:1;padding:8px 4px;background:rgba(3,18,34,.8);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;cursor:pointer;font-family:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s}
@@ -72,8 +82,10 @@ canvas {
 #bombDesc{font-size:11px;color:#d5f3e7;line-height:1.35;min-height:30px}
 .bombTip{font-size:10px;color:#ffe85e;margin-top:10px;padding:6px;background:rgba(255,232,94,.08);border-left:3px solid #ffe85e}
 
+
 #launchBtn{margin-top:14px;margin-bottom:auto;padding:12px 32px;background:#30ee83;border:2px solid #b8ff56;border-radius:4px;color:#07111d;font-family:inherit;font-weight:bold;font-size:15px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 0 16px rgba(48,238,131,.5);transition:all .15s;width:min(100%, 400px)}
 #launchBtn:hover{background:#ffe85e;border-color:#ffe85e;transform:scale(1.03);box-shadow:0 0 22px rgba(255,232,94,.7)}
+
 
 /* MENUS */
 #pauseBox{display:flex;flex-direction:column;align-items:center;width:min(480px,94%);background:rgba(3,18,34,.96);border:2px solid #ffe85e;border-radius:6px;padding:18px;text-align:center;gap:12px}
@@ -87,6 +99,7 @@ canvas {
 .btnHangar{background:rgba(255,157,53,.18);border:1px solid #ff9d35;color:#ff9d35}
 .btnHangar:hover{background:#ff9d35;color:#07111d}
 
+
 #gameOverBox{display:flex;flex-direction:column;align-items:center;width:min(350px,92%);background:rgba(3,18,34,.96);border:2px solid #ff4e62;border-radius:6px;padding:18px;text-align:center;gap:8px}
 #gameOverTitle{font-size:26px;color:#ff4e62;font-weight:bold;margin-bottom:2px}
 #finalScoreDisplay{font-size:20px;color:#ffe85e;font-weight:bold;margin:2px 0 6px}
@@ -96,6 +109,7 @@ canvas {
 #submitScoreBtn:hover{background:#ffe85e}
 .gameOverBtnsRow{display:flex;gap:8px;width:100%;margin-top:6px}
 .gameOverBtnsRow button{flex:1;padding:9px 4px;font-size:12px;font-weight:bold}
+
 
 /* CONTROLS BAR */
 #controlsBar{
@@ -111,6 +125,8 @@ canvas {
 .miniToggle[aria-pressed="true"]{border-color:#30ee83;color:#b8ff56;background:rgba(48,238,131,.12)}
 .miniToggle[aria-pressed="true"]::before{background:#30ee83;box-shadow:0 0 5px #30ee83}
 .miniToggle:hover{background:rgba(74,247,255,.22)}
+
+
 
 
 /* LEADERBOARD OVERLAY & MODAL */
@@ -139,6 +155,7 @@ canvas {
 .lbBtn.btnClose{border-color:#ff4e62; color:#ff4e62; background:rgba(255,78,98,.12);}
 .lbBtn.btnClose:hover{background:#ff4e62; color:#fff;}
 
+
 .lbTableWrap{
   flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
   margin:6px 0; border:1px solid rgba(74,247,255,.25); border-radius:4px; background:rgba(4,10,18,.8);
@@ -154,6 +171,7 @@ canvas {
 .scoreTable th:nth-child(3), .scoreTable td:nth-child(3){width:24%; text-align:right;}
 .scoreTable th:nth-child(4), .scoreTable td:nth-child(4){width:24%; text-align:right; font-size:10px; color:rgba(220,255,240,.65);}
 
+
 .scoreTable tr:nth-child(even) td{background:rgba(74,247,255,.03);}
 .scoreTable tr:hover td{background:rgba(74,247,255,.12);}
 .rankGold{color:#ffe85e; font-weight:bold; font-size:12px;}
@@ -161,6 +179,8 @@ canvas {
 .rankBronze{color:#ff9d35; font-weight:bold; font-size:11px;}
 .scoreNum{color:#b8ff56; font-weight:bold; font-size:12px; font-family:inherit;}
 #scoresStatus{text-align:center; padding:16px; font-size:11px; color:#4af7ff;}
+
+
 
 
 .lbCloseBottom{
@@ -171,6 +191,7 @@ canvas {
   cursor:pointer !important; transition:all .15s !important;
 }
 .lbCloseBottom:hover{background:#b8ff56 !important;}
+
 
 #closeScoresBottomBtn{
   flex:0 0 auto !important; height:auto !important; min-height:42px !important; max-height:46px !important;
@@ -185,8 +206,13 @@ canvas {
 .hangarLaunchRow #openScoresHangarBtn{flex:1; padding:12px 10px; font-size:13px;}
 
 
+
+
 .miniToggle.toggleScale{border-color:#4af7ff; color:#4af7ff; background:rgba(74,247,255,.08);}
 .miniToggle.toggleScale::before{background:#4af7ff; box-shadow:0 0 5px #4af7ff;}
+
+
+
 
 
 
@@ -196,6 +222,7 @@ canvas {
   .desktopOnly { display: none !important; }
   
   canvas { object-fit: fill; width: 100%; height: 100%; }
+
 
   #controlsBar { 
     position: absolute; top: 0; left: 0; right: 0; bottom: auto; background: linear-gradient(rgba(4,10,18,0.96) 65%, transparent); 
@@ -223,6 +250,7 @@ canvas {
   #launchBtn{ margin-top: 4px; padding: 12px 14px; font-size: 13px; flex-shrink: 0; margin-bottom: 60px; pointer-events: auto;}
 }
 
+
 @media (min-width: 851px) and (min-height: 501px) {
   .toggleRotate { display: none !important; }
 }
@@ -238,6 +266,7 @@ canvas {
     <div class="headerTag">AGRI-BIOSECURITY DIVISION</div>
   </header>
 
+
   <!-- TOP CONTROLS & TOGGLES BAR -->
   <div id="controlsBar">
     <div class="controlInstructions">
@@ -251,6 +280,7 @@ canvas {
       <button class="miniToggle toggleSound" type="button" aria-pressed="true" title="Turn game sound on or off">SOUND</button>
     </div>
   </div>
+
 
   <div id="gameWrap">
     <canvas id="game" aria-label="PhytoPlane Defender arcade game"></canvas>
@@ -278,6 +308,7 @@ canvas {
           <div id="shipDesc">High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched fire rate.</div>
         </div>
 
+
         <div>
           <div class="sectionTitle"><span>💣</span> SELECT ORDNANCE BOMB</div>
           <div class="bombGroup">
@@ -295,6 +326,7 @@ canvas {
       </div>
     </div>
 
+
     <!-- TACTICAL PAUSE MENU -->
     <div id="pauseMenuOverlay" class="overlayPanel">
       <div id="pauseBox">
@@ -307,6 +339,8 @@ canvas {
         </div>
       </div>
     </div>
+
+
 
 
     <!-- LEADERBOARD OVERLAY -->
@@ -341,6 +375,7 @@ canvas {
       </div>
     </div>
 
+
     <!-- GAME OVER OVERLAY -->
     <div id="gameOverOverlay" class="overlayPanel">
       <div id="gameOverBox">
@@ -358,13 +393,16 @@ canvas {
     </div>
   </div>
 
+
   <!-- SINGLE BOTTOM CONTROLS BAR -->
   
 </div>
 
+
 <script>
 'use strict';
 const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbwSJkA07nl2L8toZ4fBgLciJS2qnwtZ1z2xSmLqn_kinRNxYOzHO4ADahvmj-jD_uwM7g/exec";
+
 
 /* AUDIO SYNTHESIS */
 let audioCtx;
@@ -381,6 +419,7 @@ function beep(f=440, d=.06, type='square', v=.035){
   }catch(e){}
 }
 
+
 let lastGunBeep = 0;
 function gunBeep(f, d, type, v){
   const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -389,15 +428,18 @@ function gunBeep(f, d, type, v){
   beep(f, d, type, v);
 }
 
+
 /* MULTI-DEVICE ADAPTIVE RESOLUTION & SCALING ENGINE */
 let W = 960;
 let H = 540;
 let player = null; // Hoisted before resizeEngine to prevent TDZ ReferenceError
 let scaleMode = localStorage.getItem('phytoplaneScaleMode') || 'auto'; // 'auto', '1x', '1.3x', '1.6x'
 
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
+
 
 /* DEVICE PROFILE & MOBILE DETECTOR */
 function isMobileDevice() {
@@ -407,6 +449,7 @@ function isMobileDevice() {
   const isSmallScreen = (typeof window !== 'undefined') && (window.innerWidth <= 850 || window.innerHeight <= 500);
   return mobileRegex.test(ua) || (isTouch && isSmallScreen);
 }
+
 
 function getDeviceProfile() {
   const w = window.innerWidth;
@@ -418,6 +461,7 @@ function getDeviceProfile() {
   return 'DESKTOP';
 }
 
+
 /* ACTIVE ENTITY SCALE MULTIPLIER (0.5x for PC/laptop, 1x for smartphones) */
 function getActiveScaleMultiplier() {
   if (scaleMode === '0.5x') return 0.5;
@@ -428,12 +472,14 @@ function getActiveScaleMultiplier() {
   return isMobileDevice() ? 1.0 : 0.5;
 }
 
+
 /* RESIZE EVENT: Adapts resolution and coordinate bounds per device */
 function resizeEngine() {
   const wrap = document.getElementById('gameWrap');
   if (!wrap) return;
   const rect = wrap.getBoundingClientRect();
   const profile = getDeviceProfile();
+
 
   if (profile === 'PHONE_PORTRAIT') {
     // Smartphone portrait: vertical arcade shmup (440px wide) gives touch-friendly mobile scale
@@ -451,10 +497,12 @@ function resizeEngine() {
   canvas.width = W;
   canvas.height = H;
 
+
   if (player && player.y > H - 45) player.y = H - 45;
 }
 window.addEventListener('resize', resizeEngine);
 resizeEngine();
+
 
 /* 🖼️ IMAGE ASSET CONFIGURATION 🖼️ */
 const IMAGES = {
@@ -463,24 +511,28 @@ const IMAGES = {
   boss_xoo: new Image(), boss_fusarium: new Image(), boss_colletotrichum: new Image(), boss_puccinia: new Image(), boss_pop_ringspot: new Image()
 };
 
+
 IMAGES.blaster.src = ""; IMAGES.destroyer.src = ""; IMAGES.nighthawk.src = ""; IMAGES.supernematicide.src = ""; IMAGES.rocket.src = "";
 IMAGES.bacteria.src = ""; IMAGES.fungus.src = ""; IMAGES.virus.src = ""; IMAGES.pest.src = ""; IMAGES.pod.src = ""; IMAGES.basipetal.src = ""; IMAGES.nematode.src = ""; IMAGES.flagellate.src = "";
 IMAGES.boss_xoo.src = ""; IMAGES.boss_fusarium.src = ""; IMAGES.boss_colletotrichum.src = ""; IMAGES.boss_puccinia.src = ""; IMAGES.boss_pop_ringspot.src = "";
 
+
 /* SHIPS SPECIFICATIONS */
 const SHIPS = [
-  { id: 'blaster', name: 'Bactericidal Blaster', tag: 'RAPID STERILIZER INTERCEPTOR', color: '#30ee83', secColor: '#4af7ff', speed: 360, hp: 100, fireDelay: 0.11, rapidDelay: 0.06, stats: { speed: 95, fireRate: 98, power: 72, armor: 65 }, desc: 'High-cadence pulse cannons shred swarms of bacteria and micro-pests with unmatched rate of fire.' },
-  { id: 'destroyer', name: 'Fungicidal Destroyer', tag: 'HEAVY 3-WAY SPORE BUSTER', color: '#ff9d35', secColor: '#ff4e62', speed: 280, hp: 130, fireDelay: 0.25, rapidDelay: 0.14, stats: { speed: 65, fireRate: 65, power: 96, armor: 95 }, desc: 'Heavily armored assault vessel firing a 3-way spread cannon to obliterate widespread fungal spores.' },
-  { id: 'nighthawk', name: 'IPM Nighthawk', tag: 'PIERCING LANCE STEALTH JET', color: '#4af7ff', secColor: '#b8ff56', speed: 335, hp: 100, fireDelay: 0.17, rapidDelay: 0.09, stats: { speed: 85, fireRate: 80, power: 88, armor: 70 }, desc: 'Twin rail lances that pierce clean through multiple pathogens, dealing continuous line damage.' },
-  { id: 'supernematicide', name: 'Supernematicide', tag: 'EXPLOSIVE DRILL TORPEDO CRAFT', color: '#ff76d5', secColor: '#ffe85e', speed: 310, hp: 110, fireDelay: 0.22, rapidDelay: 0.12, stats: { speed: 75, fireRate: 70, power: 92, armor: 80 }, desc: 'Fires spiraling drill torpedoes that burst into an acidic chemical shockwave on contact.' },
-  { id: 'rocket', name: 'Insecticide Rocket', tag: 'HOMING MICRO-MISSILE BATTERY', color: '#ffe85e', secColor: '#ff4e62', speed: 320, hp: 100, fireDelay: 0.11, rapidDelay: 0.055, stats: { speed: 80, fireRate: 96, power: 58, armor: 75 }, desc: 'Rapid-launch homing rockets: much faster firing, but each missile carries lower explosive power.' }
+  { id: 'blaster', name: 'Bactericidal Blaster', tag: 'ION CANNONS & SEEKER DARTS', color: '#30ee83', secColor: '#4af7ff', speed: 360, hp: 100, fireDelay: 0.11, rapidDelay: 0.06, stats: { speed: 95, fireRate: 98, power: 72, armor: 65 }, desc: 'High-frequency ion plasma needles paired with wing-mounted micro-ion seeker missiles that streak after fast microbes.' },
+  { id: 'destroyer', name: 'Fungicidal Destroyer', tag: 'HEAVY ARTILLERY & SPORE BUSTERS', color: '#ff9d35', secColor: '#ff4e62', speed: 280, hp: 130, fireDelay: 0.24, rapidDelay: 0.13, stats: { speed: 65, fireRate: 65, power: 98, armor: 95 }, desc: 'Twin heavy kinetic flak shells flanking a central armored Bunker-Buster Spore Rocket with fiery blast propulsion.' },
+  { id: 'nighthawk', name: 'IPM Nighthawk', tag: 'PIERCING LANCES & STEALTH DARTS', color: '#4af7ff', secColor: '#b8ff56', speed: 335, hp: 100, fireDelay: 0.17, rapidDelay: 0.09, stats: { speed: 85, fireRate: 80, power: 88, armor: 70 }, desc: 'Dual piercing photon rail lances coupled with hypersonic stealth dart missiles leaving razor cyan laser contrails.' },
+  { id: 'supernematicide', name: 'Supernematicide', tag: 'SPIRAL CHEMICAL DRILL TORPEDOES', color: '#ff76d5', secColor: '#ffe85e', speed: 310, hp: 110, fireDelay: 0.21, rapidDelay: 0.11, stats: { speed: 75, fireRate: 72, power: 94, armor: 80 }, desc: 'Revolving fluted drill torpedoes and bio-chemical bore missiles that burst into expanding corrosive acid clouds.' },
+  { id: 'rocket', name: 'Insecticide Rocket', tag: 'HOMING SWARM MISSILE BATTERY', color: '#ffe85e', secColor: '#ff4e62', speed: 320, hp: 100, fireDelay: 0.10, rapidDelay: 0.05, stats: { speed: 80, fireRate: 98, power: 65, armor: 75 }, desc: 'Multi-stage aerodynamic homing rockets with delta stabilizing fins, roaring rocket thrusters, and drifting smoke trails.' }
 ];
+
 
 const BOMBS = {
   laser: { id: 'laser', name: 'Orbital Laser Bomb', icon: '⚡', color: '#4af7ff', desc: '5 sweeping orbital death beams sweep the screen for 2.5s, vaporizing bullets and slicing pathogens.' },
   nuke: { id: 'nuke', name: 'Bio-Thermal Nuke', icon: '☢️', color: '#ffe85e', desc: 'Thermonuclear shockwave that cleanses the entire airspace with screen-wide apocalyptic devastation.' },
   bio: { id: 'bio', name: 'Biosecurity Overdrive', icon: '⚡', color: '#ff76d5', desc: '5-second Overdrive: activates rapid fire, IPM shield, 2X score, and weapon boost together.' }
 };
+
 
 const BOSS_TYPES = [
   { id: 'xoo', name: 'XOO Blight Spreader', sub: 'Xanthomonas Bacterial Xylem Spreader', hpMult: 1.0, color: '#ffe85e', coreColor: '#30ee83', accentColor: '#a9ff60', superName: 'SYSTEMIC XYLEM BLIGHT SURGE' },
@@ -490,9 +542,11 @@ const BOSS_TYPES = [
   { id: 'pop_ringspot', name: 'Pop Ringspot', sub: 'Papaya Ringspot Viral Halo Drone', hpMult: 1.1, color: '#ff3399', coreColor: '#4af7ff', accentColor: '#ffffff', superName: 'CONCENTRIC RINGSPOT CATASTROPHE' }
 ];
 
+
 let selectedShipIdx = 0; let selectedBombId = 'laser';
 const STATE = { START:'START', PLAY:'PLAY', PAUSE:'PAUSE', GAME_OVER:'GAME_OVER' };
 const COLORS = { cyan:'#4af7ff', green:'#30ee83', lime:'#b8ff56', yellow:'#ffe85e', orange:'#ff9d35', red:'#ff4e62', pink:'#ff76d5', white:'#f5fff9', navy:'#07111d', soil:'#7f4932' };
+
 
 /* DOM ELEMENTS */
 const hangarOverlay = document.getElementById('hangarOverlay');
@@ -527,6 +581,7 @@ const closeScoresBtn = document.getElementById('closeScoresBtn');
 const closeScoresBottomBtn = document.getElementById('closeScoresBottomBtn');
 const refreshScoresBtn = document.getElementById('refreshScoresBtn');
 
+
 const inputModeToggle = document.querySelector('.toggleMouse');
 const soundToggle = document.querySelector('.toggleSound');
 const rotateToggle = document.querySelector('.toggleRotate');
@@ -535,16 +590,18 @@ const pauseToggle = document.querySelector('.togglePause');
 if(pauseToggle) pauseToggle.addEventListener('click', togglePauseMenu);
 const controlHelp = document.getElementById('controlHelp');
 
+
 let state = STATE.START;
 let keys = Object.create(null);
 let lastTime = 0, elapsed = 0, scroll = 0, score = 0;
 let bestScore = Number(localStorage.getItem('pathowingBest') || 0);
 let wave = 1, waveTimer = 0, swarmTimer = 0;
 let boss = null, bossSpawned = false;
-let enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [], shockwaves = [];
+let enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [], shockwaves = [], missileSmokes = [];
 let damageVignette = 0;
 let activeBombEffects = [];
 let leaderboard = [], submitted = false, shake = 0;
+
 
 let stars = Array.from({length:100},()=>({x:Math.random()*2000,y:Math.random()*2500,s:1+Math.random()*2,a:.15+Math.random()*.6}));
 const pointerTarget = {x:W/2, y:H-72, active:false};
@@ -553,6 +610,7 @@ let lastTapTime = 0;
 let inputMode = localStorage.getItem('phytoplaneInputMode') || 'mouse';
 let soundEnabled = localStorage.getItem('phytoplaneSoundEnabled') !== 'false';
 let isLandscapeLocked = false;
+
 
 function updateControlToggles(){
   const usingMouse = inputMode === 'mouse';
@@ -570,6 +628,7 @@ function updateControlToggles(){
     }
   }
 }
+
 
 function cycleScaleMode(){
   // Cycle: AUTO (0.5x PC / 1x Phone) -> 0.5X -> 1.0X -> 1.5X -> AUTO
@@ -589,8 +648,10 @@ function cycleScaleMode(){
 }
 if(scaleToggle) scaleToggle.addEventListener('click', cycleScaleMode);
 
+
 if(inputModeToggle) inputModeToggle.addEventListener('click', () => { inputMode = inputMode === 'mouse' ? 'keyboard' : 'mouse'; localStorage.setItem('phytoplaneInputMode', inputMode); keys = Object.create(null); updateControlToggles(); if(soundEnabled) beep(420, .05, 'sine'); });
 if(soundToggle) soundToggle.addEventListener('click', () => { soundEnabled = !soundEnabled; localStorage.setItem('phytoplaneSoundEnabled', String(soundEnabled)); updateControlToggles(); if(soundEnabled) beep(660, .07, 'sine'); });
+
 
 async function toggleRotation() {
   try {
@@ -606,6 +667,7 @@ async function toggleRotation() {
 if(rotateToggle) rotateToggle.addEventListener('click', toggleRotation);
 updateControlToggles();
 
+
 function updateHangarUI() {
   const ship = SHIPS[selectedShipIdx];
   currentShipNameEl.textContent = ship.name; currentShipNameEl.style.color = ship.color; currentShipTagEl.textContent = ship.tag;
@@ -615,15 +677,18 @@ function updateHangarUI() {
   bombDescEl.textContent = BOMBS[selectedBombId].desc;
 }
 
+
 prevShipBtn.addEventListener('click', e => { e.stopPropagation(); selectedShipIdx = (selectedShipIdx - 1 + SHIPS.length) % SHIPS.length; updateHangarUI(); beep(300, .05, 'sine'); });
 nextShipBtn.addEventListener('click', e => { e.stopPropagation(); selectedShipIdx = (selectedShipIdx + 1) % SHIPS.length; updateHangarUI(); beep(360, .05, 'sine'); });
 document.querySelectorAll('.bombBtn').forEach(btn => { btn.addEventListener('click', e => { e.stopPropagation(); selectedBombId = btn.dataset.bomb; updateHangarUI(); beep(440, .05, 'square'); }); });
+
 
 async function requestMobileFullscreen() {
   if (window.innerWidth <= 850 || window.innerHeight <= 500) {
     try { const docEl = document.documentElement; if (docEl.requestFullscreen) await docEl.requestFullscreen().catch(e => {}); else if (docEl.webkitRequestFullscreen) await docEl.webkitRequestFullscreen().catch(e => {}); } catch(e) {}
   }
 }
+
 
 launchBtn.addEventListener('click', () => { requestMobileFullscreen(); startGame(); });
 if(openScoresHangarBtn) openScoresHangarBtn.addEventListener('click', openScoresOverlay);
@@ -634,6 +699,7 @@ if(closeScoresBottomBtn) closeScoresBottomBtn.addEventListener('click', closeSco
 if(refreshScoresBtn) refreshScoresBtn.addEventListener('click', () => { fetchLeaderboard(); beep(550, .05, 'sine'); });
 updateHangarUI();
 
+
 function openHangar(){ state = STATE.START; pauseMenuOverlay.classList.remove('active'); gameOverOverlay.classList.remove('active'); hangarOverlay.classList.add('active'); updateHangarUI(); beep(300, .08, 'sine'); }
 function restartMission(){ pauseMenuOverlay.classList.remove('active'); gameOverOverlay.classList.remove('active'); hangarOverlay.classList.remove('active'); state = STATE.PLAY; resetGame(); beep(400, .1, 'square'); }
 function togglePauseMenu(){
@@ -641,11 +707,13 @@ function togglePauseMenu(){
   else if(state === STATE.PAUSE){ state = STATE.PLAY; pauseMenuOverlay.classList.remove('active'); beep(340, .08, 'square'); }
 }
 
+
 resumeBtn.addEventListener('click', () => { state = STATE.PLAY; pauseMenuOverlay.classList.remove('active'); beep(340, .08, 'square'); });
 restartFromPauseBtn.addEventListener('click', restartMission);
 hangarFromPauseBtn.addEventListener('click', openHangar);
 restartGameOverBtn.addEventListener('click', restartMission);
 hangarGameOverBtn.addEventListener('click', openHangar);
+
 
 const LOCAL_SCORES_KEY = 'phytoplaneLeaderboard'; const PLAYER_NAME_KEY = 'phytoplanePlayerName';
 function loadLocalScores(){ try { const saved = JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY) || '[]'); return Array.isArray(saved) ? saved : []; } catch(e) { return []; } }
@@ -659,6 +727,7 @@ function mergeScores(...lists){ const unique = new Map(); lists.flat().forEach(r
 function remoteRows(data){ if(Array.isArray(data)) return data; return (data && (data.leaderboard || data.scores || data.data || data.values || data.rows)) || []; }
 function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+
 function recordLocalRun(finalScore){
   if(!(finalScore > 0)) return;
   const entry = { name: getSavedPlayerName(), score: Math.floor(finalScore), date: dateOnly(new Date().toString()) };
@@ -666,6 +735,7 @@ function recordLocalRun(finalScore){
   saveLocalScores(merged); leaderboard = mergeScores(merged, leaderboard);
   if(entry.score > bestScore){ bestScore = entry.score; localStorage.setItem('pathowingBest', bestScore); }
 }
+
 
 async function submitScore(name, finalScore){
   try{
@@ -682,6 +752,7 @@ async function submitScore(name, finalScore){
     return { status: 'error', error: e.message };
   }
 }
+
 
 function renderLeaderboardTable(){
   if(!scoreTableBody) return;
@@ -700,6 +771,7 @@ function renderLeaderboardTable(){
     else if(idx === 1){ rankBadge = '🥈 #2'; rankClass = 'rankSilver'; }
     else if(idx === 2){ rankBadge = '🥉 #3'; rankClass = 'rankBronze'; }
 
+
     tr.innerHTML = `
       <td class="${rankClass}" style="text-align:center;white-space:nowrap">${rankBadge}</td>
       <td style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">${escapeHtml(r.name)}</td>
@@ -710,7 +782,9 @@ function renderLeaderboardTable(){
   });
 }
 
+
 let stateBeforeScores = STATE.START;
+
 
 function openScoresOverlay(){
   stateBeforeScores = state;
@@ -721,11 +795,13 @@ function openScoresOverlay(){
   beep(480, .06, 'sine');
 }
 
+
 function closeScoresOverlay(){
   leaderboardOverlay.classList.remove('active');
   state = stateBeforeScores;
   beep(350, .06, 'sine');
 }
+
 
 async function fetchLeaderboard(){
   try{
@@ -744,10 +820,11 @@ async function fetchLeaderboard(){
   renderLeaderboardTable();
 }
 
+
 function resetGame(){
   const shipCfg = SHIPS[selectedShipIdx];
   score = 0; wave = 1; waveTimer = 0; swarmTimer = 0; boss = null; bossSpawned = false;
-  enemies = []; bullets = []; enemyBullets = []; powerups = []; particles = []; floatingText = []; activeBombEffects = [];
+  enemies = []; bullets = []; enemyBullets = []; powerups = []; particles = []; floatingText = []; activeBombEffects = []; missileSmokes = [];
   
   player = {
     ship: shipCfg, bombType: selectedBombId, x: W/2, y: H-120, r: Math.round(20 * getActiveScaleMultiplier()),
@@ -761,11 +838,13 @@ function resetGame(){
   announceWave(wave);
 }
 
+
 function announceWave(w){
   const titles = ['BACTERIAL FIELD OUTBREAK', 'FUNGAL SPORE INVASION', 'VIRAL VECTOR SWARM', 'LOCUST PEST SQUADRON', 'BIO-PATHOGEN CITADEL'];
   const t = titles[(w - 1) % titles.length];
   floatingText.push({ x: W/2, y: H * 0.38, text: 'WAVE ' + w + ' — ' + t, color: COLORS.lime, life: 2.5, vy: -12, big: true });
 }
+
 
 function startGame(){
   resizeEngine();
@@ -776,6 +855,7 @@ function startGame(){
   resetGame();
   beep(400, .1, 'square');
 }
+
 
 /* 100% BULLETPROOF NATIVE TOUCH & MOUSE HANDLING */
 function getEventPos(e) {
@@ -788,6 +868,7 @@ function getEventPos(e) {
   return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
 }
 
+
 function handleStart(e) {
   if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   
@@ -797,11 +878,13 @@ function handleStart(e) {
     updateControlToggles();
   }
 
+
   pointerDown = true;
   const pos = getEventPos(e);
   pointerTarget.x = pos.x; 
   pointerTarget.y = pos.y; 
   pointerTarget.active = true;
+
 
   const now = Date.now();
   if(state === STATE.PLAY) {
@@ -810,6 +893,7 @@ function handleStart(e) {
   }
 }
 
+
 function handleMove(e) {
   if(!pointerDown && e.type !== 'mousemove') return;
   const pos = getEventPos(e);
@@ -817,24 +901,31 @@ function handleMove(e) {
   pointerTarget.y = pos.y;
 }
 
+
 function handleEnd() { pointerDown = false; }
+
 
 canvas.addEventListener('mousedown', handleStart);
 canvas.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleEnd);
+
 
 canvas.addEventListener('touchstart', (e) => { 
   if(e.cancelable) e.preventDefault(); 
   handleStart(e); 
 }, {passive: false});
 
+
 canvas.addEventListener('touchmove', (e) => { 
   if(e.cancelable) e.preventDefault(); 
   handleMove(e); 
 }, {passive: false});
 
+
 window.addEventListener('touchend', handleEnd);
 canvas.addEventListener('touchcancel', handleEnd);
+
+
 
 
 /* KEYBOARD SUPPORT */
@@ -857,6 +948,7 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
+
 /* PLAYER UPDATE & SHIP WEAPONS */
 function updatePlayer(dt){
   const p = player, s = p.ship;
@@ -869,6 +961,7 @@ function updatePlayer(dt){
     if(keys.ArrowDown || keys.KeyS){ dy++; keyActive = true; }
   }
 
+
   if(keyActive){
     p.x += dx * s.speed * dt;
     p.y += dy * s.speed * 0.7 * dt;
@@ -878,12 +971,14 @@ function updatePlayer(dt){
     p.y += (pointerTarget.y - p.y) * followSpeed;
   }
 
+
   // MASSIVE VERTICAL DRAG AREA: Ship can now go up to 30% from the top!
   p.x = Math.max(25, Math.min(W - 25, p.x));
   p.y = Math.max(H * 0.3, Math.min(H - 37, p.y));
   
   const targetTilt = keyActive ? dx * 0.35 : (inputMode === 'mouse' ? (pointerTarget.x - p.x) * 0.012 : 0);
   p.tilt += (targetTilt - p.tilt) * Math.min(1, dt * 12);
+
 
   p.fireDelay -= dt;
   p.rapid = Math.max(0, p.rapid - dt);
@@ -892,67 +987,146 @@ function updatePlayer(dt){
   p.overdrive = Math.max(0, p.overdrive - dt);
   p.invincible = Math.max(0, p.invincible - dt);
 
+
   if(p.fireDelay <= 0) fireShipWeapon();
 }
+
 
 function fireShipWeapon(){
   const p = player, s = p.ship, isRapid = p.rapid > 0, isOverdrive = p.overdrive > 0;
   p.fireDelay = isOverdrive ? Math.min(s.rapidDelay, .045) : (isRapid ? s.rapidDelay : s.fireDelay);
+  p.shotCount = (p.shotCount || 0) + 1;
 
   if(s.id === 'blaster'){
-    bullets.push({x:p.x-8, y:p.y-18, vx:0, vy:-640, r:4, dmg:1.2, color:s.color, type:'pulse'});
-    bullets.push({x:p.x+8, y:p.y-18, vx:0, vy:-640, r:4, dmg:1.2, color:s.color, type:'pulse'});
-    if(isRapid){
-      bullets.push({x:p.x-16, y:p.y-10, vx:-60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
-      bullets.push({x:p.x+16, y:p.y-10, vx:60, vy:-620, r:3, dmg:0.8, color:s.secColor, type:'pulse'});
+    // Dual high-frequency bactericidal ion plasma needles
+    bullets.push({x:p.x-9, y:p.y-18, vx:0, vy:-670, r:4.5, dmg:1.25, color:s.color, secColor:s.secColor, type:'pulse'});
+    bullets.push({x:p.x+9, y:p.y-18, vx:0, vy:-670, r:4.5, dmg:1.25, color:s.color, secColor:s.secColor, type:'pulse'});
+
+    // Wing-Mounted Micro-Ion Seeker Missiles (Every 3rd shot or continuous during Rapid/Overdrive)
+    if(p.shotCount % 3 === 0 || isRapid || isOverdrive){
+      const side = (p.shotCount % 2 === 0) ? -18 : 18;
+      bullets.push({
+        x: p.x + side, y: p.y - 10,
+        vx: side * 3.5, vy: -620,
+        r: 4, dmg: 1.15, homing: true, age: 0,
+        color: s.secColor, secColor: s.color,
+        type: 'pulse_rocket', smokeColor: 'rgba(74, 247, 255,'
+      });
     }
-    gunBeep(isRapid?700:540, .03, 'square', .02);
+
+    if(isRapid){
+      bullets.push({x:p.x-18, y:p.y-12, vx:-75, vy:-640, r:3.5, dmg:0.85, color:s.secColor, secColor:s.color, type:'pulse'});
+      bullets.push({x:p.x+18, y:p.y-12, vx:75, vy:-640, r:3.5, dmg:0.85, color:s.secColor, secColor:s.color, type:'pulse'});
+    }
+    gunBeep(isRapid ? 720 : 560, .03, 'square', .022);
   }
   else if(s.id === 'destroyer'){
-    bullets.push({x:p.x, y:p.y-22, vx:0, vy:-530, r:6, dmg:2.4, color:s.color, type:'heavy'});
-    bullets.push({x:p.x-14, y:p.y-15, vx:-110, vy:-500, r:5, dmg:1.8, color:s.secColor, type:'heavy'});
-    bullets.push({x:p.x+14, y:p.y-15, vx:110, vy:-500, r:5, dmg:1.8, color:s.secColor, type:'heavy'});
+    // Heavy central Bunker-Buster Spore Rocket
+    bullets.push({
+      x: p.x, y: p.y - 24,
+      vx: 0, vy: -530,
+      r: 7.5, dmg: 3.2, splash: 46,
+      color: s.color, secColor: '#ffe85e',
+      type: 'heavy_rocket', smokeColor: 'rgba(255, 125, 45,'
+    });
+    // Angled heavy kinetic artillery shells
+    bullets.push({x:p.x-16, y:p.y-14, vx:-115, vy:-490, r:5.5, dmg:1.85, color:s.secColor, secColor:s.color, type:'heavy'});
+    bullets.push({x:p.x+16, y:p.y-14, vx:115, vy:-490, r:5.5, dmg:1.85, color:s.secColor, secColor:s.color, type:'heavy'});
+
     if(isRapid){
-      bullets.push({x:p.x-22, y:p.y-10, vx:-210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
-      bullets.push({x:p.x+22, y:p.y-10, vx:210, vy:-470, r:4, dmg:1.5, color:s.color, type:'heavy'});
+      bullets.push({x:p.x-24, y:p.y-8, vx:-220, vy:-460, r:5, dmg:1.5, color:s.color, type:'heavy'});
+      bullets.push({x:p.x+24, y:p.y-8, vx:220, vy:-460, r:5, dmg:1.5, color:s.color, type:'heavy'});
+      bullets.push({
+        x: p.x, y: p.y - 30,
+        vx: 0, vy: -570,
+        r: 6.5, dmg: 2.6, splash: 55,
+        color: s.secColor, type: 'heavy_rocket', smokeColor: 'rgba(255, 78, 98,'
+      });
     }
-    gunBeep(260, .05, 'sawtooth', .03);
+    gunBeep(230, .06, 'sawtooth', .035);
   }
   else if(s.id === 'nighthawk'){
-    bullets.push({x:p.x-7, y:p.y-22, vx:0, vy:-720, r:4, dmg:1.6, pierce:3, color:s.color, type:'lance'});
-    bullets.push({x:p.x+7, y:p.y-22, vx:0, vy:-720, r:4, dmg:1.6, pierce:3, color:s.color, type:'lance'});
-    if(isRapid){
-      bullets.push({x:p.x, y:p.y-28, vx:0, vy:-780, r:5, dmg:2.2, pierce:5, color:s.secColor, type:'lance'});
+    // Twin piercing photon rail lances
+    bullets.push({x:p.x-8, y:p.y-22, vx:0, vy:-760, r:4, dmg:1.75, pierce:3, color:s.color, secColor:s.secColor, type:'lance'});
+    bullets.push({x:p.x+8, y:p.y-22, vx:0, vy:-760, r:4, dmg:1.75, pierce:3, color:s.color, secColor:s.secColor, type:'lance'});
+
+    // Hypersonic Stealth Dart Missile (Every 2nd shot or during Rapid/Overdrive)
+    if(p.shotCount % 2 === 0 || isRapid || isOverdrive){
+      bullets.push({
+        x: p.x, y: p.y - 26,
+        vx: 0, vy: -840,
+        r: 4.5, dmg: 2.3, pierce: 2,
+        color: s.secColor, secColor: s.color,
+        type: 'lance_rocket', smokeColor: 'rgba(184, 255, 86,'
+      });
     }
-    gunBeep(640, .04, 'sine', .025);
+
+    if(isRapid){
+      bullets.push({x:p.x-18, y:p.y-14, vx:-60, vy:-780, r:3.5, dmg:1.5, pierce:2, color:s.color, type:'lance_rocket', smokeColor:'rgba(74, 247, 255,'});
+      bullets.push({x:p.x+18, y:p.y-14, vx:60, vy:-780, r:3.5, dmg:1.5, pierce:2, color:s.color, type:'lance_rocket', smokeColor:'rgba(74, 247, 255,'});
+    }
+    gunBeep(660, .04, 'sine', .026);
   }
   else if(s.id === 'supernematicide'){
-    bullets.push({x:p.x-10, y:p.y-18, vx:-25, vy:-560, r:5, dmg:2.0, splash:42, color:s.color, type:'drill'});
-    bullets.push({x:p.x+10, y:p.y-18, vx:25, vy:-560, r:5, dmg:2.0, splash:42, color:s.color, type:'drill'});
-    if(isRapid){
-      bullets.push({x:p.x-24, y:p.y-24, vx:0, vy:-590, r:6, dmg:2.8, splash:55, color:s.secColor, type:'drill'});
+    // Dual spiraling chemical drill torpedoes
+    bullets.push({x:p.x-12, y:p.y-18, vx:-30, vy:-560, r:5.5, dmg:2.1, splash:44, rot:0, color:s.color, secColor:s.secColor, type:'drill', smokeColor:'rgba(255, 118, 213,'});
+    bullets.push({x:p.x+12, y:p.y-18, vx:30, vy:-560, r:5.5, dmg:2.1, splash:44, rot:Math.PI, color:s.color, secColor:s.secColor, type:'drill', smokeColor:'rgba(255, 118, 213,'});
+
+    // Bio-Chemical Bore Missile (Every 2nd shot or during Rapid/Overdrive)
+    if(p.shotCount % 2 === 0 || isRapid || isOverdrive){
+      bullets.push({
+        x: p.x, y: p.y - 24,
+        vx: 0, vy: -610,
+        r: 6.5, dmg: 2.8, splash: 62, homing: true, age: 0, rot: 0,
+        color: s.secColor, secColor: s.color,
+        type: 'drill_rocket', smokeColor: 'rgba(255, 232, 94,'
+      });
     }
-    gunBeep(340, .05, 'triangle', .03);
+
+    if(isRapid){
+      bullets.push({x:p.x-24, y:p.y-22, vx:-75, vy:-580, r:5, dmg:2.2, splash:50, rot:1.2, color:s.color, type:'drill', smokeColor:'rgba(255, 118, 213,'});
+      bullets.push({x:p.x+24, y:p.y-22, vx:75, vy:-580, r:5, dmg:2.2, splash:50, rot:2.4, color:s.color, type:'drill', smokeColor:'rgba(255, 118, 213,'});
+    }
+    gunBeep(350, .05, 'triangle', .03);
   }
   else if(s.id === 'rocket'){
-    p.rocketSide = 1 - p.rocketSide;
-    const sx = p.rocketSide ? p.x - 14 : p.x + 14;
-    bullets.push({x:sx, y:p.y-17, vx:(p.rocketSide ? -55 : 55), vy:-530, r:5, dmg:1.05, homing:true, color:s.color, type:'rocket', age:0});
+    // THE ROCKET SPECIALIST: Swarming Homing Micro-Missiles
+    p.rocketSide = 1 - (p.rocketSide || 0);
+    const sx = p.rocketSide ? p.x - 15 : p.x + 15;
+    
+    // Primary aerodynamic rocket
+    bullets.push({
+      x: sx, y: p.y - 17,
+      vx: (p.rocketSide ? -75 : 75), vy: -550,
+      r: 5.5, dmg: 1.35, homing: true, age: 0,
+      color: s.color, secColor: s.secColor,
+      type: 'rocket', smokeColor: 'rgba(240, 246, 255,'
+    });
+
     if(isRapid){
-      bullets.push({x:p.x, y:p.y-22, vx:0, vy:-570, r:4, dmg:.65, homing:true, color:s.secColor, type:'rocket', age:0});
+      // Quad rocket swarm fan-out
+      bullets.push({x:p.x + (p.rocketSide ? 18 : -18), y:p.y-17, vx:(p.rocketSide ? 130 : -130), vy:-560, r:5, dmg:1.1, homing:true, age:0, color:s.secColor, type:'rocket', smokeColor:'rgba(255, 232, 94,'});
+      bullets.push({x:p.x, y:p.y-26, vx:0, vy:-630, r:5.5, dmg:1.5, homing:true, age:0, color:'#ff4e62', type:'rocket', smokeColor:'rgba(255, 180, 100,'});
     }
+
     if(isOverdrive){
-      bullets.push({x:p.x + (p.rocketSide ? 19 : -19), y:p.y-14, vx:(p.rocketSide ? 115 : -115), vy:-610, r:4, dmg:.55, homing:true, color:'#ff76d5', type:'rocket', age:0});
+      // Full 5-way spiraling missile barrage
+      bullets.push({x:p.x-24, y:p.y-12, vx:-190, vy:-530, r:4.5, dmg:1.0, homing:true, age:0, color:'#ff76d5', type:'rocket', smokeColor:'rgba(255, 118, 213,'});
+      bullets.push({x:p.x+24, y:p.y-12, vx:190, vy:-530, r:4.5, dmg:1.0, homing:true, age:0, color:'#ff76d5', type:'rocket', smokeColor:'rgba(255, 118, 213,'});
     }
-    gunBeep(520, .035, 'square', .022);
+    gunBeep(520, .035, 'square', .024);
   }
 
+  // Overdrive central hyper surge
   if(isOverdrive && s.id !== 'rocket'){
-    bullets.push({x:p.x, y:p.y-30, vx:0, vy:-760, r:3, dmg:.7, pierce:1, color:COLORS.pink, type:'overdrive'});
+    bullets.push({
+      x: p.x, y: p.y - 30,
+      vx: 0, vy: -790,
+      r: 5.5, dmg: 1.6, pierce: 2,
+      color: COLORS.pink, type: 'overdrive', smokeColor: 'rgba(255, 118, 213,'
+    });
   }
 }
-
-
 /* VISUAL HIT FX: EYE-FRIENDLY IMPACT SPARKS & SOFT SHOCKWAVES */
 function createHitSpark(x, y, color, type = 'pulse'){
   const scale = getActiveScaleMultiplier();
@@ -960,6 +1134,7 @@ function createHitSpark(x, y, color, type = 'pulse'){
   shockwaves.push({
     x, y, r: 2 * scale, maxR, color: color || '#4af7ff', life: 0.18, maxLife: 0.18, lw: 1.8
   });
+
 
   const pCount = type === 'heavy' ? 6 : (type === 'drill' ? 7 : 4);
   for(let i = 0; i < pCount; i++){
@@ -975,6 +1150,7 @@ function createHitSpark(x, y, color, type = 'pulse'){
   }
 }
 
+
 /* BOMB EXECUTION */
 function triggerBomb(){
   if(player.bombs <= 0){
@@ -984,6 +1160,7 @@ function triggerBomb(){
   }
   player.bombs--;
   const bType = player.bombType;
+
 
   if(bType === 'laser'){
     shake = 0.4;
@@ -1024,10 +1201,12 @@ function triggerBomb(){
   }
 }
 
+
 function updateBombEffects(dt){
   for(let i = activeBombEffects.length - 1; i >= 0; i--){
     const eff = activeBombEffects[i];
     eff.life -= dt;
+
 
     if(eff.type === 'laser'){
       eff.beams.forEach(b => {
@@ -1051,6 +1230,7 @@ function updateBombEffects(dt){
   }
 }
 
+
 /* ENEMIES & DYNAMIC MULTI-ENEMY SWARMS */
 const TYPES = {
   bacteria: {hp:1, speed:135, points:70, r:18, color:'#a9ff60'}, fungus: {hp:3, speed:85, points:180, r:24, color:'#ffb45b'},
@@ -1059,10 +1239,12 @@ const TYPES = {
   nematode: {hp:6, speed:96, points:280, r:18, color:'#d7e4a1'}, flagellate: {hp:8, speed:82, points:340, r:22, color:'#ff5fa2'}
 };
 
+
 function getRandomEnemyType() {
   const types = ['bacteria', 'fungus', 'virus', 'pest', 'basipetal', 'nematode', 'flagellate', 'pod'];
   return types[Math.floor(Math.random() * types.length)];
 }
+
 
 function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   const d = TYPES[type], hp = d.hp + Math.floor((wave - 1) * 0.45);
@@ -1078,10 +1260,12 @@ function spawnEnemy(type, x, yOffset = 0, speedMult = 1){
   enemies.push(e);
 }
 
+
 function spawnSwarmFormation(){
   const formations = ['V_SHAPE', 'LINE_SWEEP', 'PINCER', 'CLUSTER_RUSH', 'HEAVY_ESCORT', 'BASIPETAL_CASCADE', 'NEMATODE_SWARM', 'FLAGELLATE_DRIFT'];
   const form = formations[Math.floor(Math.random() * formations.length)];
   const centerX = 150 + Math.random() * (W - 300);
+
 
   if(form === 'V_SHAPE'){
     for(let i = -2; i <= 2; i++) spawnEnemy(getRandomEnemyType(), centerX + i * 46, Math.abs(i) * 32, 1.1);
@@ -1113,14 +1297,17 @@ function spawnSwarmFormation(){
   }
 }
 
+
 function updateWaves(dt){
   waveTimer += dt;
   swarmTimer -= dt;
   const bossEvery = 38 + wave * 4;
 
+
   if(!bossSpawned && waveTimer > bossEvery){ spawnRandomBoss(); bossSpawned = true; return; }
   if(!bossSpawned && swarmTimer <= 0){ spawnSwarmFormation(); swarmTimer = Math.max(1.3, 2.8 - wave * 0.12 - (waveTimer * 0.015)); }
 }
+
 
 function updateEnemies(dt){
   const curScale = getActiveScaleMultiplier();
@@ -1159,6 +1346,7 @@ function updateEnemies(dt){
   enemies = enemies.filter(e => !e.dead);
 }
 
+
 function shootEnemy(e, spread){
   const a = Math.atan2(player.y - e.y, player.x - e.x) + spread;
   const dripColor = e.type === 'virus' ? COLORS.pink : e.type === 'basipetal' ? '#c48a3d' : e.type === 'flagellate' ? '#ff79b9' : COLORS.orange;
@@ -1166,6 +1354,7 @@ function shootEnemy(e, spread){
   enemyBullets.push({ x: e.x, y: e.y + e.r * 0.5, vx: Math.cos(a) * 190, vy: Math.sin(a) * 190, r: bRad, c: dripColor });
   beep(180, .04, 'sawtooth', .012);
 }
+
 
 function spawnRandomBoss(){
   enemies = enemies.filter(e => e.type !== 'pod');
@@ -1175,10 +1364,12 @@ function spawnRandomBoss(){
   const scale = getActiveScaleMultiplier();
   boss = { cfg: bossType, x: W/2, y: -90, targetY: 110, baseR, r: Math.max(25, Math.round(baseR * scale)), hp, maxHp: hp, age: 0, shoot: 1.2, spawn: 4.8, superTimer: 6.5, noDamage: true };
 
+
   floatingText.push({x:W/2, y:H*0.32, text:'⚠️ ' + bossType.name.toUpperCase() + ' ⚠️', color:bossType.color, life:3.0, vy:-10, big:true});
   floatingText.push({x:W/2, y:H*0.38, text:bossType.sub.toUpperCase(), color:COLORS.white, life:3.0, vy:-8, big:false});
   beep(90, .45, 'sawtooth', .08);
 }
+
 
 function updateBoss(dt){
   if(!boss) return;
@@ -1188,11 +1379,13 @@ function updateBoss(dt){
   b.age += dt; b.x = W/2 + Math.sin(b.age * 0.55) * 240; if(b.y < b.targetY) b.y += 65 * dt;
   b.shoot -= dt; b.spawn -= dt; b.superTimer = (b.superTimer || 7.0) - dt;
 
+
   if(b.superTimer <= 0 && b.y >= b.targetY - 2){
     b.superTimer = 7.5 + Math.random() * 2.0; shake = 0.85;
     activeBombEffects.push({ type: 'boss_flash', life: 0.5, x: b.x, y: b.y, color: b.cfg.color });
     floatingText.push({ x: W/2, y: H * 0.46, text: b.cfg.name + ' SUPER: ' + b.cfg.superName + '!', color: b.cfg.color, life: 2.2, vy: -15, big: true });
     beep(80, .3, 'sawtooth', .08);
+
 
     const bossAtLaunch = boss;
     if(b.cfg.id === 'xoo'){
@@ -1222,6 +1415,7 @@ function updateBoss(dt){
     }
   }
 
+
   if(b.shoot <= 0 && b.y >= b.targetY - 2){
     if(b.cfg.id === 'xoo'){
       for(let i = -2; i <= 2; i++){ const a = Math.PI / 2 + (i * 0.16) + Math.sin(b.age * 4) * 0.1; enemyBullets.push({x:b.x, y:b.y+38, vx:Math.cos(a)*195, vy:Math.sin(a)*195, r:5, c:b.cfg.color}); }
@@ -1248,8 +1442,10 @@ function updateBoss(dt){
     }
   }
 
+
   if(b.spawn <= 0){ spawnEnemy(Math.random() < .5 ? 'bacteria' : 'fungus', b.x + (Math.random() - .5) * 120); b.spawn = Math.max(2.4, 5.0 - wave * 0.2); }
   if(distance(b.x, b.y, player.x, player.y) < b.r + player.r) damagePlayer(35);
+
 
   if(b.hp <= 0){
     const bonus = b.noDamage ? 1500 : 0; addScore(3500 + wave * 500 + bonus); burst(b.x, b.y, b.cfg.color, 60);
@@ -1263,18 +1459,65 @@ function updateBoss(dt){
   }
 }
 
+
 /* BULLETS & COLLISION LOGIC */
 function updateBullets(dt){
+  const scale = getActiveScaleMultiplier();
+
   for(const b of bullets){
+    // Rotate drill torpedoes
+    if(b.rot !== undefined) b.rot += dt * 32;
+
+    // Homing guidance with forward momentum
     if(b.homing){
-      b.age += dt; let target = boss;
-      if(!target){ let nearestDist = 9999; enemies.forEach(e => { if(!e.dead && e.y < b.y){ const d = distance(b.x, b.y, e.x, e.y); if(d < nearestDist){ nearestDist = d; target = e; } } }); }
+      b.age = (b.age || 0) + dt;
+      let target = boss;
+      if(!target){
+        let nearestDist = 9999;
+        enemies.forEach(e => {
+          if(!e.dead && e.y < b.y + 40){
+            const d = distance(b.x, b.y, e.x, e.y);
+            if(d < nearestDist){ nearestDist = d; target = e; }
+          }
+        });
+      }
       if(target){
-        const angle = Math.atan2(target.y - b.y, target.x - b.x); b.vx += Math.cos(angle) * 750 * dt; b.vy += Math.sin(angle) * 750 * dt;
-        const spd = Math.hypot(b.vx, b.vy); if(spd > 580){ b.vx = (b.vx / spd) * 580; b.vy = (b.vy / spd) * 580; }
+        const angle = Math.atan2(target.y - b.y, target.x - b.x);
+        b.vx += Math.cos(angle) * 920 * dt;
+        b.vy += Math.sin(angle) * 920 * dt;
+        if(b.vy > -120) b.vy = -120; // Maintain forward drive
+        const spd = Math.hypot(b.vx, b.vy);
+        const maxSpd = b.maxSpd || 620;
+        if(spd > maxSpd){
+          b.vx = (b.vx / spd) * maxSpd;
+          b.vy = (b.vy / spd) * maxSpd;
+        }
       }
     }
-    b.x += b.vx * dt; b.y += b.vy * dt;
+
+    // Emit authentic missile & rocket smoke puffs
+    if(b.type === 'rocket' || b.type === 'heavy_rocket' || b.type === 'pulse_rocket' || b.type === 'lance_rocket' || b.type === 'drill' || b.type === 'drill_rocket'){
+      b.smokeTimer = (b.smokeTimer || 0) - dt;
+      if(b.smokeTimer <= 0){
+        b.smokeTimer = 0.032;
+        const heading = Math.atan2(b.vy, b.vx);
+        const tailDist = (b.type === 'heavy_rocket' ? 14 : 10) * scale;
+        missileSmokes.push({
+          x: b.x - Math.cos(heading) * tailDist,
+          y: b.y - Math.sin(heading) * tailDist,
+          vx: -Math.cos(heading) * 35 + (Math.random() - 0.5) * 18,
+          vy: -Math.sin(heading) * 35 + (Math.random() - 0.5) * 18,
+          r: (b.type === 'heavy_rocket' ? 3.6 : 2.4) * scale,
+          maxR: (b.type === 'heavy_rocket' ? 9.0 : 6.0) * scale,
+          alpha: 0.65,
+          decay: b.type === 'heavy_rocket' ? 1.8 : 2.4,
+          color: b.smokeColor || 'rgba(230, 240, 255,'
+        });
+      }
+    }
+
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
   }
 
   enemyBullets.forEach(b => { b.x += b.vx * dt; b.y += b.vy * dt; });
@@ -1307,22 +1550,24 @@ function updateBullets(dt){
     }
   }
 
-  bullets = bullets.filter(b => !b.dead && b.y > -30 && b.x > -30 && b.x < W + 30);
+  bullets = bullets.filter(b => !b.dead && b.y > -35 && b.x > -35 && b.x < W + 35);
   enemyBullets = enemyBullets.filter(b => !b.dead && b.y > -20 && b.y < H + 25 && b.x > -25 && b.x < W + 25);
 }
-
 function triggerSplash(x, y, radius, dmg){
   burst(x, y, COLORS.pink, 14); enemies.forEach(e => { if(!e.dead && distance(x, y, e.x, e.y) < radius + e.r){ e.hp -= dmg; if(e.hp <= 0) killEnemy(e); } });
 }
+
 
 function killEnemy(e){
   e.dead = true;
   addScore(e.points);
   const scale = getActiveScaleMultiplier();
 
+
   // Expanding destruction shockwave
   shockwaves.push({ x: e.x, y: e.y, r: 4 * scale, maxR: Math.round(e.r * 2.6), color: e.color, life: 0.28, maxLife: 0.28, lw: 3 });
   shockwaves.push({ x: e.x, y: e.y, r: 2 * scale, maxR: Math.round(e.r * 1.6), color: '#ffffff', life: 0.18, maxLife: 0.18, lw: 2 });
+
 
   // Explosion shrapnel
   const pCount = Math.min(24, 10 + Math.floor(e.r / 2));
@@ -1338,17 +1583,21 @@ function killEnemy(e){
     });
   }
 
+
   // Floating combat score popup directly at enemy position
   floatingText.push({ x: e.x, y: e.y - 10, text: '+' + e.points, color: COLORS.lime, life: 0.9, vy: -32, big: false });
   shake = Math.max(shake, 0.15);
+
 
   if(Math.random() < .08) spawnPowerup(e.x, e.y);
   beep(220 + Math.random() * 140, .08, 'square', .025);
 }
 
+
 function damagePlayer(a){
   if(player.invincible > 0) return;
   const scale = getActiveScaleMultiplier();
+
 
   if(player.shield > 0){
     // COOL SHIELD DEFLECTION BARRIER FX
@@ -1359,6 +1608,7 @@ function damagePlayer(a){
     return;
   }
 
+
   player.hp -= a;
   player.invincible = 0.7;
   if(boss) boss.noDamage = false;
@@ -1367,11 +1617,13 @@ function damagePlayer(a){
   damageVignette = 0.45;
   shake = 0.18;
 
+
   // Hull Breach Electrical Shockwave & Sparks
   shockwaves.push({ x: player.x, y: player.y, r: 6 * scale, maxR: 50 * scale, color: '#ff2244', life: 0.32, maxLife: 0.32, lw: 3 });
   burst(player.x, player.y, '#ff4e62', 22);
   floatingText.push({ x: player.x, y: player.y - 32, text: '-' + a + ' HP', color: COLORS.red, life: 1.1, vy: -28, big: true });
   beep(75, .2, 'sawtooth', .07);
+
 
   if(player.hp <= 0){
     player.lives--;
@@ -1385,8 +1637,10 @@ function damagePlayer(a){
   }
 }
 
+
 function distance(x1, y1, x2, y2){ return Math.hypot(x2 - x1, y2 - y1); }
 function addScore(v){ score += Math.floor(v * (player.multiplier > 0 ? 2 : 1)); if(score > bestScore){ bestScore = score; localStorage.setItem('pathowingBest', bestScore); } }
+
 
 /* POWER-UPS */
 const REGULAR_POWERS = [
@@ -1394,7 +1648,9 @@ const REGULAR_POWERS = [
   {type:'fertility', label:'+', name:'FERTILITY PACK', color:COLORS.yellow}, {type:'scan', label:'2X', name:'EXTENSION SCAN', color:COLORS.pink}
 ];
 
+
 function spawnPowerup(x, y){ const q = REGULAR_POWERS[Math.floor(Math.random() * REGULAR_POWERS.length)]; powerups.push({x, y, type:q.type, label:q.label, name:q.name, color:q.color, age:0}); }
+
 
 function updatePowerups(dt){
   for(const p of powerups){
@@ -1405,6 +1661,7 @@ function updatePowerups(dt){
   powerups = powerups.filter(p => !p.dead);
 }
 
+
 function collectPowerup(p){
   if(p.type === 'bomb'){ player.bombs = Math.min(5, player.bombs + 1); floatingText.push({x:p.x, y:p.y-12, text:'+1 BOMB REFILLED!', color:COLORS.yellow, life:1.6, vy:-25, big:true}); beep(880, .15, 'square', .05); burst(p.x, p.y, COLORS.yellow, 20); return; }
   if(p.type === 'rapid') player.rapid = 10;
@@ -1414,13 +1671,16 @@ function collectPowerup(p){
   addScore(120); burst(p.x, p.y, p.color, 16); floatingText.push({x:p.x, y:p.y-12, text:p.name, color:p.color, life:1.35, vy:-25, big:false}); beep(720, .12, 'sine', .04);
 }
 
+
 function burst(x, y, c, n){ for(let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 180; particles.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:1+Math.random()*3, c, life:.3+Math.random()*.55}); } }
+
 
 function updateParticles(dt){
   if(particles.length > 75) particles.splice(0, particles.length - 75);
   particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .95; p.vy *= .95; p.life -= dt; }); particles = particles.filter(p => p.life > 0);
   floatingText.forEach(t => { t.y += t.vy * dt; t.life -= dt; }); floatingText = floatingText.filter(t => t.life > 0);
 }
+
 
 /* UPDATE ENGINE */
 function update(dt){
@@ -1430,11 +1690,13 @@ function update(dt){
   updateParticles(dt);
 }
 
+
 /* RENDERING HELPERS */
 function rect(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
 function circle(x,y,r,c,fill=true){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ ctx.fillStyle=c; ctx.fill(); } else { ctx.strokeStyle=c; ctx.stroke(); } }
 function text(s,x,y,z,c,a='left'){ ctx.fillStyle=c; ctx.font=`bold ${z}px 'Courier New',Courier,monospace`; ctx.textAlign=a; ctx.textBaseline='middle'; ctx.fillText(s,x,y); }
 function line(x1,y1,x2,y2,c,w=1){ ctx.strokeStyle=c; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+
 
 function drawHeart(x, y, s, filled = true, color = '#ff4e62'){
   ctx.save(); ctx.translate(x, y); ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.beginPath();
@@ -1442,11 +1704,13 @@ function drawHeart(x, y, s, filled = true, color = '#ff4e62'){
   if(filled) ctx.fill(); else ctx.stroke(); ctx.restore();
 }
 
+
 function poly(p, c, st = null){
   if(!p || p.length < 2) return;
   ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for(let i = 1; i < p.length; i++){ ctx.lineTo(p[i][0], p[i][1]); } ctx.closePath();
   if(c){ ctx.fillStyle = c; ctx.fill(); } if(st){ ctx.strokeStyle = st; ctx.lineWidth = 2; ctx.stroke(); }
 }
+
 
 function renderBackground(){
   rect(0, 0, W, H, '#07111d');
@@ -1461,6 +1725,7 @@ function renderBackground(){
   if(b === 0) drawRice(); else if(b === 1) drawGreenhouse(); else if(b === 2) drawSoil(); else drawForest();
   rect(0, 0, W, H, 'rgba(3,13,25,.20)');
 }
+
 
 function drawRice(){
   for(let y = -50; y < H + 60; y += 58){
@@ -1500,15 +1765,18 @@ function drawForest(){
   }
 }
 
+
 function drawEngineFlame(x, y, scale) {
   const flameH = 10 + Math.random() * 10 * scale; ctx.fillStyle = '#4af7ff'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x-4*scale, y+flameH); ctx.lineTo(x+4*scale, y+flameH); ctx.fill();
 }
+
 
 function drawPlayer(p){
   ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.tilt);
   const scale = getActiveScaleMultiplier();
   ctx.scale(scale, scale);
   p.r = Math.round(20 * scale);
+
 
   if(p.shield > 0){ circle(0, 0, 30 + Math.sin(elapsed * 8) * 2, 'rgba(74,247,255,.14)'); ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.stroke(); }
   if(p.overdrive > 0){
@@ -1518,7 +1786,9 @@ function drawPlayer(p){
   }
   if(p.invincible > 0 && Math.floor(elapsed * 14) % 2 === 0){ ctx.restore(); return; }
 
+
   const s = p.ship; const img = IMAGES[s.id];
+
 
   if (img && img.complete && img.naturalHeight !== 0) {
     ctx.drawImage(img, -30, -30, 60, 60);
@@ -1543,12 +1813,447 @@ function drawPlayer(p){
   ctx.restore();
 }
 
+
+
+/* CUSTOM HIGH-DEFINITION WEAPON PROJECTILE & MISSILE RENDERER */
+function drawProjectile(b){
+  const scale = getActiveScaleMultiplier();
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  const angle = Math.atan2(b.vy, b.vx) + Math.PI / 2;
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  const type = b.type || 'pulse';
+
+  if(type === 'rocket'){
+    // === INSECTICIDE SWARM HOMING ROCKET ===
+    const len = 22, w = 6, halfW = 3;
+
+    // Rocket Thruster Exhaust Flame
+    const flameH = 9 + Math.random() * 8;
+    const grad = ctx.createLinearGradient(0, len/2, 0, len/2 + flameH);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.25, '#ffe85e');
+    grad.addColorStop(0.7, '#ff9d35');
+    grad.addColorStop(1, 'rgba(255, 78, 98, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.75, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.75, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4 Stabilizing Tail Fins (Delta Fins)
+    ctx.fillStyle = '#ff4e62';
+    // Left fin
+    ctx.beginPath();
+    ctx.moveTo(-halfW, len / 2 - 6);
+    ctx.lineTo(-halfW - 5.5, len / 2);
+    ctx.lineTo(-halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+    // Right fin
+    ctx.beginPath();
+    ctx.moveTo(halfW, len / 2 - 6);
+    ctx.lineTo(halfW + 5.5, len / 2);
+    ctx.lineTo(halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Aerodynamic Missile Fuselage
+    ctx.fillStyle = '#f0f6fc';
+    ctx.fillRect(-halfW, -len / 2 + 6, w, len - 6);
+
+    // Mid-fuselage hazard/accent stripe
+    ctx.fillStyle = b.color || '#ffe85e';
+    ctx.fillRect(-halfW, -len / 2 + 8, w, 3.5);
+
+    // Dark panel accent
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-halfW, -len / 2 + 13, w, 1.5);
+
+    // Sharp Conical Seeker Nose Cone
+    ctx.fillStyle = '#ff4e62';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2);
+    ctx.lineTo(-halfW, -len / 2 + 6);
+    ctx.lineTo(halfW, -len / 2 + 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glint highlight
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, -len / 2 + 2, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  else if(type === 'heavy_rocket'){
+    // === FUNGICIDAL HEAVY BUNKER-BUSTER SPORE ROCKET ===
+    const len = 28, w = 9.5, halfW = 4.75;
+
+    // Roaring heavy combustion exhaust
+    const flameH = 12 + Math.random() * 9;
+    ctx.fillStyle = '#ff4e62';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.85, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.85, len / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ffe85e';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.45, len / 2);
+    ctx.lineTo(0, len / 2 + flameH * 0.65);
+    ctx.lineTo(halfW * 0.45, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Heavy side rocket boosters
+    ctx.fillStyle = '#7f4932';
+    ctx.fillRect(-halfW - 3.5, len / 2 - 8, 3, 7);
+    ctx.fillRect(halfW + 0.5, len / 2 - 8, 3, 7);
+    // Booster flames
+    ctx.fillStyle = '#ff9d35';
+    ctx.fillRect(-halfW - 3, len / 2 - 1, 2, 4 + Math.random() * 3);
+    ctx.fillRect(halfW + 1, len / 2 - 1, 2, 4 + Math.random() * 3);
+
+    // Armored Tungsten/Copper Shell Casing
+    ctx.fillStyle = '#3a2012';
+    ctx.fillRect(-halfW, -len / 2 + 8, w, len - 8);
+
+    // Segmented brass armor plating
+    ctx.fillStyle = '#ff9d35';
+    ctx.fillRect(-halfW + 1, -len / 2 + 9, w - 2, 6);
+    ctx.fillRect(-halfW + 1, -len / 2 + 17, w - 2, 4);
+
+    // Heavy explosive warhead cap
+    ctx.fillStyle = '#ff4e62';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2);
+    ctx.lineTo(-halfW, -len / 2 + 8);
+    ctx.lineTo(halfW, -len / 2 + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Molten kinetic center seam
+    ctx.strokeStyle = '#ffe85e';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 + 2);
+    ctx.lineTo(0, len / 2 - 2);
+    ctx.stroke();
+  }
+  else if(type === 'heavy'){
+    // === FUNGICIDAL HEAVY ARTILLERY KINETIC SHELL ===
+    const len = 20, w = 7.5, halfW = 3.75;
+    // Thruster jet
+    const flameH = 7 + Math.random() * 6;
+    ctx.fillStyle = '#ff9d35';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.7, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.7, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Base cartridge collar
+    ctx.fillStyle = '#3a2012';
+    ctx.fillRect(-halfW - 0.5, len / 2 - 4, w + 1, 4);
+
+    // Heavy ogive bullet body
+    ctx.fillStyle = '#ff9d35';
+    ctx.beginPath();
+    ctx.moveTo(-halfW, len / 2 - 4);
+    ctx.lineTo(-halfW, -len / 2 + 6);
+    ctx.quadraticCurveTo(-halfW, -len / 2, 0, -len / 2);
+    ctx.quadraticCurveTo(halfW, -len / 2, halfW, -len / 2 + 6);
+    ctx.lineTo(halfW, len / 2 - 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // High-heat core line
+    ctx.strokeStyle = '#ffe85e';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 + 3);
+    ctx.lineTo(0, len / 2 - 3);
+    ctx.stroke();
+  }
+  else if(type === 'pulse_rocket'){
+    // === BACTERICIDAL MICRO-ION SEEKER MISSILE ===
+    const len = 20, w = 5, halfW = 2.5;
+
+    // Ion plasma thruster flame
+    const flameH = 8 + Math.random() * 6;
+    ctx.fillStyle = '#4af7ff';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.7, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.7, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Winglet guidance fins
+    ctx.fillStyle = '#30ee83';
+    ctx.beginPath();
+    ctx.moveTo(-halfW, len / 2 - 4);
+    ctx.lineTo(-halfW - 4, len / 2);
+    ctx.lineTo(-halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(halfW, len / 2 - 4);
+    ctx.lineTo(halfW + 4, len / 2);
+    ctx.lineTo(halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sleek cyan composite fuselage
+    ctx.fillStyle = '#061a21';
+    ctx.fillRect(-halfW, -len / 2 + 5, w, len - 5);
+    ctx.strokeStyle = '#4af7ff';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(-halfW, -len / 2 + 5, w, len - 5);
+
+    // Ion needle tip
+    ctx.fillStyle = '#4af7ff';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 - 2);
+    ctx.lineTo(-halfW, -len / 2 + 5);
+    ctx.lineTo(halfW, -len / 2 + 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Core glow
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, -len / 2 + 3, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  else if(type === 'pulse'){
+    // === BACTERICIDAL ION PLASMA NEEDLE ===
+    const len = 19, w = 5;
+    // Corona glow
+    ctx.shadowColor = b.color || '#30ee83';
+    ctx.shadowBlur = 9;
+    ctx.fillStyle = b.color || '#30ee83';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w, len / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Energetic wing spikes
+    ctx.strokeStyle = b.secColor || '#4af7ff';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-w - 2, 1);
+    ctx.lineTo(-w, -2);
+    ctx.lineTo(0, -len / 2 - 2);
+    ctx.lineTo(w, -2);
+    ctx.lineTo(w + 2, 1);
+    ctx.stroke();
+
+    // White-hot inner core
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(0, -1, w * 0.45, len * 0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trailing ion wake
+    ctx.strokeStyle = 'rgba(74, 247, 255, 0.65)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, len / 2);
+    ctx.lineTo(0, len / 2 + 7);
+    ctx.stroke();
+  }
+  else if(type === 'lance_rocket'){
+    // === HYPERSONIC STEALTH DART MISSILE ===
+    const len = 25, w = 4.5, halfW = 2.25;
+
+    // Supersonic mach diamond flame
+    const flameH = 10 + Math.random() * 7;
+    ctx.fillStyle = '#b8ff56';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.7, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.7, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Razor swept stealth wings
+    ctx.fillStyle = '#4af7ff';
+    ctx.beginPath();
+    ctx.moveTo(-halfW, len / 2 - 5);
+    ctx.lineTo(-halfW - 5, len / 2 + 1);
+    ctx.lineTo(-halfW, len / 2 - 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(halfW, len / 2 - 5);
+    ctx.lineTo(halfW + 5, len / 2 + 1);
+    ctx.lineTo(halfW, len / 2 - 1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Faceted stealth fuselage
+    ctx.fillStyle = '#061a21';
+    ctx.fillRect(-halfW, -len / 2 + 7, w, len - 7);
+
+    // Laser dart needlepoint
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 - 3);
+    ctx.lineTo(-halfW, -len / 2 + 7);
+    ctx.lineTo(halfW, -len / 2 + 7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Luminous trim
+    ctx.strokeStyle = '#b8ff56';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2);
+    ctx.lineTo(0, len / 2);
+    ctx.stroke();
+  }
+  else if(type === 'lance'){
+    // === IPM NIGHTHAWK PIERCING PHOTON RAIL LANCE ===
+    const len = 34, w = 4.2;
+    ctx.shadowColor = '#4af7ff';
+    ctx.shadowBlur = 12;
+
+    // Trailing razor energy streak
+    ctx.strokeStyle = 'rgba(74, 247, 255, 0.4)';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2);
+    ctx.lineTo(0, len / 2 + 14);
+    ctx.stroke();
+
+    // Piercing lance shaft
+    ctx.strokeStyle = '#4af7ff';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2);
+    ctx.lineTo(0, len / 2);
+    ctx.stroke();
+
+    // Prismatic diamond needlehead
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 - 4);
+    ctx.lineTo(-w, -len / 2 + 4);
+    ctx.lineTo(0, -len / 2 + 11);
+    ctx.lineTo(w, -len / 2 + 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Energy cross-emitters
+    ctx.strokeStyle = '#b8ff56';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-w - 3, len / 4);
+    ctx.lineTo(0, len / 4 - 3);
+    ctx.lineTo(w + 3, len / 4);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  else if(type === 'drill_rocket' || type === 'drill'){
+    // === CHEMICAL DRILL TORPEDO & BIO-ROCKET ===
+    const isRocket = type === 'drill_rocket';
+    const len = isRocket ? 26 : 22, w = isRocket ? 8.5 : 7, halfW = w / 2;
+
+    // Chemical propellant exhaust
+    const flameH = 8 + Math.random() * 7;
+    ctx.fillStyle = isRocket ? '#ffe85e' : '#bf55ec';
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.75, len / 2);
+    ctx.lineTo(0, len / 2 + flameH);
+    ctx.lineTo(halfW * 0.75, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Torpedo tail steering fins
+    ctx.fillStyle = '#ff76d5';
+    ctx.beginPath();
+    ctx.moveTo(-halfW, len / 2 - 4);
+    ctx.lineTo(-halfW - 4.5, len / 2 + 2);
+    ctx.lineTo(-halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(halfW, len / 2 - 4);
+    ctx.lineTo(halfW + 4.5, len / 2 + 2);
+    ctx.lineTo(halfW, len / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pressurized toxin reservoir
+    ctx.fillStyle = '#2e0a24';
+    ctx.fillRect(-halfW, -len / 2 + 8, w, len - 8);
+    ctx.strokeStyle = '#ff76d5';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(-halfW, -len / 2 + 8, w, len - 8);
+
+    // Luminous toxic acid core
+    ctx.fillStyle = '#ff76d5';
+    ctx.fillRect(-halfW + 1.5, -len / 2 + 9.5, w - 3, len - 11);
+
+    // Rotating helical drill bit
+    ctx.fillStyle = '#ffe85e';
+    ctx.beginPath();
+    ctx.moveTo(0, -len / 2 - 3);
+    ctx.lineTo(-halfW, -len / 2 + 8);
+    ctx.lineTo(halfW, -len / 2 + 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Spiral helical flutes
+    ctx.strokeStyle = '#7f4932';
+    ctx.lineWidth = 1.4;
+    const rot = (b.rot || 0) % (Math.PI * 2);
+    const gY = -len / 2 + 3 + Math.sin(rot) * 2;
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.6, gY);
+    ctx.lineTo(halfW * 0.6, gY + 2);
+    ctx.stroke();
+  }
+  else if(type === 'overdrive'){
+    // === BIOSECURITY OVERDRIVE HYPER SURGE ===
+    const len = 28, w = 6;
+    ctx.shadowColor = '#ff76d5';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = '#ff76d5';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w, len / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w * 0.45, len * 0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  else {
+    // Fallback bullet
+    ctx.fillStyle = b.color || '#ffe85e';
+    ctx.beginPath();
+    ctx.arc(0, 0, b.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function gameLoop(timestamp){
   if(!lastTime) lastTime = timestamp; const dt = Math.min(0.05, (timestamp - lastTime) / 1000); lastTime = timestamp;
   update(dt);
   ctx.save();
   if(shake > 0){ const sx = (Math.random() - 0.5) * Math.min(0.22, shake) * 6; const sy = (Math.random() - 0.5) * Math.min(0.22, shake) * 6; ctx.translate(sx, sy); }
   renderBackground();
+
 
   if(state === STATE.PLAY){
     // DISTINCT POWERUP BONUS CRATES: Glowing floating diamond supply crates with clear icons & labels
@@ -1566,6 +2271,7 @@ function gameLoop(timestamp){
       ctx.arc(0, 0, 22 * scale * pulse, 0, Math.PI * 2);
       ctx.fill();
 
+
       // 2. Rotating dotted beacon ring (clearly marks it as a pickup)
       ctx.save();
       ctx.rotate(p.age * 2.5);
@@ -1577,6 +2283,7 @@ function gameLoop(timestamp){
       ctx.stroke();
       ctx.restore();
 
+
       // 3. Diamond capsule container
       const boxR = Math.round(14 * scale);
       ctx.save();
@@ -1587,6 +2294,7 @@ function gameLoop(timestamp){
       ctx.lineWidth = Math.max(1.5, 2.5 * scale);
       ctx.strokeRect(-boxR, -boxR, boxR * 2, boxR * 2);
       ctx.restore();
+
 
       // 4. Large crisp icon inside
       let icon = '⭐';
@@ -1601,6 +2309,7 @@ function gameLoop(timestamp){
       ctx.textBaseline = 'middle';
       ctx.fillText(icon, 0, 0);
 
+
       // 5. Bright floating label tag under capsule
       ctx.font = `bold ${Math.round(9 * scale)}px "Courier New", monospace`;
       ctx.fillStyle = p.color;
@@ -1609,11 +2318,36 @@ function gameLoop(timestamp){
       ctx.fillText(tag, 0, Math.round(23 * scale));
       
 
+
       ctx.restore();
     }
 
-    // PLAYER WEAPON BULLETS
-    for(const b of bullets) circle(b.x, b.y, b.r, b.color || COLORS.yellow);
+
+    // MISSILE & ROCKET BILLOWING SMOKE TRAILS
+    for(let i = missileSmokes.length - 1; i >= 0; i--){
+      const sp = missileSmokes[i];
+      sp.x += sp.vx * dt;
+      sp.y += sp.vy * dt;
+      sp.r += (sp.maxR - sp.r) * 8 * dt;
+      sp.alpha -= sp.decay * dt;
+      if(sp.alpha <= 0){
+        missileSmokes.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, sp.alpha);
+      ctx.fillStyle = sp.color + sp.alpha + ')';
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // DISTINCT PLAYER PROJECTILES, ROCKETS & MISSILES
+    for(const b of bullets){
+      drawProjectile(b);
+    }
+
 
     // DISTINCT ENEMY BULLETS: Fiery bio-hazard energy needles with crimson warning aura & white core
     for(const eb of enemyBullets) {
@@ -1628,6 +2362,7 @@ function gameLoop(timestamp){
       ctx.ellipse(0, 0, eb.r * 1.5, eb.r * 2.2, 0, 0, Math.PI * 2);
       ctx.fill();
 
+
       // Sharp hazard plasma needle
       ctx.fillStyle = eb.c || '#ff3344';
       ctx.beginPath();
@@ -1638,10 +2373,12 @@ function gameLoop(timestamp){
       ctx.closePath();
       ctx.fill();
 
+
       // Sharp crimson danger outline
       ctx.strokeStyle = '#ff0033';
       ctx.lineWidth = 1.5;
       ctx.stroke();
+
 
       // White-hot laser center
       ctx.fillStyle = '#ffffff';
@@ -1649,8 +2386,10 @@ function gameLoop(timestamp){
       ctx.arc(0, -eb.r * 0.3, eb.r * 0.4, 0, Math.PI * 2);
       ctx.fill();
 
+
       ctx.restore();
     }
+
 
     // DRAW ENEMIES
     for(const e of enemies){
@@ -1716,9 +2455,11 @@ function gameLoop(timestamp){
           ctx.restore();
       }
 
+
       const hpPct = e.hp / e.maxHp;
       if(hpPct < 1){ rect(e.x - 10, e.y - e.r - 6, 20, 3, 'rgba(255,255,255,.2)'); rect(e.x - 10, e.y - e.r - 6, 20 * hpPct, 3, COLORS.lime); }
     }
+
 
     // DRAW BOSS
     if(boss){
@@ -1739,6 +2480,7 @@ function gameLoop(timestamp){
             for(let i=0; i<8; i++){ ctx.rotate(Math.PI/4); ctx.fillStyle = '#fff'; circle(0, b.r + (100 * (1 - chargePct)), 4); }
         }
         ctx.rotate(Math.sin(b.age)*0.1); ctx.globalAlpha = 0.3 + Math.sin(b.age*5)*0.1; circle(0, 0, b.r*1.1, b.cfg.accentColor); ctx.globalAlpha = 1.0;
+
 
         if (b.cfg.id === 'pop_ringspot') {
            ctx.strokeStyle = b.cfg.color; ctx.lineWidth = 6;
@@ -1761,7 +2503,9 @@ function gameLoop(timestamp){
       rect(b.x - 40, b.y - b.r - 10, 80, 6, 'rgba(255,255,255,.2)'); rect(b.x - 40, b.y - b.r - 10, 80 * hpPct, 6, COLORS.lime);
     }
 
+
     drawPlayer(player);
+
 
     for(const eff of activeBombEffects){
       if(eff.type === 'boss_flash'){
@@ -1787,6 +2531,7 @@ function gameLoop(timestamp){
     }
   }
 
+
   // DRAW EXPANDING SHOCKWAVE RINGS
   for(let i = shockwaves.length - 1; i >= 0; i--){
     const sw = shockwaves[i];
@@ -1804,8 +2549,10 @@ function gameLoop(timestamp){
     ctx.stroke();
     ctx.restore();
 
+
     if(sw.life <= 0) shockwaves.splice(i, 1);
   }
+
 
   for(let i = 0; i < particles.length; i++){
     const pt = particles[i];
@@ -1813,6 +2560,7 @@ function gameLoop(timestamp){
     ctx.fillRect(pt.x - pt.r, pt.y - pt.r, pt.r * 2, pt.r * 2);
   }
   for(const ft of floatingText) text(ft.text, ft.x, ft.y, ft.big ? 18 : 12, ft.color, 'center');
+
 
   // GENTLE, EYE-SAFE DAMAGE VIGNETTE (SOFT WINE RED, NO HARSH STROBING)
   if(damageVignette > 0){
@@ -1825,12 +2573,15 @@ function gameLoop(timestamp){
     ctx.fillRect(0, 0, W, H);
   }
 
+
   ctx.restore();
+
 
   if(state === STATE.PLAY){
     const isMobile = (typeof isMobileDevice === 'function' && isMobileDevice()) || W <= 600;
     // Generous top clearance on mobile so HUD is completely below the top bar
     const hudY = isMobile ? 66 : 28;
+
 
     // HIGH-CONTRAST TRANSLUCENT HUD BACKDROP CHIPS
     ctx.save();
@@ -1838,22 +2589,27 @@ function gameLoop(timestamp){
     ctx.strokeStyle = 'rgba(74, 247, 255, 0.5)';
     ctx.lineWidth = 1.2;
 
+
     // Left: Score & HP chip
     ctx.fillRect(8, hudY - 14, 146, 46);
     ctx.strokeRect(8, hudY - 14, 146, 46);
 
+
     // Right: Wave & Lives chip
     ctx.fillRect(W - 134, hudY - 14, 126, 46);
     ctx.strokeRect(W - 134, hudY - 14, 126, 46);
+
 
     // Center: Bomb chip
     ctx.fillRect(W/2 - 38, hudY - 14, 76, 30);
     ctx.strokeRect(W/2 - 38, hudY - 14, 76, 30);
     ctx.restore();
 
+
     // 100% VISIBLE, UNCLUTTERED HUD TEXT
     text('SCORE: ' + score.toLocaleString(), 16, hudY, 13, COLORS.yellow, 'left');
     text('WAVE ' + wave, W - 16, hudY, 13, COLORS.lime, 'right');
+
 
     const barW = 96, barH = 7, barX = 16, barY = hudY + 18;
     rect(barX, barY, barW, barH, 'rgba(255,255,255,.2)');
@@ -1861,6 +2617,7 @@ function gameLoop(timestamp){
     const hpColor = hpRatio > 0.5 ? COLORS.lime : (hpRatio > 0.25 ? COLORS.yellow : COLORS.red);
     rect(barX, barY, barW * hpRatio, barH, hpColor);
     text('HP', barX + barW + 5, barY + barH/2, 9, COLORS.white, 'left');
+
 
     for(let i = 0; i < player.lives; i++){ 
       drawHeart(W - 22 - i * 18, hudY + 18, 13, true, COLORS.red); 
@@ -1870,10 +2627,12 @@ function gameLoop(timestamp){
   requestAnimationFrame(gameLoop);
 }
 
+
 function endGame(){
   state = STATE.GAME_OVER; gameOverOverlay.classList.add('active'); finalScoreDisplay.textContent = 'SCORE: ' + score.toLocaleString();
   recordLocalRun(score); beep(120, .35, 'sawtooth', .07);
 }
+
 
 function submitCurrentScore(){
   if(submitted) return;
@@ -1884,8 +2643,10 @@ function submitCurrentScore(){
   });
 }
 
+
 if(nameInput) { nameInput.value = getSavedPlayerName(); nameInput.addEventListener('input', () => { setSavedPlayerName(nameInput.value.trim()); }); }
 if(submitScoreBtn) { submitScoreBtn.addEventListener('click', () => { if(!submitted) { const name = nameInput.value.trim() || 'Anonymous'; submitScore(name, score).then(res => { submitted = true; submitScoreBtn.disabled = true; submitScoreBtn.textContent = res.status === 'ok' ? 'SUBMITTED ✓' : 'SAVED LOCALLY'; }); } }); }
+
 
 requestAnimationFrame(gameLoop);
 fetchLeaderboard();
