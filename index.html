@@ -478,6 +478,7 @@ function resizeEngine() {
   const wrap = document.getElementById('gameWrap');
   if (!wrap) return;
   const rect = wrap.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
   const profile = getDeviceProfile();
 
 
@@ -594,7 +595,7 @@ const controlHelp = document.getElementById('controlHelp');
 let state = STATE.START;
 let keys = Object.create(null);
 let lastTime = 0, elapsed = 0, scroll = 0, score = 0;
-let bestScore = Number(localStorage.getItem('pathowingBest') || 0);
+let bestScore = Number((localStorage.getItem('phytoplaneBest') || localStorage.getItem('pathowingBest')) || 0);
 let wave = 1, waveTimer = 0, swarmTimer = 0;
 let boss = null, bossSpawned = false;
 let enemies = [], bullets = [], enemyBullets = [], powerups = [], particles = [], floatingText = [], shockwaves = [], missileSmokes = [];
@@ -733,7 +734,7 @@ function recordLocalRun(finalScore){
   const entry = { name: getSavedPlayerName(), score: Math.floor(finalScore), date: dateOnly(new Date().toString()) };
   const merged = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
   saveLocalScores(merged); leaderboard = mergeScores(merged, leaderboard);
-  if(entry.score > bestScore){ bestScore = entry.score; localStorage.setItem('pathowingBest', bestScore); }
+  if(entry.score > bestScore){ bestScore = entry.score; localStorage.setItem('phytoplaneBest', bestScore); }
 }
 
 
@@ -743,11 +744,15 @@ async function submitScore(name, finalScore){
     const scoreVal = Math.floor(finalScore);
     const response = await fetch(LEADERBOARD_URL, {
       method: 'POST',
-      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ name: cleanName, score: scoreVal })
     });
-    const data = await response.json();
-    return data || { status: 'ok' };
+    try {
+      const data = await response.json();
+      return data || { status: 'ok' };
+    } catch(err) {
+      return { status: 'ok' };
+    }
   } catch(e) {
     return { status: 'error', error: e.message };
   }
@@ -809,7 +814,7 @@ async function fetchLeaderboard(){
     const response = await fetch(LEADERBOARD_URL, {method:'GET', cache:'no-store'});
     const data = await response.json();
     if(data && (data.status === 'ok' || Array.isArray(data.leaderboard))){
-      const rawList = Array.isArray(data.leaderboard) ? data.leaderboard : (Array.isArray(data) ? data : []);
+      const rawList = remoteRows(data);
       const merged = mergeScores(normalizeEntries(rawList), normalizeEntries(loadLocalScores()));
       leaderboard = merged;
       saveLocalScores(leaderboard);
@@ -1639,7 +1644,7 @@ function damagePlayer(a){
 
 
 function distance(x1, y1, x2, y2){ return Math.hypot(x2 - x1, y2 - y1); }
-function addScore(v){ score += Math.floor(v * (player.multiplier > 0 ? 2 : 1)); if(score > bestScore){ bestScore = score; localStorage.setItem('pathowingBest', bestScore); } }
+function addScore(v){ score += Math.floor(v * (player.multiplier > 0 ? 2 : 1)); if(score > bestScore){ bestScore = score; localStorage.setItem('phytoplaneBest', bestScore); } }
 
 
 /* POWER-UPS */
@@ -1682,18 +1687,32 @@ function updateParticles(dt){
 }
 
 
+
+function updateMissileSmokes(dt){
+  for(let i = missileSmokes.length - 1; i >= 0; i--){
+    const sp = missileSmokes[i];
+    sp.x += sp.vx * dt;
+    sp.y += sp.vy * dt;
+    sp.r += (sp.maxR - sp.r) * 8 * dt;
+    sp.alpha -= sp.decay * dt;
+    if(sp.alpha <= 0){
+      missileSmokes.splice(i, 1);
+    }
+  }
+}
+
 /* UPDATE ENGINE */
 function update(dt){
   elapsed += dt; scroll += dt * (52 + wave * 3); shake = Math.max(0, shake - dt);
   stars.forEach(s => { s.y += (25 + s.s * 18) * dt; if(s.y > H){ s.y = 0; s.x = Math.random() * W; } });
-  if(state === STATE.PLAY){ updatePlayer(dt); updateWaves(dt); updateEnemies(dt); updateBoss(dt); updateBullets(dt); updateBombEffects(dt); updatePowerups(dt); }
+  if(state === STATE.PLAY){ updatePlayer(dt); updateWaves(dt); updateEnemies(dt); updateBoss(dt); updateBullets(dt); updateBombEffects(dt); updatePowerups(dt); updateMissileSmokes(dt); }
   updateParticles(dt);
 }
 
 
 /* RENDERING HELPERS */
 function rect(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
-function circle(x,y,r,c,fill=true){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ ctx.fillStyle=c; ctx.fill(); } else { ctx.strokeStyle=c; ctx.stroke(); } }
+function circle(x,y,r,c,fill=true){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); if(fill){ if(c) ctx.fillStyle=c; ctx.fill(); } else { if(c) ctx.strokeStyle=c; ctx.stroke(); } }
 function text(s,x,y,z,c,a='left'){ ctx.fillStyle=c; ctx.font=`bold ${z}px 'Courier New',Courier,monospace`; ctx.textAlign=a; ctx.textBaseline='middle'; ctx.fillText(s,x,y); }
 function line(x1,y1,x2,y2,c,w=1){ ctx.strokeStyle=c; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
 
@@ -2324,16 +2343,7 @@ function gameLoop(timestamp){
 
 
     // MISSILE & ROCKET BILLOWING SMOKE TRAILS
-    for(let i = missileSmokes.length - 1; i >= 0; i--){
-      const sp = missileSmokes[i];
-      sp.x += sp.vx * dt;
-      sp.y += sp.vy * dt;
-      sp.r += (sp.maxR - sp.r) * 8 * dt;
-      sp.alpha -= sp.decay * dt;
-      if(sp.alpha <= 0){
-        missileSmokes.splice(i, 1);
-        continue;
-      }
+    for(const sp of missileSmokes){
       ctx.save();
       ctx.globalAlpha = Math.max(0, sp.alpha);
       ctx.fillStyle = sp.color + sp.alpha + ')';
@@ -2399,7 +2409,7 @@ function gameLoop(timestamp){
         if(e.hitFlash > 0){
           ctx.save();
           ctx.globalAlpha = Math.min(1.0, e.hitFlash / 0.12);
-          ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(e.x, e.y, e.r * 1.15, null, false);
+          ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(e.x, e.y, e.r * 1.15, 'rgba(74,247,255,0.7)', false);
           ctx.restore();
         }
       } else {
@@ -2449,7 +2459,7 @@ function gameLoop(timestamp){
         if(e.hitFlash > 0){
             ctx.save();
             ctx.globalAlpha = Math.min(1.0, e.hitFlash / 0.12);
-            ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(0, 0, e.r * 1.15, null, false);
+            ctx.strokeStyle = 'rgba(74,247,255,0.7)'; ctx.lineWidth = 2; circle(0, 0, e.r * 1.15, 'rgba(74,247,255,0.7)', false);
             ctx.restore();
           }
           ctx.restore();
@@ -2469,7 +2479,7 @@ function gameLoop(timestamp){
         if(b.hitFlash > 0){
           ctx.save();
           ctx.globalAlpha = Math.min(1.0, b.hitFlash / 0.14);
-          ctx.strokeStyle = 'rgba(255,232,94,0.7)'; ctx.lineWidth = 2.5; circle(b.x, b.y, b.r * 1.15, null, false);
+          ctx.strokeStyle = 'rgba(255,232,94,0.7)'; ctx.lineWidth = 2.5; circle(b.x, b.y, b.r * 1.15, 'rgba(255,232,94,0.7)', false);
           ctx.restore();
         }
       } else {
@@ -2629,23 +2639,78 @@ function gameLoop(timestamp){
 
 
 function endGame(){
-  state = STATE.GAME_OVER; gameOverOverlay.classList.add('active'); finalScoreDisplay.textContent = 'SCORE: ' + score.toLocaleString();
-  recordLocalRun(score); beep(120, .35, 'sawtooth', .07);
+  state = STATE.GAME_OVER;
+  gameOverOverlay.classList.add('active');
+  finalScoreDisplay.textContent = 'SCORE: ' + score.toLocaleString();
+  submitted = false;
+  if(submitScoreBtn){
+    submitScoreBtn.disabled = false;
+    submitScoreBtn.textContent = 'SUBMIT SCORE TO LEADERBOARD';
+  }
+  if(nameInput){
+    nameInput.value = getSavedPlayerName();
+  }
+  beep(120, .35, 'sawtooth', .07);
 }
 
 
 function submitCurrentScore(){
   if(submitted) return;
-  const name = nameInput.value.trim() || 'Anonymous';
-  submitScore(name, score).then(res => {
-    submitted = true;
-    if(submitScoreBtn){ submitScoreBtn.disabled = true; submitScoreBtn.textContent = res.status === 'ok' ? 'SUBMITTED ✓' : 'SAVED LOCALLY'; }
+  const name = (nameInput ? nameInput.value.trim() : '') || 'Anonymous';
+  setSavedPlayerName(name);
+
+  const cleanScore = Math.floor(score);
+  if(cleanScore <= 0){
+    if(submitScoreBtn) submitScoreBtn.textContent = 'NO SCORE TO LOG';
+    return;
+  }
+
+  // Disable button immediately to prevent double submissions
+  submitted = true;
+  if(submitScoreBtn){
+    submitScoreBtn.disabled = true;
+    submitScoreBtn.textContent = 'SUBMITTING...';
+  }
+
+  // Explicitly save to local leaderboard upon user submission
+  const entry = { name, score: cleanScore, date: dateOnly(new Date().toString()) };
+  const merged = mergeScores(normalizeEntries(loadLocalScores()), [entry]);
+  saveLocalScores(merged);
+  leaderboard = mergeScores(merged, leaderboard);
+  if(cleanScore > bestScore){
+    bestScore = cleanScore;
+    localStorage.setItem('phytoplaneBest', bestScore);
+  }
+  renderLeaderboardTable();
+
+  // Submit to remote database
+  submitScore(name, cleanScore).then(res => {
+    if(submitScoreBtn){
+      submitScoreBtn.textContent = (res && res.status === 'ok') ? 'SUBMITTED ✓' : 'SAVED LOCALLY';
+    }
+    fetchLeaderboard();
+  }).catch(() => {
+    if(submitScoreBtn){
+      submitScoreBtn.textContent = 'SAVED LOCALLY';
+    }
   });
 }
 
 
-if(nameInput) { nameInput.value = getSavedPlayerName(); nameInput.addEventListener('input', () => { setSavedPlayerName(nameInput.value.trim()); }); }
-if(submitScoreBtn) { submitScoreBtn.addEventListener('click', () => { if(!submitted) { const name = nameInput.value.trim() || 'Anonymous'; submitScore(name, score).then(res => { submitted = true; submitScoreBtn.disabled = true; submitScoreBtn.textContent = res.status === 'ok' ? 'SUBMITTED ✓' : 'SAVED LOCALLY'; }); } }); }
+if(nameInput){
+  nameInput.value = getSavedPlayerName();
+  nameInput.addEventListener('input', () => { setSavedPlayerName(nameInput.value.trim()); });
+  nameInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      nameInput.blur();
+      submitCurrentScore();
+    }
+  });
+}
+if(submitScoreBtn){
+  submitScoreBtn.addEventListener('click', submitCurrentScore);
+}
 
 
 requestAnimationFrame(gameLoop);
